@@ -11,10 +11,11 @@ XK = XL[-sampleIdxes,]
 XL = XL[sampleIdxes,]
 
 #calssifier = ID3.treeClassifier(XL, predicates, 6)
-calssifier = ID3.classifier(aggregator=randomForestTreeAggregator, XL=XL, treesDepth=6, partsFactor=200/5000, treesCount=100)
+calssifier = ID3.classifier(aggregator=randomForestTreeFloatAggregator, XL=XL, treesDepth=4, partsFactor=100/5000, treesCount=100, colsFactor=3/12)
+#calssifier = ID3.classifier(aggregator=adaBoostAggregator, XL=XL, treesDepth=2, partsFactor=200/5000, treesCount=1000, colsFactor=3/12)
 
-print(paste0('learn error = ', calculateError(XL, calssifier) * 100, '%'))
-print(paste0('control error = ', calculateError(XK, calssifier) * 100, '%'))
+print(paste0('learn error = ', calculateError(XL, calssifier)))
+print(paste0('control error = ', calculateError(XK, calssifier)))
 
 
 "

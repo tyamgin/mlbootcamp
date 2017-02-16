@@ -9,14 +9,19 @@ calculateError = function(XL, classifier) {
   errors = 0
   n = nrow(XL)
   m = ncol(XL)
+  results = rep(0, n)
   for(i in 1:n) {
     x = XL[i, -m]
-    y = XL[i, m]
-    if (classifier(x) != y) {
-      errors = errors + 1
-    }
+    results[i] = classifier(x);
   }
-  return( errors / n )
+  MultiLogLoss(XL[, m], results)
+}
+
+# see https://www.kaggle.com/wiki/LogarithmicLoss
+MultiLogLoss <- function(act, pred) {
+  eps <- 1e-15
+  pred <- pmin(pmax(pred, eps), 1 - eps)
+  sum(act * log(pred) + (1 - act) * log(1 - pred)) * -1/NROW(act)
 }
 
 donskoiInform01Criteria = function(XL, pred) {
@@ -44,18 +49,6 @@ donskoiInform01Criteria = function(XL, pred) {
   return( 2 * (c01 * c10 + c00 * c11) )
 }
 
-donskoiInformCriteria = function(XL, pred) {
-  res = 0
-  for(i in 1:nrow(XL)) {
-    for(j in 1:nrow(XL)) {
-      if (XL[i,ncol(XL)] != XL[j,ncol(XL)] && pred(XL[i,]) != pred(XL[j,])) {
-        res = res + 1
-      }
-    }
-  }
-  return( res )
-}
-
 ID3.treeClassifier = function(XL, predicates, maxDepth = 1000) {
   m = ncol(XL)
   buildTreeRec = function(XL, predicates, depth) {
@@ -64,7 +57,7 @@ ID3.treeClassifier = function(XL, predicates, maxDepth = 1000) {
     # если закончились предикаты, или достингута максимальная глубина
     # выбрать класс, который больше раз встречается
     if (p == 0 || depth >= maxDepth) {
-      return( list(countMax(XL[,m])) )
+      return( list(mean(XL[,m])) )
     }
     
     # если все одного класса, то выбрать этот класс
@@ -90,16 +83,15 @@ ID3.treeClassifier = function(XL, predicates, maxDepth = 1000) {
     for(i in 1:L) {
       qwe = c(qwe, pred(XL[i,]))
     }
-    failback = countMax(XL[, m])
     
     U0 = XL[which(!qwe),,drop=F]
     U1 = XL[which(qwe),,drop=F]
     if (nrow(U0) == 0 || nrow(U1) == 0) {
-      return( list(countMax(XL[,m])) )
+      return( list(mean(XL[,m])) )
     }
     L = buildTreeRec(U0, predicates[-predicateIdx], depth + 1)
     R = buildTreeRec(U1, predicates[-predicateIdx], depth + 1)
-    return( list(L, R, pred, failback) )
+    return( list(L, R, pred) )
   }
   tree = buildTreeRec(XL, predicates, 1)
   
@@ -109,9 +101,6 @@ ID3.treeClassifier = function(XL, predicates, maxDepth = 1000) {
     
     pred = tree[[3]]
     test = pred(x)
-    if (is.na(test)) {
-      return( tree[[4]] ) # failback
-    }
     if (test)
       return( classify(tree[[2]], x) )
     return( classify(tree[[1]], x) )
@@ -119,9 +108,10 @@ ID3.treeClassifier = function(XL, predicates, maxDepth = 1000) {
   return( function(x) { classify(tree, x) } )
 }
 
-predicates.middleGenerator = function (XL) {
+predicates.middleGenerator = function (XL, colsFactor) {
   predicates = c()
-  for(j in 1:(ncol(XL)-1)) {
+  m = ncol(XL) - 1
+  for(j in sample(1:m, m*colsFactor, T)) {
     possibleValues = unique(sort(XL[,j]))
     
     if (length(possibleValues) <= 1)
@@ -133,9 +123,6 @@ predicates.middleGenerator = function (XL) {
         j <- j;
         thr <- thr;
         function(xx) {
-          if (is.na(xx[j])) {
-            return( NA )
-          }
           return( xx[j] < thr )
         }
       }))
@@ -144,13 +131,14 @@ predicates.middleGenerator = function (XL) {
   return( predicates )
 }
 
-ID3.classifier = function(aggregator, XL, predicates=NULL, treesCount=100, treesDepth=3, partsFactor = 0.3, predicatesFactor = 1) {
+ID3.classifier = function(aggregator, XL, predicates=NULL, treesCount=100, treesDepth=3, partsFactor=0.3, predicatesFactor=1, colsFactor=1) {
   simpleAlgos = c()
   autoPredicates = is.null(predicates)
+  n = nrow(XL)
   for(i in 1:treesCount) {
-    subXL = XL[sample(1:nrow(XL), nrow(XL)*partsFactor), ]
+    subXL = XL[sample(1:n, n*partsFactor), ]
     if (autoPredicates) {
-      predicates = predicates.middleGenerator(subXL)
+      predicates = predicates.middleGenerator(subXL, colsFactor)
     }
     subPreds = predicates[sample(1:length(predicates), length(predicates) * predicatesFactor)]
     simpleAlgos = c(simpleAlgos, ID3.treeClassifier(subXL, subPreds, treesDepth))
@@ -165,11 +153,22 @@ ID3.classifier = function(aggregator, XL, predicates=NULL, treesCount=100, trees
 
 randomForestTreeAggregator = function (XL, baseAlgos) {
   return( function(x) {
-    results = c()
-    for (algo in baseAlgos)
-      results = c(results, algo(x))
+    l = length(baseAlgos)
+    results = rep(0, l)
+    for (i in 1:l)
+      results[i] = baseAlgos[[i]](x);
     return( countMax(results) )
   } )
+}
+
+randomForestTreeFloatAggregator = function (XL, baseAlgos) {
+  l = length(baseAlgos)
+  function(x) {
+    s = 0
+    for (algo in baseAlgos)
+      s = s + algo(x);
+    s / l
+  }
 }
 
 adaBoostAggregator = function(XL, baseAlgos) {
