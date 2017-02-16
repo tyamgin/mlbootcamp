@@ -49,51 +49,74 @@ donskoiInform01Criteria = function(XL, pred) {
   return( 2 * (c01 * c10 + c00 * c11) )
 }
 
-ID3.treeClassifier = function(XL, predicates, maxDepth = 1000) {
+ID3.treeClassifier = function(XL, cols, maxDepth = 1000) {
   m = ncol(XL)
-  buildTreeRec = function(XL, predicates, depth) {
+  buildTreeRec = function(XL, cols, depth) {
     p = length(predicates)
-    L = nrow(XL)
+    n = nrow(XL)
     # если закончились предикаты, или достингута максимальная глубина
-    # выбрать класс, который больше раз встречается
+    # посчитать среднее
     if (p == 0 || depth >= maxDepth) {
       return( list(mean(XL[,m])) )
     }
     
     # если все одного класса, то выбрать этот класс
-    if (sum(XL[,m] == XL[1, m]) == L) {
+    if (sum(XL[,m] == XL[1, m]) == n) {
       return( list(XL[1, m]) )
     }
     
-    classes = unique(XL[,m])
-    
     # ищем предикат с максимальной информативностью
-    predicateIdx = -1
     maxInform = -1e10
-    for(i in 1:p) {
-      pred = predicates[[i]]
-      inf = donskoiInform01Criteria(XL, pred)#!!!!!!!!!!
-      if (inf >= maxInform) {
-        maxInform = inf
-        predicateIdx = i
+    selCol = -1
+    selThr = -1
+
+    totalOnes = sum(XL[, m])
+    totalZeroes = n - totalOnes
+    for (col in cols) {
+      ordered = order(XL[, col])
+      cnt0 = 0
+      cnt1 = 0
+      for (i in 1:(n - 1)) {
+        if (XL[ordered[i], m] == 0)
+          cnt0 = cnt0 + 1
+        else
+          cnt1 = cnt1 + 1
+        
+        if (ordered[i] == ordered[i + 1])
+          next
+        
+        inform = cnt0 * (totalOnes - cnt1) + cnt1 * (totalZeroes - cnt0)
+        
+        if (inform > maxInform) {
+          maxInform = inform
+          selCol = col
+          selThr = (XL[ordered[i], col] + XL[ordered[i + 1], col]) / 2
+        }
       }
     }
-    pred = predicates[[predicateIdx]] # вот он
-    qwe = c()
-    for(i in 1:L) {
-      qwe = c(qwe, pred(XL[i,]))
+    if (selCol == -1) {
+      stop("cannot find any threshold")
     }
     
-    U0 = XL[which(!qwe),,drop=F]
-    U1 = XL[which(qwe),,drop=F]
+    leftIdxes = which(XL[, selCol] < selThr)
+    
+    U0 = XL[-leftIdxes, ,drop=F]
+    U1 = XL[leftIdxes, ,drop=F]
     if (nrow(U0) == 0 || nrow(U1) == 0) {
       return( list(mean(XL[,m])) )
     }
-    L = buildTreeRec(U0, predicates[-predicateIdx], depth + 1)
-    R = buildTreeRec(U1, predicates[-predicateIdx], depth + 1)
+    L = buildTreeRec(U0, cols, depth + 1)
+    R = buildTreeRec(U1, cols, depth + 1)
+    pred = local({
+      selCol <- selCol;
+      selThr <- selThr;
+      function (xx) {
+        xx[selCol] < selThr
+      }
+    })
     return( list(L, R, pred) )
   }
-  tree = buildTreeRec(XL, predicates, 1)
+  tree = buildTreeRec(XL, cols, 1)
   
   classify = function(tree, x) {
     if (length(tree) == 1)
@@ -105,50 +128,24 @@ ID3.treeClassifier = function(XL, predicates, maxDepth = 1000) {
       return( classify(tree[[2]], x) )
     return( classify(tree[[1]], x) )
   }
-  return( function(x) { classify(tree, x) } )
+  function(x) { classify(tree, x) }
 }
 
-predicates.middleGenerator = function (XL, colsFactor) {
-  predicates = c()
-  m = ncol(XL) - 1
-  for(j in sample(1:m, m*colsFactor, T)) {
-    possibleValues = unique(sort(XL[,j]))
-    
-    if (length(possibleValues) <= 1)
-      next  
-    
-    for(k in 2:length(possibleValues)) {
-      thr = (possibleValues[k] + possibleValues[k - 1]) / 2
-      predicates = c(predicates, local({
-        j <- j;
-        thr <- thr;
-        function(xx) {
-          return( xx[j] < thr )
-        }
-      }))
-    }
-  }
-  return( predicates )
-}
-
-ID3.classifier = function(aggregator, XL, predicates=NULL, treesCount=100, treesDepth=3, partsFactor=0.3, predicatesFactor=1, colsFactor=1) {
+ID3.classifier = function(aggregator, XL, treesCount=100, treesDepth=3, partsFactor=0.3, colsFactor=1) {
   simpleAlgos = c()
-  autoPredicates = is.null(predicates)
   n = nrow(XL)
+  m = ncol(XL) - 1
   for(i in 1:treesCount) {
-    subXL = XL[sample(1:n, n*partsFactor), ]
-    if (autoPredicates) {
-      predicates = predicates.middleGenerator(subXL, colsFactor)
-    }
-    subPreds = predicates[sample(1:length(predicates), length(predicates) * predicatesFactor)]
-    simpleAlgos = c(simpleAlgos, ID3.treeClassifier(subXL, subPreds, treesDepth))
+    subXL = XL[sample(1:n, n*partsFactor, T), ]
+    cols = sample(1:m, m*colsFactor)
+    simpleAlgos = c(simpleAlgos, ID3.treeClassifier(subXL, cols, treesDepth))
     
     if (DEBUG_OUTPUT) {
       print(paste0(treesCount - i, ' simple algos remains'))
     }
   }
   
-  return( aggregator(XL, simpleAlgos) )
+  aggregator(XL, simpleAlgos)
 }
 
 randomForestTreeAggregator = function (XL, baseAlgos) {
