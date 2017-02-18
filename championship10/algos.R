@@ -5,58 +5,40 @@ countMax = function(x) {
   as.integer(names(sort(table(x),decreasing=T))[1])
 }
 
-calculateError = function(XL, classifier) {
-  errors = 0
+calculateError = function(XL, classifier, multi=F) {
   n = nrow(XL)
   m = ncol(XL)
-  results = rep(0, n)
-  for(i in 1:n) {
-    x = XL[i, -m]
-    results[i] = classifier(x);
+  if (multi) {
+    results = classifier(XL[, -m])
+  } else {
+    results = rep(0, n)
+    for(i in 1:n) {
+      x = XL[i, -m]
+      results[i] = classifier(x);
+    }
   }
   MultiLogLoss(XL[, m], results)
 }
 
 # see https://www.kaggle.com/wiki/LogarithmicLoss
-MultiLogLoss <- function(act, pred) {
-  eps <- 1e-15
-  pred <- pmin(pmax(pred, eps), 1 - eps)
+error.logloss = function(act, pred) {
+  eps = 1e-15
+  pred = pmin(pmax(pred, eps), 1 - eps)
   sum(act * log(pred) + (1 - act) * log(1 - pred)) * -1/NROW(act)
 }
 
-donskoiInform01Criteria = function(XL, pred) {
-  res = 0
-  n = nrow(XL)
-  m = ncol(XL)
-  c01 = 0
-  c10 = 0
-  c00 = 0
-  c11 = 0
-  for (i in 1:n) {
-    v = pred(XL[i, ])
-    if (is.na(v))
-      next
-      
-    if (XL[i, m] == 0 && v)
-      c01 = c01 + 1
-    else if (XL[i, m] == 1 && !v)
-      c10 = c10 + 1
-    else if (XL[i, m] == 0 && !v)
-      c00 = c00 + 1
-    else
-      c11 = c11 + 1
-  }
-  return( 2 * (c01 * c10 + c00 * c11) )
+error.mean = function(act, pred) {
+  mean(abs(act - pred))
 }
+
 
 ID3.treeClassifier = function(XL, cols, maxDepth = 1000) {
   m = ncol(XL)
-  buildTreeRec = function(XL, cols, depth) {
-    p = length(predicates)
+  buildTreeRec = function(XL, depth) {
     n = nrow(XL)
     # если закончились предикаты, или достингута максимальная глубина
     # посчитать среднее
-    if (p == 0 || depth >= maxDepth) {
+    if (depth >= maxDepth) {
       return( list(mean(XL[,m])) )
     }
     
@@ -105,26 +87,19 @@ ID3.treeClassifier = function(XL, cols, maxDepth = 1000) {
     if (nrow(U0) == 0 || nrow(U1) == 0) {
       return( list(mean(XL[,m])) )
     }
-    L = buildTreeRec(U0, cols, depth + 1)
-    R = buildTreeRec(U1, cols, depth + 1)
-    pred = local({
-      selCol <- selCol;
-      selThr <- selThr;
-      function (xx) {
-        xx[selCol] < selThr
-      }
-    })
-    return( list(L, R, pred) )
+    L = buildTreeRec(U0, depth + 1)
+    R = buildTreeRec(U1, depth + 1)
+    return( list(L, R, selCol, selThr) )
   }
-  tree = buildTreeRec(XL, cols, 1)
+  tree = buildTreeRec(XL, 1)
   
   classify = function(tree, x) {
     if (length(tree) == 1)
       return( tree[[1]] )
     
-    pred = tree[[3]]
-    test = pred(x)
-    if (test)
+    col = tree[[3]]
+    thr = tree[[4]]
+    if (x[col] < thr)
       return( classify(tree[[2]], x) )
     return( classify(tree[[1]], x) )
   }
@@ -143,19 +118,31 @@ ID3.classifier = function(aggregator, XL, treesCount=100, treesDepth=3, partsFac
     if (DEBUG_OUTPUT) {
       print(paste0(treesCount - i, ' simple algos remains'))
     }
+    gc()
   }
   
   aggregator(XL, simpleAlgos)
 }
 
-randomForestTreeAggregator = function (XL, baseAlgos) {
-  return( function(x) {
-    l = length(baseAlgos)
-    results = rep(0, l)
-    for (i in 1:l)
-      results[i] = baseAlgos[[i]](x);
-    return( countMax(results) )
-  } )
+svm.getBaseAlgos = function (XL, count=10, partsFactor=0.3) {
+  algos = c()
+  n = nrow(XL)
+  for (i in 1:count) {
+    subXL = XL[sample(1:n, n*partsFactor), ]
+    svp <- ksvm(subXL[,-ncol(XL)], subXL[,ncol(XL)], type="C-svc", kernel='rbfdot', C=1, prob.model=T)
+    #kpar=list(sigma=1)
+    algos = c(algos, local({
+      svp <- svp
+      function (x) {
+        if (is.null(nrow(x))) {
+          x = matrix(x, nrow=1)
+        }
+        predict(svp, x, type="prob")[,2]
+      }
+    }))
+    print(paste0(count - i, ' svm algos remains'))
+  }
+  algos
 }
 
 randomForestTreeFloatAggregator = function (XL, baseAlgos) {
