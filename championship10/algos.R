@@ -31,8 +31,27 @@ error.mean = function (act, pred) {
   mean(abs(act - pred))
 }
 
-validation.tqfold = function (folds=3, iters=1) {
-  
+validation.tqfold = function (XLL, teachFunc, folds=3, iters=1, verbose=F) {
+  XKerr = 0
+  for (it in 1:iters) {
+    perm = sample(nrow(XLL))
+    for (fold in 1:folds) {
+      foldLength = floor(nrow(XLL) / folds)
+      foldStart = (fold - 1) * foldLength
+      foldEnd = foldStart + foldLength - 1
+      
+      controlIdxes = perm[foldStart:foldEnd]
+      XK = XLL[controlIdxes, ]
+      XL = XLL[-controlIdxes, ]  
+      
+      algo = teachFunc(XL)
+      XKerr = XKerr + error.logloss(XK[,ncol(XL)], algo(XK[,-ncol(XL)]))
+    }
+    if (verbose) {
+      print(paste0('tqfold ', iters - it, ' iterations remains'))
+    }
+  }
+  XKerr / iters / folds
 }
 
 
