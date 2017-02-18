@@ -17,18 +17,22 @@ calculateError = function(XL, classifier, multi=F) {
       results[i] = classifier(x);
     }
   }
-  MultiLogLoss(XL[, m], results)
+  error.logloss(XL[, m], results)
 }
 
 # see https://www.kaggle.com/wiki/LogarithmicLoss
-error.logloss = function(act, pred) {
+error.logloss = function (act, pred) {
   eps = 1e-15
   pred = pmin(pmax(pred, eps), 1 - eps)
   sum(act * log(pred) + (1 - act) * log(1 - pred)) * -1/NROW(act)
 }
 
-error.mean = function(act, pred) {
+error.mean = function (act, pred) {
   mean(abs(act - pred))
+}
+
+validation.tqfold = function (folds=3, iters=1) {
+  
 }
 
 
@@ -149,8 +153,13 @@ randomForestTreeFloatAggregator = function (XL, baseAlgos) {
   l = length(baseAlgos)
   function(x) {
     s = 0
-    for (algo in baseAlgos)
-      s = s + algo(x);
+    for (algo in baseAlgos) {
+      if (class(algo) == "function") {
+        s = s + algo(x);
+      } else {
+        s = s + predict(algo, x);
+      }
+    }
     s / l
   }
 }

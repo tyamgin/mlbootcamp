@@ -27,37 +27,44 @@ XX = XX %*% solve(t(pc$loadings))
 XX = XX[, 1:12]
 "
 
-XL = as.matrix(unname(cbind(data.matrix(XX), YY)))
+XLL = as.matrix(unname(cbind(data.matrix(XX), YY)))
+sampleIdxes = sample(1:nrow(XLL), nrow(XLL)-3)
+XKK = XLL[-sampleIdxes, ]
+XLL = XLL[sampleIdxes, ]  
+
 clr = ifelse(XL[,ncol(XL)]==0,"red","green")
 #plot(XL[,1], XL[,2], col=clr)
 #scatterplot3d(XL[,1:3], color=clr)
 #pairs(XL[,1:3], col=clr)
 
-#sampleIdxes = sample(1:nrow(XL), nrow(XL)-10)
-sampleIdxes = sample(1:nrow(XL), 15000)
-XK = XL[-sampleIdxes,]
-XL = XL[sampleIdxes,]
-
-
-#calssifier = ID3.treeClassifier(XL, predicates, 6)
-#calssifier = ID3.classifier(aggregator=randomForestTreeFloatAggregator, XL=XL, treesDepth=5, partsFactor=5000/5000, treesCount=100, colsFactor=6/10)
-#calssifier = ID3.classifier(aggregator=adaBoostAggregator, XL=XL, treesDepth=2, partsFactor=200/5000, treesCount=1000, colsFactor=3/12)
-
-#algos = svm.getBaseAlgos(XL, count=1, partsFactor=1)
-#calssifier = randomForestTreeFloatAggregator(0, algos)
-
-dtrain <- xgb.DMatrix(data=XL[,-ncol(XL)], label=XL[,ncol(XL)])
-dtest <- xgb.DMatrix(data=XK[,-ncol(XK)], label=XK[,ncol(XK)])
-watchlist <- list(train=dtrain, test=dtest)
-
-bstSparse = xgb.train(data=dtrain, watchlist=watchlist, max_depth=2, eta=0.1, nthread=4, nrounds=1000, eval_metric="logloss", objective="binary:logistic", early_stopping_rounds=30)
-#bstSparse = xgb.train(data=dtrain, watchlist=watchlist, max_depth=3, booster="gblinear", nthread=4, nrounds=200, eval_metric="logloss", objective="binary:logistic")
-print( error.logloss(XL[,ncol(XL)], predict(bstSparse, XL[,-ncol(XL)])) )
-print( error.logloss(XK[,ncol(XL)], predict(bstSparse, XK[,-ncol(XL)])) )
-
-#print(paste0('learn error = ', calculateError(XL, calssifier, multi=T)))
-#print(paste0('control error = ', calculateError(XK, calssifier, multi=T)))
-
+folds = 10
+iters = 10
+XLerr = 0
+XKerr = 0
+algos = list(iters*folds)
+pos = 1
+for (it in 1:iters) {
+  for (fold in 1:folds) {
+    foldLength = floor(nrow(XLL) / folds)
+    controlIdxes = sample(1:nrow(XLL), foldLength)
+    XK = XLL[controlIdxes, ]
+    XL = XLL[-controlIdxes, ]  
+  
+    dtrain <- xgb.DMatrix(data=XL[,-ncol(XL)], label=XL[,ncol(XL)])
+    dtest <- xgb.DMatrix(data=XK[,-ncol(XK)], label=XK[,ncol(XK)])
+    watchlist <- list(train=dtrain, test=dtest)
+    
+    bstSparse = xgb.train(data=dtrain, watchlist=watchlist, max_depth=2, eta=0.1, nthread=4, nrounds=1000, eval_metric="logloss", objective="binary:logistic", early_stopping_rounds=30, verbose=0)
+    algos[[pos]] = bstSparse
+    pos = pos + 1
+    XLerr = XLerr + error.logloss(XL[,ncol(XL)], predict(bstSparse, XL[,-ncol(XL)]))
+    XKerr = XKerr + error.logloss(XK[,ncol(XL)], predict(bstSparse, XK[,-ncol(XL)]))
+  }
+}
+print(paste0("Learn   average logloss: ", XLerr / folds / iters))
+print(paste0("Control average logloss: ", XKerr / folds / iters))
+aggregated = randomForestTreeFloatAggregator(0, algos)
+print(paste0("Super control average logloss: ", calculateError(XKK, aggregated, multi=T)))
 
 
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
@@ -66,10 +73,11 @@ results = rep(0, nrow(XXX))
 for (j in 1:ncol(XXX)) {
   XXX[, j] = (XXX[, j] - means[j]) / sds[j]
 }
-for (i in 1:nrow(XXX)) {
+results = aggregated(XXX)
+"for (i in 1:nrow(XXX)) {
   x = XXX[i,]
-  #results[i] = calssifier(x)
+  #results[i] = calssifier(x) 
   results[i] = predict(bstSparse, matrix(x, nrow=1))
 }
+"
 write(results, file='res.txt', sep='\n')
-
