@@ -19,6 +19,7 @@ for (j in 1:ncol(XX)) {
 }
 
 
+
 "
 pc = princomp(XX)
 XX = XX %*% solve(t(pc$loadings))
@@ -50,8 +51,8 @@ watchlist <- list(train=dtrain, test=dtest)
 
 bstSparse = xgb.train(data=dtrain, watchlist=watchlist, max_depth=2, eta=0.1, nthread=4, nrounds=1000, eval_metric="logloss", objective="binary:logistic", early_stopping_rounds=30)
 #bstSparse = xgb.train(data=dtrain, watchlist=watchlist, max_depth=3, booster="gblinear", nthread=4, nrounds=200, eval_metric="logloss", objective="binary:logistic")
-#error.logloss(predict(bstSparse, XL[,-ncol(XL)]), XL[,ncol(XL)])
-#error.logloss(predict(bstSparse, XK[,-ncol(XL)]), XK[,ncol(XL)])
+print( error.logloss(XL[,ncol(XL)], predict(bstSparse, XL[,-ncol(XL)])) )
+print( error.logloss(XK[,ncol(XL)], predict(bstSparse, XK[,-ncol(XL)])) )
 
 #print(paste0('learn error = ', calculateError(XL, calssifier, multi=T)))
 #print(paste0('control error = ', calculateError(XK, calssifier, multi=T)))
@@ -63,7 +64,7 @@ XXX = data.matrix(XXX)
 results = rep(0, nrow(XXX))
 for (i in 1:nrow(XXX)) {
   x = XXX[i,]
-  x = (x - means[j]) / sds[j]
+  x = (x - means[i]) / sds[i]
   #results[i] = calssifier(x)
   results[i] = predict(bstSparse, matrix(x, nrow=1))
 }
