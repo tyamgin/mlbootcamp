@@ -20,6 +20,7 @@ for (j in 1:ncol(XX)) {
 
 
 
+
 "
 pc = princomp(XX)
 XX = XX %*% solve(t(pc$loadings))
@@ -62,9 +63,11 @@ print( error.logloss(XK[,ncol(XL)], predict(bstSparse, XK[,-ncol(XL)])) )
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = data.matrix(XXX)
 results = rep(0, nrow(XXX))
+for (j in 1:ncol(XXX)) {
+  XXX[, j] = (XXX[, j] - means[j]) / sds[j]
+}
 for (i in 1:nrow(XXX)) {
   x = XXX[i,]
-  x = (x - means[i]) / sds[i]
   #results[i] = calssifier(x)
   results[i] = predict(bstSparse, matrix(x, nrow=1))
 }
