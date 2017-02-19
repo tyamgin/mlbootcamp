@@ -2,11 +2,23 @@ set.seed(32121)
 require(kernlab)
 require(scatterplot3d)
 require(xgboost)
+# install.packages('e1071', dependencies = TRUE)
+require(class) 
+require(e1071) 
 
-source("algos.R")
+debugSource("algos.R")
 
 XX = read.csv(file="x_train.csv", head=T, sep=";", na.strings="?")
 YY = read.csv(file="y_train.csv", head=F, sep=";", na.strings="?")
+
+"
+XX = cbind(XX, XX$totalBonusScore / (1 + XX$totalScore))
+XX = cbind(XX, XX$totalScore / XX$numberOfDaysActuallyPlayed)
+XX = cbind(XX, XX$totalStarsCount / (1 + XX$totalBonusScore))
+XX = cbind(XX, XX$attemptsOnTheHighestLevel / XX$totalNumOfAttempts)
+XX = cbind(XX, XX$numberOfAttemptedLevels / XX$totalNumOfAttempts)
+"
+
 XX = as.matrix(unname(data.matrix(XX)))
 
 
@@ -41,7 +53,7 @@ my.teach = function (XLL, iters=10, rowsFactor=0.3, colsFactor=0.3) {
     
     algos[[it]] = local({
       cols <- cols
-      bstSparse <- xgb.train(data=dtrain, watchlist=watchlist, max_depth=2, eta=0.1, nthread=5, nrounds=2000, eval_metric="logloss", objective="binary:logistic", early_stopping_rounds=50, verbose=0)
+      bstSparse <- xgb.train(data=dtrain, watchlist=watchlist, max_depth=3, eta=0.06, nthread=8, nrounds=3000, eval_metric="logloss", objective="binary:logistic", early_stopping_rounds=50, verbose=0)
       function (X) {
         predict(bstSparse, X[, cols])
       }
@@ -58,17 +70,40 @@ XLL = as.matrix(unname(cbind(data.matrix(XX), YY)))
 clr = ifelse(XLL[,ncol(XLL)]==0,"red","green")
 #plot(XL[,1], XL[,2], col=clr)
 #scatterplot3d(XL[,1:3], color=clr)
-#pairs(XL[,1:3], col=clr)
+#pairs(XLL[,1:3], col=clr)
+
 
 teachAlgo = function (XL) {
-  my.teach(XL, rowsFactor=0.6, iters=30, colsFactor=1)  
+  my.teach(XL, rowsFactor=0.6, iters=25, colsFactor=1)  
 }
-#print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=5, iters=10, verbose=T)))
+"
+print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=10, iters=6, verbose=T)))
+"
 
+"
+teachAlgo = function (XL) {
+  y = XL[, ncol(XL)]
+  levels(y) <- c('0', '1')
+  cl = naiveBayes(XL[, -ncol(XL)], y, type='raw')
+  function (X) {
+    r = predict(cl, X, type='raw')
+    c(r[, 2])
+  }
+}
+print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=5, iters=6, verbose=T)))
+"
+"
+teachAlgo = function (XL) {
+  algos = svm.getBaseAlgos(XL)
+  randomForestTreeFloatAggregator(0, algos)
+}
+print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=2, iters=6, verbose=T)))
+"
 
 #aggregated = my.teach(XLL, rowsFactor=0.6, iters=20, colsFactor=1)
 #print(paste0("learn   average logloss: ", calculateError(XLL, aggregated, multi=T)))
 #print(paste0("control average logloss: ", calculateError(XKK, aggregated, multi=T)))
+
 
 alg = teachAlgo(XLL)
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')

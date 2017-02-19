@@ -22,6 +22,9 @@ calculateError = function(XL, classifier, multi=F) {
 
 # see https://www.kaggle.com/wiki/LogarithmicLoss
 error.logloss = function (act, pred) {
+  if (length(act) != length(pred)) {
+    error("length's must be equal")
+  }
   eps = 1e-15
   pred = pmin(pmax(pred, eps), 1 - eps)
   sum(act * log(pred) + (1 - act) * log(1 - pred)) * -1/NROW(act)
@@ -31,7 +34,7 @@ error.mean = function (act, pred) {
   mean(abs(act - pred))
 }
 
-validation.tqfold = function (XLL, teachFunc, folds=3, iters=1, verbose=F) {
+validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F) {
   XKerr = 0
   for (it in 1:iters) {
     perm = sample(nrow(XLL))
@@ -48,7 +51,7 @@ validation.tqfold = function (XLL, teachFunc, folds=3, iters=1, verbose=F) {
       XKerr = XKerr + error.logloss(XK[,ncol(XL)], algo(XK[,-ncol(XL)]))
     }
     if (verbose) {
-      print(paste0('tqfold ', iters - it, ' iterations remains'))
+      print(paste0('tqfold ', iters - it, ' iterations remains, ', XKerr / it / folds))
     }
   }
   XKerr / iters / folds
