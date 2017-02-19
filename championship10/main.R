@@ -1,4 +1,4 @@
-set.seed(32121)
+set.seed(2707)
 require(kernlab)
 require(scatterplot3d)
 require(xgboost)
@@ -7,20 +7,37 @@ require(class)
 require(e1071) 
 
 debugSource("algos.R")
+debugSource("genetic.R")
 
 XX = read.csv(file="x_train.csv", head=T, sep=";", na.strings="?")
 YY = read.csv(file="y_train.csv", head=F, sep=";", na.strings="?")
 
+preCols = function (XX) {
+  XX = cbind(XX, XX$totalBonusScore / (1 + XX$totalScore))
+  XX = cbind(XX, XX$totalScore / XX$numberOfDaysActuallyPlayed)
+  XX = cbind(XX, XX$totalStarsCount / (1 + XX$totalBonusScore))
+  XX = cbind(XX, XX$attemptsOnTheHighestLevel / XX$totalNumOfAttempts)
+  XX = cbind(XX, XX$numberOfAttemptedLevels / XX$totalNumOfAttempts)
+
+  XX = as.matrix(unname(data.matrix(XX)))
+
+  XX = XX[, -c(5, 8, 10, 11, 13, 14, 15)]
+  XX
+}
+
 "
-XX = cbind(XX, XX$totalBonusScore / (1 + XX$totalScore))
-XX = cbind(XX, XX$totalScore / XX$numberOfDaysActuallyPlayed)
-XX = cbind(XX, XX$totalStarsCount / (1 + XX$totalBonusScore))
-XX = cbind(XX, XX$attemptsOnTheHighestLevel / XX$totalNumOfAttempts)
-XX = cbind(XX, XX$numberOfAttemptedLevels / XX$totalNumOfAttempts)
+for (j in 1:ncol(XX)) {
+  for (k in 1:(j-1)) {
+    num = XX[, j]
+    denum = XX[, k]
+    if (min(denum) == 0)
+      denum = denum + 1
+    XX = cbind(XX, num / denum)
+  }
+}
 "
 
-XX = as.matrix(unname(data.matrix(XX)))
-
+XX = preCols(XX)
 
 means = rep(NA, nrow(XX))
 sds = rep(NA, nrow(XX))
@@ -74,11 +91,11 @@ clr = ifelse(XLL[,ncol(XLL)]==0,"red","green")
 
 
 teachAlgo = function (XL) {
-  my.teach(XL, rowsFactor=0.6, iters=25, colsFactor=1)  
+  my.teach(XL, rowsFactor=0.6, iters=25, colsFactor=1)
 }
-"
-print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=10, iters=6, verbose=T)))
-"
+print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=10, iters=1, verbose=T)))
+#print(geneticSelect(iterations=100, XL=XLL, teach=teachAlgo, maxPopulationSize=10))
+
 
 "
 teachAlgo = function (XL) {
@@ -107,7 +124,7 @@ print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=2, iters=6, ver
 
 alg = teachAlgo(XLL)
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
-XXX = data.matrix(XXX)
+XXX = preCols(XXX)
 results = rep(0, nrow(XXX))
 for (j in 1:ncol(XXX)) {
   XXX[, j] = (XXX[, j] - means[j]) / sds[j]
