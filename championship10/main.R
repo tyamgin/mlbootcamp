@@ -13,29 +13,31 @@ XX = read.csv(file="x_train.csv", head=T, sep=";", na.strings="?")
 YY = read.csv(file="y_train.csv", head=F, sep=";", na.strings="?")
 
 preCols = function (XX) {
+  "
   XX = cbind(XX, XX$totalBonusScore / (1 + XX$totalScore))
   XX = cbind(XX, XX$totalScore / XX$numberOfDaysActuallyPlayed)
   XX = cbind(XX, XX$totalStarsCount / (1 + XX$totalBonusScore))
   XX = cbind(XX, XX$attemptsOnTheHighestLevel / XX$totalNumOfAttempts)
   XX = cbind(XX, XX$numberOfAttemptedLevels / XX$totalNumOfAttempts)
-
+  "
   XX = as.matrix(unname(data.matrix(XX)))
+  
+  for (j in 2:ncol(XX)) {
+    for (k in 1:(j-1)) {
+      num = XX[, j]
+      denum = XX[, k]
 
-  XX = XX[, -c(5, 8, 10, 11, 13, 14, 15)]
+      if (min(denum) == 0)
+        denum = denum + 1
+      XX = cbind(XX, num / denum)
+    }
+  }
+
+  # one 1 removed, see 2:ncol(XX) change
+  XX = XX[, which(1 == c(1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1))]
   XX
 }
 
-"
-for (j in 1:ncol(XX)) {
-  for (k in 1:(j-1)) {
-    num = XX[, j]
-    denum = XX[, k]
-    if (min(denum) == 0)
-      denum = denum + 1
-    XX = cbind(XX, num / denum)
-  }
-}
-"
 
 XX = preCols(XX)
 
@@ -93,7 +95,7 @@ clr = ifelse(XLL[,ncol(XLL)]==0,"red","green")
 teachAlgo = function (XL) {
   my.teach(XL, rowsFactor=0.6, iters=150, colsFactor=1)
 }
-#print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=10, iters=1, verbose=T)))
+#print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=5, iters=1, verbose=T)))
 #print(geneticSelect(iterations=100, XL=XLL, teach=teachAlgo, maxPopulationSize=10))
 
 
