@@ -91,9 +91,9 @@ clr = ifelse(XLL[,ncol(XLL)]==0,"red","green")
 
 
 teachAlgo = function (XL) {
-  my.teach(XL, rowsFactor=0.6, iters=25, colsFactor=1)
+  my.teach(XL, rowsFactor=0.6, iters=150, colsFactor=1)
 }
-print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=10, iters=1, verbose=T)))
+#print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=10, iters=1, verbose=T)))
 #print(geneticSelect(iterations=100, XL=XLL, teach=teachAlgo, maxPopulationSize=10))
 
 
