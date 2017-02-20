@@ -1,10 +1,11 @@
-set.seed(2707)
+set.seed(2708)
 require(kernlab)
 require(scatterplot3d)
 require(xgboost)
 # install.packages('e1071', dependencies = TRUE)
 require(class) 
 require(e1071) 
+require(neuralnet)
 
 debugSource("algos.R")
 debugSource("genetic.R")
@@ -33,8 +34,7 @@ preCols = function (XX) {
     }
   }
 
-  # one 1 removed, see 2:ncol(XX) change
-  XX = XX[, which(1 == c(1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1))]
+  XX = XX[, which(1 == c(1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0))]
   XX
 }
 
@@ -95,8 +95,8 @@ clr = ifelse(XLL[,ncol(XLL)]==0,"red","green")
 teachAlgo = function (XL) {
   my.teach(XL, rowsFactor=0.6, iters=150, colsFactor=1)
 }
-#print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=5, iters=1, verbose=T)))
-#print(geneticSelect(iterations=100, XL=XLL, teach=teachAlgo, maxPopulationSize=10))
+#print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=5, iters=6, verbose=T)))
+#print(geneticSelect(iterations=200, XL=XLL, teach=teachAlgo, maxPopulationSize=12))
 
 
 "
