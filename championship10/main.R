@@ -5,7 +5,7 @@ require(xgboost)
 # install.packages('e1071', dependencies = TRUE)
 require(class) 
 require(e1071) 
-require(neuralnet)
+require(RSNNS)
 
 debugSource("algos.R")
 debugSource("genetic.R")
@@ -23,7 +23,8 @@ preCols = function (XX) {
   "
   XX = as.matrix(unname(data.matrix(XX)))
   
-  for (j in 2:ncol(XX)) {
+  sz = ncol(XX)
+  for (j in 2:sz) {
     for (k in 1:(j-1)) {
       num = XX[, j]
       denum = XX[, k]
@@ -31,10 +32,11 @@ preCols = function (XX) {
       if (min(denum) == 0)
         denum = denum + 1
       XX = cbind(XX, num / denum)
+      XX = cbind(XX, num * denum)
     }
   }
 
-  XX = XX[, which(1 == c(1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0))]
+  XX = XX[, which(1 == c(0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0,0, 0, 0, 0, 1, 0, 0,1, 1, 1, 0, 1, 1, 1,1, 1, 0, 1, 0, 0, 1,0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0))]
   XX
 }
 
@@ -50,13 +52,13 @@ for (j in 1:ncol(XX)) {
 }
 
 
-"
+
 pc = princomp(XX)
 XX = XX %*% solve(t(pc$loadings))
-XX = XX[, 1:10]
-"
+XX = XX[, 1:20]
 
-my.teach = function (XLL, iters=10, rowsFactor=0.3, colsFactor=0.3) {
+
+my.teach = function (XLL, iters=10, rowsFactor=0.3, colsFactor=1) {
   algos = list(iters)
   n = nrow(XLL)
   m = ncol(XLL) - 1
@@ -91,12 +93,39 @@ clr = ifelse(XLL[,ncol(XLL)]==0,"red","green")
 #scatterplot3d(XL[,1:3], color=clr)
 #pairs(XLL[,1:3], col=clr)
 
+"
+xxx = XLL[1:1000, -ncol(XLL),drop=F]
+aaa = XLL[1:1000, ncol(XLL)]
+xxx2 = XLL[1001:3000, -ncol(XLL),drop=F]
+aaa2 = XLL[1001:3000, ncol(XLL)]
+
+model <- mlp(xxx, aaa, size=15, learnFuncParams=c(0.1),
+             maxit=500, inputsTest=xxx2, targetsTest=aaa2, learnFunc='BackpropBatch')
+
+pr = predict(model, xxx)
+print( error.logloss(aaa, pr) )
+
+pr2 = predict(model, xxx2)
+print( error.logloss(aaa2, pr2) )
+"
 
 teachAlgo = function (XL) {
-  my.teach(XL, rowsFactor=0.6, iters=150, colsFactor=1)
+  my.teach(XL, rowsFactor=0.6, iters=15, colsFactor=1)
 }
-#print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=5, iters=6, verbose=T)))
-#print(geneticSelect(iterations=200, XL=XLL, teach=teachAlgo, maxPopulationSize=12))
+"
+teachAlgo = function (XL) {
+  w = monmlp.fit(XL[, -ncol(XL),drop=F], XL[, ncol(XL),drop=F], hidden1=15, monotone=1, bag=TRUE, n.ensemble=1, silent=T)
+  
+  algos = c()
+  algos = c(algos, function (X) {
+    pmax(0.01, pmin(0.99, monmlp.predict(x=X, weights=w)))
+  })
+  algos = c(algos, my.teach(XL, rowsFactor=0.6, iters=1))
+  randomForestTreeFloatAggregator(0, algos)
+}
+"
+print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=5, iters=6, verbose=T)))
+#print(geneticSelect(iterations=200, XL=XLL, teach=teachAlgo, maxPopulationSize=15, mutationProb=0.2))
 
 
 "
@@ -124,6 +153,7 @@ print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=2, iters=6, ver
 #print(paste0("control average logloss: ", calculateError(XKK, aggregated, multi=T)))
 
 
+"
 alg = teachAlgo(XLL)
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
@@ -133,3 +163,4 @@ for (j in 1:ncol(XXX)) {
 }
 results = alg(XXX)
 write(results, file='res.txt', sep='\n')
+"

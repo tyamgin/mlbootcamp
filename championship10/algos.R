@@ -35,7 +35,7 @@ error.mean = function (act, pred) {
 }
 
 validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F) {
-  XKerr = 0
+  XKerr = c()
   for (it in 1:iters) {
     perm = sample(nrow(XLL))
     for (fold in 1:folds) {
@@ -48,13 +48,13 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F) {
       XL = XLL[-controlIdxes, ]  
       
       algo = teachFunc(XL)
-      XKerr = XKerr + error.logloss(XK[,ncol(XL)], algo(XK[,-ncol(XL)]))
+      XKerr = c(XKerr, error.logloss(XK[, ncol(XL)], algo(XK[, -ncol(XL)])))
     }
     if (verbose) {
-      print(paste0('tqfold ', iters - it, ' iterations remains, ', XKerr / it / folds))
+      print(paste0('tqfold ', iters - it, ' iterations remains, mean=', mean(XKerr), ' sd=', sd(XKerr)))
     }
   }
-  XKerr / iters / folds
+  XKerr
 }
 
 
