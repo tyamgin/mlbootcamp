@@ -13,44 +13,42 @@ debugSource("genetic.R")
 XX = read.csv(file="x_train.csv", head=T, sep=";", na.strings="?")
 YY = read.csv(file="y_train.csv", head=F, sep=";", na.strings="?")
 
-preCols = function (XX) {
-  "
-  XX = cbind(XX, XX$totalBonusScore / (1 + XX$totalScore))
-  XX = cbind(XX, XX$totalScore / XX$numberOfDaysActuallyPlayed)
-  XX = cbind(XX, XX$totalStarsCount / (1 + XX$totalBonusScore))
-  XX = cbind(XX, XX$attemptsOnTheHighestLevel / XX$totalNumOfAttempts)
-  XX = cbind(XX, XX$numberOfAttemptedLevels / XX$totalNumOfAttempts)
-  "
-  XX = as.matrix(unname(data.matrix(XX)))
-  "
+extendCols = function (XX) {
   sz = ncol(XX)
   for (j in 2:sz) {
     for (k in 1:(j-1)) {
       num = XX[, j]
       denum = XX[, k]
-
+      
       if (min(denum) == 0)
         denum = denum + 1
       XX = cbind(XX, num / denum)
       XX = cbind(XX, num * denum)
     }
   }
-
+  
   XX = XX[, which(1 == c(0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0,0, 0, 0, 0, 1, 0, 0,1, 1, 1, 0, 1, 1, 1,1, 1, 0, 1, 0, 0, 1,0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0))]
   XX = XX[, which(1 == c(1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1,1, 0, 0, 1, 0, 1, 0, 1, 1))]
-  "
+  
   XX
+}
+insertXLCol = function (XL, Z) {
+  X = XL[, -ncol(XL), drop=F]
+  Y = XL[, ncol(XL), drop=F]
+  cbind(X, Z, Y)
+}
+extendXYCols = function (XL) {
+  X = XL[, -ncol(XL), drop=F]
+  Y = XL[, ncol(XL), drop=F]
+  X = extendCols(X)
+  cbind(X, Y)
+}
+
+preCols = function (XX) {
+  as.matrix(unname(data.matrix(XX)))
 }
 
 XX = preCols(XX)
-
-means = rep(NA, nrow(XX))
-sds = rep(NA, nrow(XX))
-for (j in 1:ncol(XX)) {
-  means[j] = mean(XX[, j])
-  sds[j] = sd(XX[, j])
-  XX[, j] = (XX[, j] - means[j]) / sds[j]
-}
 
 
 "
@@ -59,7 +57,31 @@ XX = XX %*% solve(t(pc$loadings))
 XX = XX[, 1:20]
 "
 
-my.teach = function (XLL, iters=10, rowsFactor=0.3, colsFactor=1) {
+my.extendedColsTrain = function (XL, trainFunc) {
+  XL = extendXYCols(XL)
+  model = trainFunc(XL)
+  function (X) {
+    X = extendCols(X)
+    model(X)
+  }
+}
+my.normalizedTrain = function (XL, trainFunc) {
+  m = ncol(XL) - 1
+  means = rep(NA, m)
+  sds = rep(NA, m)
+  for (j in 1:m) {
+    means[j] = mean(XL[, j])
+    sds[j] = sd(XL[, j])
+    XL[, j] = (XL[, j] - means[j]) / sds[j]
+  }
+  model = trainFunc(XL)
+  function (X) {
+    for (j in 1:m)
+      X[, j] = (X[, j] - means[j]) / sds[j]
+    model(X)
+  }
+}
+my.train.xgb = function (XLL, iters=10, rowsFactor=0.3, colsFactor=1, aggregator=meanAggregator) {
   algos = list(iters)
   n = nrow(XLL)
   m = ncol(XLL) - 1
@@ -81,17 +103,12 @@ my.teach = function (XLL, iters=10, rowsFactor=0.3, colsFactor=1) {
       }
     })
   }
-  randomForestTreeFloatAggregator(0, algos)
+  aggregator(algos)
 }
 
 XLL = as.matrix(unname(cbind(data.matrix(XX), YY)))
-#sampleIdxes = sample(1:nrow(XLL), 15000)
-#XKK = XLL[-sampleIdxes, ]
-#XLL = XLL[sampleIdxes, ]  
 
-clr = ifelse(XLL[,ncol(XLL)]==0,"red","green")
-#plot(XL[,1], XL[,2], col=clr)
-#scatterplot3d(XL[,1:3], color=clr)
+#clr = ifelse(XLL[,ncol(XLL)]==0,"red","green")
 #pairs(XLL[,1:3], col=clr)
 
 
@@ -128,7 +145,7 @@ nnetTeachAlgo = function (X, Y) {
   Y = factor(Y, labels=c('a', 'b'))
 
   trControl = trainControl(method='cv', number=5, classProbs=T, summaryFunction=mnLogLoss)
-  capture.output(model <- train(X, Y, method='nnet', metric='logLoss', maxit=100, maximize=F, trControl=trControl, verbose=F))
+  capture.output(model <- train(X, Y, method='nnet', metric='logLoss', maxit=1000, maximize=F, trControl=trControl, verbose=F))
   
   function (X) {
     predict(model, X, type='prob')$b
@@ -161,58 +178,38 @@ teachAlgo = function (XL) {
     model(X)
   }
 }
-teachAlgo = function (XL) {
-  my.teach(XL, rowsFactor=0.6, iters=150, colsFactor=1)
-}
-teachAlgo = function (XL) {
-  nnetTeachAlgo(XL[, -ncol(XL)], XL[, ncol(XL)])
-}
 
-
-
-"
-teachAlgo = function (XL) {
-  w = monmlp.fit(XL[, -ncol(XL),drop=F], XL[, ncol(XL),drop=F], hidden1=15, monotone=1, bag=TRUE, n.ensemble=1, silent=T)
-  
-  algos = c()
-  algos = c(algos, function (X) {
-    pmax(0.01, pmin(0.99, monmlp.predict(x=X, weights=w)))
+nnetTrainAlgo = function (XL) {
+  my.normalizedTrain(XL, function (XL) {
+    nnetTeachAlgo(XL[, -ncol(XL)], XL[, ncol(XL)])
   })
-  algos = c(algos, my.teach(XL, rowsFactor=0.6, iters=1))
-  randomForestTreeFloatAggregator(0, algos)
 }
-"
-validation.tqfold(XLL, teachAlgo, folds=5, iters=6, verbose=T)
+
+xgbTrainAlgo = function (XL) {
+  my.extendedColsTrain(XL, function(XL) {
+    my.normalizedTrain(XL, function (XL) {
+      my.train.xgb(XL, rowsFactor=0.6, iters=150)
+    })
+  })
+}
+
+xgbnNnetAggregatedTrain = function (XL) {
+  gmeanAggregator(c(
+    nnetTrainAlgo(XL),
+    xgbTrainAlgo(XL)
+  ))
+}
+
+#validation.tqfold(XLL, xgbnNnetAggregatedTrain, folds=5, iters=6, verbose=T)
 #print(geneticSelect(iterations=200, XL=XLL, teach=function (XL) {my.teach(XL, rowsFactor=0.6, iters=3, colsFactor=1)}, maxPopulationSize=15, mutationProb=0.2))
 
 
-"
-teachAlgo = function (XL) {
-  y = XL[, ncol(XL)]
-  levels(y) <- c('0', '1')
-  cl = naiveBayes(XL[, -ncol(XL)], y, type='raw')
-  function (X) {
-    r = predict(cl, X, type='raw')
-    c(r[, 2])
-  }
-}
-print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=5, iters=6, verbose=T)))
-"
 
+a2 = xgbTrainAlgo(XLL)
+a1 = nnetTrainAlgo(XLL)
 
-#aggregated = my.teach(XLL, rowsFactor=0.6, iters=20, colsFactor=1)
-#print(paste0("learn   average logloss: ", calculateError(XLL, aggregated, multi=T)))
-#print(paste0("control average logloss: ", calculateError(XKK, aggregated, multi=T)))
-
-
-"
-alg = teachAlgo(XLL)
+alg = gmeanAggregator(c(a1, a2))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
-results = rep(0, nrow(XXX))
-for (j in 1:ncol(XXX)) {
-  XXX[, j] = (XXX[, j] - means[j]) / sds[j]
-}
 results = alg(XXX)
 write(results, file='res.txt', sep='\n')
-"

@@ -171,7 +171,7 @@ svm.getBaseAlgos = function (XL, count=10, partsFactor=0.3) {
   algos
 }
 
-randomForestTreeFloatAggregator = function (XL, baseAlgos) {
+meanAggregator = function (baseAlgos) {
   l = length(baseAlgos)
   function(x) {
     s = 0
@@ -183,6 +183,21 @@ randomForestTreeFloatAggregator = function (XL, baseAlgos) {
       }
     }
     s / l
+  }
+}
+
+gmeanAggregator = function (baseAlgos) {
+  l = length(baseAlgos)
+  function(x) {
+    s = 1
+    for (algo in baseAlgos) {
+      if (class(algo) == "function") {
+        s = s * algo(x);
+      } else {
+        s = s * predict(algo, x);
+      }
+    }
+    s ^ (1/l)
   }
 }
 
