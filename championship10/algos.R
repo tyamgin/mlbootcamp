@@ -48,7 +48,11 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F) {
       XL = XLL[-controlIdxes, ]  
       
       algo = teachFunc(XL)
-      XKerr = c(XKerr, error.logloss(XK[, ncol(XL)], algo(XK[, -ncol(XL)])))
+      e = error.logloss(XK[, ncol(XL)], algo(XK[, -ncol(XL)]))
+      if (verbose)
+        print(e)
+      
+      XKerr = c(XKerr, e)
     }
     if (verbose) {
       print(paste0('tqfold ', iters - it, ' iterations remains, mean=', mean(XKerr), ' sd=', sd(XKerr)))

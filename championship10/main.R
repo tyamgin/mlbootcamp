@@ -28,7 +28,7 @@ extendCols = function (XX) {
   }
   
   XX = XX[, which(1 == c(0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0,0, 0, 0, 0, 1, 0, 0,1, 1, 1, 0, 1, 1, 1,1, 1, 0, 1, 0, 0, 1,0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0))]
-  XX = XX[, which(1 == c(1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1,1, 0, 0, 1, 0, 1, 0, 1, 1))]
+  XX = XX[, which(1 == c(1, 1, 1, 1, 0, 0, 1, 1, 1,1, 0, 0, 1, 0, 0, 1, 0, 1,1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1))]
   
   XX
 }
@@ -120,8 +120,8 @@ aaa2 = XLL[10001:15000, ncol(XLL)]
 
 aaa <- factor(aaa, labels=c('a', 'b'))
 aaa2 <- factor(aaa2, labels=c('a', 'b'))
-trControl=trainControl(method='cv', number=5, classProbs=TRUE, summaryFunction=mnLogLoss, verbose=F)
-capture.output(model <- train(xxx, aaa, method='nnet', metric='logLoss', maxit=1000, maximize=F, trControl=trControl, verbose=F))
+trControl=trainControl(method='cv', number=2, classProbs=TRUE, summaryFunction=mnLogLoss)
+model <- train(xxx, aaa, method='svmRadial', metric='logLoss', maximize=F, trControl=trControl, verbose=T)
 
 pr = predict(model, xxx, type='prob')$b
 print( error.logloss(c(aaa)-1, pr) )
@@ -129,10 +129,7 @@ print( error.logloss(c(aaa)-1, pr) )
 pr2 = predict(model, xxx2, type='prob')$b
 print( error.logloss(c(aaa2)-1, pr2) )
 "
-svmTeachAlgo = function (XL) {
-  algos = svm.getBaseAlgos(XL, count=1)
-  randomForestTreeFloatAggregator(0, algos)
-}
+
 mlpTeachAlgo = function (X, Y) {
   Y = factor(Y, levels=c("0", "1"))
   model = train(X, Y, method='mlp', maxit=30)
@@ -179,6 +176,21 @@ teachAlgo = function (XL) {
   }
 }
 
+svmTrainAlgo = function (XL) {
+  my.normalizedTrain(XL, function (XL) {
+    
+    X = XL[, -ncol(XL)]
+    Y = factor(XL[, ncol(XL)], labels=c('a', 'b'))
+    
+    trControl = trainControl(method='cv', number=3, classProbs=T, summaryFunction=mnLogLoss)
+    capture.output(model <- train(X, Y, method='svmRadial', metric='logLoss', maximize=F, trControl=trControl, verbose=F))
+    
+    function (X) {
+      predict(model, X, type='prob')$b
+    }
+  })
+}
+
 nnetTrainAlgo = function (XL) {
   my.normalizedTrain(XL, function (XL) {
     nnetTeachAlgo(XL[, -ncol(XL)], XL[, ncol(XL)])
@@ -188,7 +200,7 @@ nnetTrainAlgo = function (XL) {
 xgbTrainAlgo = function (XL) {
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
-      my.train.xgb(XL, rowsFactor=0.6, iters=150)
+      my.train.xgb(XL, rowsFactor=0.9, iters=150)
     })
   })
 }
@@ -200,15 +212,15 @@ xgbnNnetAggregatedTrain = function (XL) {
   ))
 }
 
-#validation.tqfold(XLL, xgbnNnetAggregatedTrain, folds=5, iters=6, verbose=T)
+#print(validation.tqfold(XLL, xgbTrainAlgo, folds=5, iters=6, verbose=T))
 #print(geneticSelect(iterations=200, XL=XLL, teach=function (XL) {my.teach(XL, rowsFactor=0.6, iters=3, colsFactor=1)}, maxPopulationSize=15, mutationProb=0.2))
 
 
 
 a2 = xgbTrainAlgo(XLL)
-a1 = nnetTrainAlgo(XLL)
+#a1 = nnetTrainAlgo(XLL)
 
-alg = gmeanAggregator(c(a1, a2))
+alg = a2#gmeanAggregator(c(a1, a2))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
