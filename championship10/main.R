@@ -1,11 +1,11 @@
-set.seed(2708)
+set.seed(2707)
 require(kernlab)
 require(scatterplot3d)
 require(xgboost)
-# install.packages('e1071', dependencies = TRUE)
 require(class) 
 require(e1071) 
 require(RSNNS)
+require(caret)
 
 debugSource("algos.R")
 debugSource("genetic.R")
@@ -22,7 +22,7 @@ preCols = function (XX) {
   XX = cbind(XX, XX$numberOfAttemptedLevels / XX$totalNumOfAttempts)
   "
   XX = as.matrix(unname(data.matrix(XX)))
-  
+  "
   sz = ncol(XX)
   for (j in 2:sz) {
     for (k in 1:(j-1)) {
@@ -37,9 +37,10 @@ preCols = function (XX) {
   }
 
   XX = XX[, which(1 == c(0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0,0, 0, 0, 0, 1, 0, 0,1, 1, 1, 0, 1, 1, 1,1, 1, 0, 1, 0, 0, 1,0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0))]
+  XX = XX[, which(1 == c(1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0,1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1,1, 0, 0, 1, 0, 1, 0, 1, 1))]
+  "
   XX
 }
-
 
 XX = preCols(XX)
 
@@ -52,11 +53,11 @@ for (j in 1:ncol(XX)) {
 }
 
 
-
+"
 pc = princomp(XX)
 XX = XX %*% solve(t(pc$loadings))
 XX = XX[, 1:20]
-
+"
 
 my.teach = function (XLL, iters=10, rowsFactor=0.3, colsFactor=1) {
   algos = list(iters)
@@ -93,25 +94,82 @@ clr = ifelse(XLL[,ncol(XLL)]==0,"red","green")
 #scatterplot3d(XL[,1:3], color=clr)
 #pairs(XLL[,1:3], col=clr)
 
+
 "
 xxx = XLL[1:1000, -ncol(XLL),drop=F]
 aaa = XLL[1:1000, ncol(XLL)]
-xxx2 = XLL[1001:3000, -ncol(XLL),drop=F]
-aaa2 = XLL[1001:3000, ncol(XLL)]
+xxx2 = XLL[10001:15000, -ncol(XLL),drop=F]
+aaa2 = XLL[10001:15000, ncol(XLL)]
 
-model <- mlp(xxx, aaa, size=15, learnFuncParams=c(0.1),
-             maxit=500, inputsTest=xxx2, targetsTest=aaa2, learnFunc='BackpropBatch')
+aaa <- factor(aaa, labels=c('a', 'b'))
+aaa2 <- factor(aaa2, labels=c('a', 'b'))
+trControl=trainControl(method='cv', number=5, classProbs=TRUE, summaryFunction=mnLogLoss, verbose=F)
+capture.output(model <- train(xxx, aaa, method='nnet', metric='logLoss', maxit=1000, maximize=F, trControl=trControl, verbose=F))
 
-pr = predict(model, xxx)
-print( error.logloss(aaa, pr) )
+pr = predict(model, xxx, type='prob')$b
+print( error.logloss(c(aaa)-1, pr) )
 
-pr2 = predict(model, xxx2)
-print( error.logloss(aaa2, pr2) )
+pr2 = predict(model, xxx2, type='prob')$b
+print( error.logloss(c(aaa2)-1, pr2) )
 "
+svmTeachAlgo = function (XL) {
+  algos = svm.getBaseAlgos(XL, count=1)
+  randomForestTreeFloatAggregator(0, algos)
+}
+mlpTeachAlgo = function (X, Y) {
+  Y = factor(Y, levels=c("0", "1"))
+  model = train(X, Y, method='mlp', maxit=30)
+  
+  function (X) {
+    predict(model, X, type='prob')$`1`
+  }
+}
+nnetTeachAlgo = function (X, Y) {
+  Y = factor(Y, labels=c('a', 'b'))
+
+  trControl = trainControl(method='cv', number=5, classProbs=T, summaryFunction=mnLogLoss)
+  capture.output(model <- train(X, Y, method='nnet', metric='logLoss', maxit=100, maximize=F, trControl=trControl, verbose=F))
+  
+  function (X) {
+    predict(model, X, type='prob')$b
+  }
+}
 
 teachAlgo = function (XL) {
-  my.teach(XL, rowsFactor=0.6, iters=15, colsFactor=1)
+  X = XL[, -ncol(XL)]
+  Y = XL[, ncol(XL)]
+  mlpAlg = mlpTeachAlgo(X, Y)
+  XL = cbind(X, mlpAlg(X), Y)
+
+  model = my.teach(XL, rowsFactor=0.6, iters=15, colsFactor=1)
+  
+  function (X) {
+    X = cbind(X, mlpAlg(X))
+    model(X)
+  }
 }
+teachAlgo = function (XL) {
+  X = XL[, -ncol(XL)]
+  Y = XL[, ncol(XL)]
+  svmAlg = svmTeachAlgo(XL)
+  XL = cbind(X, svmAlg(X), Y)
+  
+  model = my.teach(XL, rowsFactor=0.6, iters=2, colsFactor=1)
+  
+  function (X) {
+    X = cbind(X, svmAlg(X))
+    model(X)
+  }
+}
+teachAlgo = function (XL) {
+  my.teach(XL, rowsFactor=0.6, iters=150, colsFactor=1)
+}
+teachAlgo = function (XL) {
+  nnetTeachAlgo(XL[, -ncol(XL)], XL[, ncol(XL)])
+}
+
+
+
 "
 teachAlgo = function (XL) {
   w = monmlp.fit(XL[, -ncol(XL),drop=F], XL[, ncol(XL),drop=F], hidden1=15, monotone=1, bag=TRUE, n.ensemble=1, silent=T)
@@ -124,8 +182,8 @@ teachAlgo = function (XL) {
   randomForestTreeFloatAggregator(0, algos)
 }
 "
-print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=5, iters=6, verbose=T)))
-#print(geneticSelect(iterations=200, XL=XLL, teach=teachAlgo, maxPopulationSize=15, mutationProb=0.2))
+validation.tqfold(XLL, teachAlgo, folds=5, iters=6, verbose=T)
+#print(geneticSelect(iterations=200, XL=XLL, teach=function (XL) {my.teach(XL, rowsFactor=0.6, iters=3, colsFactor=1)}, maxPopulationSize=15, mutationProb=0.2))
 
 
 "
@@ -140,13 +198,7 @@ teachAlgo = function (XL) {
 }
 print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=5, iters=6, verbose=T)))
 "
-"
-teachAlgo = function (XL) {
-  algos = svm.getBaseAlgos(XL)
-  randomForestTreeFloatAggregator(0, algos)
-}
-print(paste0('tqfold: ', validation.tqfold(XLL, teachAlgo, folds=2, iters=6, verbose=T)))
-"
+
 
 #aggregated = my.teach(XLL, rowsFactor=0.6, iters=20, colsFactor=1)
 #print(paste0("learn   average logloss: ", calculateError(XLL, aggregated, multi=T)))

@@ -166,7 +166,7 @@ svm.getBaseAlgos = function (XL, count=10, partsFactor=0.3) {
         predict(svp, x, type="prob")[,2]
       }
     }))
-    print(paste0(count - i, ' svm algos remains'))
+    #print(paste0(count - i, ' svm algos remains'))
   }
   algos
 }

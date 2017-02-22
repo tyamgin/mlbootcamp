@@ -26,7 +26,7 @@ tqfoldEstimation = function(XL, G, teach) {
   L = nrow(XL)
   m = ncol(XL) - 1
   subXL = XL[, c(which(G == 1), m + 1)]
-  validation.tqfold(subXL, teach, folds=5, iters=2, verbose=F)
+  mean(validation.tqfold(subXL, teach, folds=5, iters=2, verbose=F))
 }
 
 geneticSelect = function(iterations,  # количество итераций
