@@ -128,6 +128,10 @@ print( error.logloss(c(aaa)-1, pr) )
 
 pr2 = predict(model, xxx2, type='prob')$b
 print( error.logloss(c(aaa2)-1, pr2) )
+
+ctrl <- rfeControl(functions=caretFuncs, method='cv', repeats=5, verbose=F)
+colnames(xxx) <- paste('col', 1:12, sep='')
+lmProfile <- rfe(xxx, aaa, sizes=c(1:5, 10), rfeControl=ctrl, method='nnet')
 "
 
 mlpTeachAlgo = function (X, Y) {
@@ -214,7 +218,6 @@ xgbnNnetAggregatedTrain = function (XL) {
 
 #print(validation.tqfold(XLL, xgbTrainAlgo, folds=5, iters=6, verbose=T))
 #print(geneticSelect(iterations=200, XL=XLL, teach=function (XL) {my.teach(XL, rowsFactor=0.6, iters=3, colsFactor=1)}, maxPopulationSize=15, mutationProb=0.2))
-
 
 
 a2 = xgbTrainAlgo(XLL)
