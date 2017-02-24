@@ -6,9 +6,11 @@ require(class)
 require(e1071) 
 require(RSNNS)
 require(caret)
+require(lightgbm)
 
 debugSource("algos.R")
 debugSource("genetic.R")
+debugSource("rfe.R")
 
 XX = read.csv(file="x_train.csv", head=T, sep=";", na.strings="?")
 YY = read.csv(file="y_train.csv", head=F, sep=";", na.strings="?")
@@ -20,15 +22,15 @@ extendCols = function (XX) {
       num = XX[, j]
       denum = XX[, k]
       
-      if (min(denum) == 0)
-        denum = denum + 1
-      XX = cbind(XX, num / denum)
+      XX = cbind(XX, num / (denum + ifelse(min(denum) == 0, 1, 0)))
       XX = cbind(XX, num * denum)
     }
   }
   
   XX = XX[, which(1 == c(0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0,0, 0, 0, 0, 1, 0, 0,1, 1, 1, 0, 1, 1, 1,1, 1, 0, 1, 0, 0, 1,0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0))]
   XX = XX[, which(1 == c(1, 1, 1, 1, 0, 0, 1, 1, 1,1, 0, 0, 1, 0, 0, 1, 0, 1,1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1))]
+  
+  #XX = XX[, c(130, 124, 132, 20,  32,  12,  133, 49,  101, 131, 75,  91,  43,  21,  62,  109, 135, 4,   139, 129, 119, 64, 100, 25,  81,  126, 137, 27,  105, 69,  23,  1,   121)]
   
   XX
 }
@@ -81,25 +83,49 @@ my.normalizedTrain = function (XL, trainFunc) {
     model(X)
   }
 }
-my.train.xgb = function (XLL, iters=10, rowsFactor=0.3, colsFactor=1, aggregator=meanAggregator) {
-  algos = list(iters)
+my.train.xgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregator) {
+  algos = list()
   n = nrow(XLL)
-  m = ncol(XLL) - 1
   for (it in 1:iters) {
-    sampleIdxes = sample(1:n, rowsFactor*n)
-    cols = sample(1:m, colsFactor*m)
-    XK = XLL[-sampleIdxes, c(cols, m + 1)]
-    XL = XLL[sampleIdxes, c(cols, m + 1)]  
+    sampleIdxes = sample(n, rowsFactor*n)
     
-    dtrain <- xgb.DMatrix(data=XL[,-ncol(XL)], label=XL[,ncol(XL)])
-    dtest <- xgb.DMatrix(data=XK[,-ncol(XK)], label=XK[,ncol(XK)])
+    XK = XLL[-sampleIdxes, ]
+    XL = XLL[sampleIdxes, ]  
+    
+    dtrain <- xgb.DMatrix(data=XL[, -ncol(XL)], label=XL[, ncol(XL)])
+    dtest <- xgb.DMatrix(data=XK[, -ncol(XK)], label=XK[, ncol(XK)])
     watchlist <- list(train=dtrain, test=dtest)
     
     algos[[it]] = local({
-      cols <- cols
-      bstSparse <- xgb.train(data=dtrain, watchlist=watchlist, max_depth=3, eta=0.06, nthread=8, nrounds=3000, eval_metric="logloss", objective="binary:logistic", early_stopping_rounds=50, verbose=0)
+      bstSparse <- xgb.train(data=dtrain, watchlist=watchlist, max_depth=3, eta=0.06, nthread=8, nrounds=3000, eval_metric='logloss', objective='binary:logistic', early_stopping_rounds=50, verbose=0)
       function (X) {
-        predict(bstSparse, X[, cols])
+        predict(bstSparse, X)
+      }
+    })
+  }
+  aggregator(algos)
+}
+my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregator) {
+  algos = list()
+  n = nrow(XLL)
+  for (it in 1:iters) {
+    sampleIdxes = sample(n, rowsFactor*n)
+    
+    XK = XLL[-sampleIdxes, ]
+    XL = XLL[sampleIdxes, ]  
+    
+    dtrain <- lgb.Dataset(data=XL[, -ncol(XL)], label=XL[, ncol(XL)], free_raw_data=FALSE)
+    dtest <- lgb.Dataset(data=XK[, -ncol(XK)], label=XK[, ncol(XK)], free_raw_data=FALSE)
+    valids <- list(train=dtrain, test=dtest)
+    
+    algos[[it]] = local({
+      bst <- lgb.train(data=dtrain, num_leaves=9, max_depth=3, learning_rate=0.06, nrounds=1000, valids=valids,
+                       eval = c('binary_logloss'), objective = 'binary',
+                       nthread = 4, verbose=0, early_stopping_rounds=50,
+                       min_data_in_leaf=100, lambda_l2=5)
+      
+      function (X) {
+        predict(bst, X)
       }
     })
   }
@@ -113,21 +139,32 @@ XLL = as.matrix(unname(cbind(data.matrix(XX), YY)))
 
 
 "
-xxx = XLL[1:1000, -ncol(XLL),drop=F]
-aaa = XLL[1:1000, ncol(XLL)]
+xxx = XLL[, -ncol(XLL),drop=F]
+aaa = XLL[, ncol(XLL)]
+aaa <- factor(aaa, labels=c('a', 'b'))
+
 xxx2 = XLL[10001:15000, -ncol(XLL),drop=F]
 aaa2 = XLL[10001:15000, ncol(XLL)]
-
-aaa <- factor(aaa, labels=c('a', 'b'))
 aaa2 <- factor(aaa2, labels=c('a', 'b'))
-trControl=trainControl(method='cv', number=2, classProbs=TRUE, summaryFunction=mnLogLoss)
-model <- train(xxx, aaa, method='svmRadial', metric='logLoss', maximize=F, trControl=trControl, verbose=T)
+
+trControl=trainControl(method='cv', number=5, classProbs=TRUE, summaryFunction=mnLogLoss)
+tuGrid = expand.grid(
+  nrounds = 2000, 
+  max_depth = c(2, 3, 4, 5), 
+  eta = 0.06, 
+  gamma = c(0.5, 1, 2, 3), 
+  colsample_bytree = c(0.9, 0.95, 1.0), 
+  min_child_weight = c(0.5, 1, 1.5, 2, 2.5, 3, 2.2, 0.2),
+  subsample = 1
+)
+model <- train(xxx, aaa, method='xgbTree', metric='logLoss', maximize=F, trControl=trControl, tuneGrid=tuGrid, verbose=T)
 
 pr = predict(model, xxx, type='prob')$b
 print( error.logloss(c(aaa)-1, pr) )
 
 pr2 = predict(model, xxx2, type='prob')$b
 print( error.logloss(c(aaa2)-1, pr2) )
+
 
 ctrl <- rfeControl(functions=caretFuncs, method='cv', repeats=5, verbose=F)
 colnames(xxx) <- paste('col', 1:12, sep='')
@@ -204,7 +241,15 @@ nnetTrainAlgo = function (XL) {
 xgbTrainAlgo = function (XL) {
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
-      my.train.xgb(XL, rowsFactor=0.9, iters=150)
+      my.train.xgb(XL, rowsFactor=0.9, iters=200)
+    })
+  })
+}
+
+lgbTrainAlgo = function (XL) {
+  my.extendedColsTrain(XL, function(XL) {
+    my.normalizedTrain(XL, function (XL) {
+      my.train.lgb(XL, rowsFactor=0.9, iters=200)
     })
   })
 }
@@ -216,14 +261,16 @@ xgbnNnetAggregatedTrain = function (XL) {
   ))
 }
 
-#print(validation.tqfold(XLL, xgbTrainAlgo, folds=5, iters=6, verbose=T))
-#print(geneticSelect(iterations=200, XL=XLL, teach=function (XL) {my.teach(XL, rowsFactor=0.6, iters=3, colsFactor=1)}, maxPopulationSize=15, mutationProb=0.2))
+#print(validation.tqfold(XLL, lgbTrainAlgo, folds=5, iters=6, verbose=T))
+#print(geneticSelect(iterations=200, XL=XLL, teach=function (XL) {my.teach(XL, rowsFactor=0.6, iters=3, colsFactor=1)}, maxPopulationSize=15, mutationProb=0.2))\
+#my.rfe(XLL)
 
 
-a2 = xgbTrainAlgo(XLL)
+a3 = lgbTrainAlgo(XLL)
+#a2 = xgbTrainAlgo(XLL)
 #a1 = nnetTrainAlgo(XLL)
 
-alg = a2#gmeanAggregator(c(a1, a2))
+alg = gmeanAggregator(c(a3))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
