@@ -266,11 +266,11 @@ xgbnNnetAggregatedTrain = function (XL) {
 #my.rfe(XLL)
 
 
-a3 = lgbTrainAlgo(XLL)
+#a3 = lgbTrainAlgo(XLL)
 #a2 = xgbTrainAlgo(XLL)
 #a1 = nnetTrainAlgo(XLL)
 
-alg = gmeanAggregator(c(a3))
+alg = gmeanAggregator(c(a1, a3))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
