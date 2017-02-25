@@ -284,7 +284,7 @@ a3 = lgbTrainAlgo(XLL)
 #a2 = xgbTrainAlgo(XLL)
 a1 = nnetTrainAlgo(XLL)
 "
-alg = gmeanAggregator(c(a1, a3))
+alg = meanAggregator(c(a1, a3))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
