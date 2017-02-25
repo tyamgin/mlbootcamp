@@ -1,4 +1,4 @@
-set.seed(2707)
+set.seed(2708)
 require(kernlab)
 require(scatterplot3d)
 require(xgboost)
@@ -7,6 +7,7 @@ require(e1071)
 require(RSNNS)
 require(caret)
 require(lightgbm)
+require(nnet)
 
 debugSource("algos.R")
 debugSource("genetic.R")
@@ -97,7 +98,7 @@ my.train.xgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
     watchlist <- list(train=dtrain, test=dtest)
     
     algos[[it]] = local({
-      bstSparse <- xgb.train(data=dtrain, watchlist=watchlist, max_depth=3, eta=0.06, nthread=8, nrounds=3000, eval_metric='logloss', objective='binary:logistic', early_stopping_rounds=50, verbose=0)
+      bstSparse <- xgb.train(data=dtrain, watchlist=watchlist, max_depth=3, gamma=5, eta=0.06, nthread=8, nrounds=3000, eval_metric='logloss', objective='binary:logistic', early_stopping_rounds=50, verbose=0)
       function (X) {
         predict(bstSparse, X)
       }
@@ -119,7 +120,7 @@ my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
     valids <- list(train=dtrain, test=dtest)
     
     algos[[it]] = local({
-      bst <- lgb.train(data=dtrain, num_leaves=9, max_depth=3, learning_rate=0.06, nrounds=1000, valids=valids,
+      bst <- lgb.train(data=dtrain, num_leaves=7, max_depth=3, learning_rate=0.06, nrounds=1000, valids=valids,
                        eval = c('binary_logloss'), objective = 'binary',
                        nthread = 4, verbose=0, early_stopping_rounds=50,
                        min_data_in_leaf=100, lambda_l2=5)
@@ -182,8 +183,21 @@ mlpTeachAlgo = function (X, Y) {
 nnetTeachAlgo = function (X, Y) {
   Y = factor(Y, labels=c('a', 'b'))
 
-  trControl = trainControl(method='cv', number=5, classProbs=T, summaryFunction=mnLogLoss)
-  capture.output(model <- train(X, Y, method='nnet', metric='logLoss', maxit=1000, maximize=F, trControl=trControl, verbose=F))
+  trControl = trainControl(method='cv', number=5, repeats=6, classProbs=T, summaryFunction=mnLogLoss)
+
+  tuneGrid = expand.grid(
+    size = 3:6,
+    decay = c(0.010, 0.015, 0.020, 0.025)
+  )
+  
+  capture.output(
+    model <- train(X, Y, method='nnet', metric='logLoss', maxit=1000, 
+                   maximize=F, trControl=trControl, verbose=F,
+                   tuneGrid=tuneGrid)
+  )
+  
+  mmm <<- model
+  print(model)
   
   function (X) {
     predict(model, X, type='prob')$b
@@ -241,7 +255,7 @@ nnetTrainAlgo = function (XL) {
 xgbTrainAlgo = function (XL) {
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
-      my.train.xgb(XL, rowsFactor=0.9, iters=200)
+      my.train.xgb(XL, rowsFactor=0.9, iters=15)
     })
   })
 }
@@ -254,10 +268,10 @@ lgbTrainAlgo = function (XL) {
   })
 }
 
-xgbnNnetAggregatedTrain = function (XL) {
+lgbnNnetAggregatedTrain = function (XL) {
   gmeanAggregator(c(
     nnetTrainAlgo(XL),
-    xgbTrainAlgo(XL)
+    lgbTrainAlgo(XL)
   ))
 }
 
@@ -266,11 +280,11 @@ xgbnNnetAggregatedTrain = function (XL) {
 #my.rfe(XLL)
 
 
-#a3 = lgbTrainAlgo(XLL)
+a3 = lgbTrainAlgo(XLL)
 #a2 = xgbTrainAlgo(XLL)
-#a1 = nnetTrainAlgo(XLL)
+a1 = nnetTrainAlgo(XLL)
 "
-alg = gmeanAggregator(c(a1))
+alg = gmeanAggregator(c(a1, a3))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
