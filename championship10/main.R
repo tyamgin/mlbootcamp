@@ -243,7 +243,7 @@ lgbnNnetAggregatedTrain = function (XL) {
 #a4 = svmTrainAlgo(XLL)
 #a5 = mlpTrainAlgo(XLL)
 "
-alg = meanAggregator(c(a4, a3))
+alg = meanAggregator(c(a4, a1))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
