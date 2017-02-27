@@ -148,11 +148,11 @@ mlpTeachAlgo = function (X, Y) {
 nnetTeachAlgo = function (X, Y) {
   Y = factor(Y, labels=c('a', 'b'))
 
-  trControl = trainControl(method='cv', number=5, repeats=6, classProbs=T, summaryFunction=mnLogLoss)
+  trControl = trainControl(method='cv', number=7, repeats=7, classProbs=T, summaryFunction=mnLogLoss)
 
   tuneGrid = expand.grid(
     size = 3:6,
-    decay = c(0.010, 0.015, 0.020, 0.025)
+    decay = c(0.010, 0.013, 0.015, 0.017, 0.020, 0.025, 0.030, 0.033, 0.035, 0.037, 0.040)
   )
   
   capture.output(
@@ -162,6 +162,30 @@ nnetTeachAlgo = function (X, Y) {
   )
   
   mmm <<- model
+  print(model)
+  
+  function (X) {
+    predict(model, X, type='prob')$b
+  }
+}
+knnTeachAlgo = function (X, Y) {
+  Y = factor(Y, labels=c('a', 'b'))
+  
+  trControl = trainControl(method='cv', number=5, repeats=1, classProbs=T, summaryFunction=mnLogLoss)
+  
+  tuneGrid = expand.grid(
+    kmax = (20:22)*2+1,
+    distance=2,
+    kernel=c("optimal")
+  )
+  
+  capture.output(
+    model <- train(X, Y, method='kknn', metric='logLoss',
+                   maximize=F, trControl=trControl,
+                   tuneGrid=tuneGrid)
+  )
+  
+  knnm <<- model
   print(model)
   
   function (X) {
@@ -194,18 +218,29 @@ svmTrainAlgo = function (XL) {
 }
 
 nnetTrainAlgo = function (XL) {
+  set.seed(2708)
   my.normalizedTrain(XL, function (XL) {
     nnetTeachAlgo(XL[, -ncol(XL)], XL[, ncol(XL)])
   })
 }
 
 mlpTrainAlgo = function (XL) {
+  set.seed(2708)
   my.normalizedTrain(XL, function (XL) {
     mlpTeachAlgo(XL[, -ncol(XL)], XL[, ncol(XL)])
   })
 }
 
+knnTrainAlgo = function (XL) {
+  set.seed(2708)
+  my.normalizedTrain(XL, function (XL) {
+    knnTeachAlgo(XL[, -ncol(XL)], XL[, ncol(XL)])
+  })
+}
+
+
 xgbTrainAlgo = function (XL) {
+  set.seed(2708)
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
       my.train.xgb(XL, rowsFactor=0.9, iters=15)
@@ -214,6 +249,7 @@ xgbTrainAlgo = function (XL) {
 }
 
 lgbTrainAlgo = function (XL) {
+  set.seed(2708)
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
       my.train.lgb(XL, rowsFactor=0.9, iters=200)
@@ -222,6 +258,7 @@ lgbTrainAlgo = function (XL) {
 }
 
 lgbnNnetAggregatedTrain = function (XL) {
+  set.seed(2708)
   gmeanAggregator(c(
     nnetTrainAlgo(XL),
     lgbTrainAlgo(XL)
@@ -237,14 +274,16 @@ lgbnNnetAggregatedTrain = function (XL) {
 #my.rfe(XLL)
 
 
-a3 = lgbTrainAlgo(XLL)
+#a3 = lgbTrainAlgo(XLL)
 #a2 = xgbTrainAlgo(XLL)
-a1 = nnetTrainAlgo(XLL)
+#a1 = nnetTrainAlgo(XLL)
 #a4 = svmTrainAlgo(XLL)
 #a5 = mlpTrainAlgo(XLL)
-
+aknn = knnTrainAlgo(XLL)
+"
 alg = meanAggregator(c(a1))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
 write(results, file='res.txt', sep='\n')
+"
