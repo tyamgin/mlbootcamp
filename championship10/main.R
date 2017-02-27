@@ -270,7 +270,7 @@ lgbnNnetAggregatedTrain = function (XL) {
 
 #set.seed(2708);a3 = lgbTrainAlgo(XLL)
 #set.seed(2708);a2 = xgbTrainAlgo(XLL)
-#set.seed(2708);a1 = nnetTrainAlgo(XLL)
+set.seed(2707);a1 = nnetTrainAlgo(XLL)
 #set.seed(2708);a4 = svmTrainAlgo(XLL)
 #set.seed(2708);a5 = mlpTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
