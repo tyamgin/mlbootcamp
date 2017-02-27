@@ -158,7 +158,7 @@ nnetTeachAlgo = function (X, Y) {
   capture.output(
     model <- train(X, Y, method='nnet', metric='logLoss', maxit=1000, 
                    maximize=F, trControl=trControl, verbose=F,
-                   tuneGrid=tuneGrid)
+                   tuneGrid=NULL)
   )
   
   mmm <<- model
@@ -174,7 +174,7 @@ knnTeachAlgo = function (X, Y) {
   trControl = trainControl(method='cv', number=5, repeats=1, classProbs=T, summaryFunction=mnLogLoss)
   
   tuneGrid = expand.grid(
-    kmax = (20:22)*2+1,
+    kmax = (99:101)*2+1,
     distance=2,
     kernel=c("optimal")
   )
@@ -279,7 +279,7 @@ lgbnNnetAggregatedTrain = function (XL) {
 #a1 = nnetTrainAlgo(XLL)
 #a4 = svmTrainAlgo(XLL)
 #a5 = mlpTrainAlgo(XLL)
-aknn = knnTrainAlgo(XLL)
+#aknn = knnTrainAlgo(XLL)
 "
 alg = meanAggregator(c(a1))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
