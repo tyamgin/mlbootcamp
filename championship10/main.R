@@ -148,7 +148,7 @@ mlpTeachAlgo = function (X, Y) {
 nnetTeachAlgo = function (X, Y) {
   Y = factor(Y, labels=c('a', 'b'))
 
-  trControl = trainControl(method='cv', number=7, repeats=7, classProbs=T, summaryFunction=mnLogLoss)
+  trControl = trainControl(method='cv', number=5, classProbs=T, summaryFunction=mnLogLoss)
 
   tuneGrid = expand.grid(
     size = 3:6,
@@ -218,21 +218,18 @@ svmTrainAlgo = function (XL) {
 }
 
 nnetTrainAlgo = function (XL) {
-  set.seed(2708)
   my.normalizedTrain(XL, function (XL) {
     nnetTeachAlgo(XL[, -ncol(XL)], XL[, ncol(XL)])
   })
 }
 
 mlpTrainAlgo = function (XL) {
-  set.seed(2708)
   my.normalizedTrain(XL, function (XL) {
     mlpTeachAlgo(XL[, -ncol(XL)], XL[, ncol(XL)])
   })
 }
 
 knnTrainAlgo = function (XL) {
-  set.seed(2708)
   my.normalizedTrain(XL, function (XL) {
     knnTeachAlgo(XL[, -ncol(XL)], XL[, ncol(XL)])
   })
@@ -240,7 +237,6 @@ knnTrainAlgo = function (XL) {
 
 
 xgbTrainAlgo = function (XL) {
-  set.seed(2708)
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
       my.train.xgb(XL, rowsFactor=0.9, iters=15)
@@ -249,7 +245,6 @@ xgbTrainAlgo = function (XL) {
 }
 
 lgbTrainAlgo = function (XL) {
-  set.seed(2708)
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
       my.train.lgb(XL, rowsFactor=0.9, iters=200)
@@ -258,14 +253,13 @@ lgbTrainAlgo = function (XL) {
 }
 
 lgbnNnetAggregatedTrain = function (XL) {
-  set.seed(2708)
   gmeanAggregator(c(
     nnetTrainAlgo(XL),
     lgbTrainAlgo(XL)
   ))
 }
 
-#print(validation.tqfold(XLL, svmTrainAlgo, folds=5, iters=6, verbose=T))
+#set.seed(2708); print(validation.tqfold(XLL, svmTrainAlgo, folds=5, iters=6, verbose=T))
 #print(geneticSelect(iterations=200, XL=extendXYCols(XLL), teach=function (XL) {
 #  my.normalizedTrain(XL, function (XL) {
 #    my.train.lgb(XL, rowsFactor=0.9, iters=4)
@@ -274,12 +268,12 @@ lgbnNnetAggregatedTrain = function (XL) {
 #my.rfe(XLL)
 
 
-#a3 = lgbTrainAlgo(XLL)
-#a2 = xgbTrainAlgo(XLL)
-#a1 = nnetTrainAlgo(XLL)
-#a4 = svmTrainAlgo(XLL)
-#a5 = mlpTrainAlgo(XLL)
-#aknn = knnTrainAlgo(XLL)
+#set.seed(2708);a3 = lgbTrainAlgo(XLL)
+#set.seed(2708);a2 = xgbTrainAlgo(XLL)
+#set.seed(2708);a1 = nnetTrainAlgo(XLL)
+#set.seed(2708);a4 = svmTrainAlgo(XLL)
+#set.seed(2708);a5 = mlpTrainAlgo(XLL)
+#set.seed(2708);aknn = knnTrainAlgo(XLL)
 "
 alg = meanAggregator(c(a1))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
