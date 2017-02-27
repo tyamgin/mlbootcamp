@@ -28,8 +28,37 @@ extendCols = function (XX) {
     }
   }
   
-  XX = XX[, which(1 == c(0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0,0, 0, 0, 0, 1, 0, 0,1, 1, 1, 0, 1, 1, 1,1, 1, 0, 1, 0, 0, 1,0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0))]
-  XX = XX[, which(1 == c(1, 1, 1, 1, 0, 0, 1, 1, 1,1, 0, 0, 1, 0, 0, 1, 0, 1,1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1))]
+  #XX = XX[, which(1 == c(0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0,0, 0, 0, 0, 1, 0, 0,1, 1, 1, 0, 1, 1, 1,1, 1, 0, 1, 0, 0, 1,0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0))]
+  #XX = XX[, which(1 == c(1, 1, 1, 1, 0, 0, 1, 1, 1,1, 0, 0, 1, 0, 0, 1, 0, 1,1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1))]
+  XX = XX[, which(1 == c(1,                 1,                 0,                 0,                 0,                
+  0,                 0,                 0,                 1,                 1,                
+  0,                 0,                 0,                 1,                 0,                
+  1,                 1,                 1,                 1,                 1,                
+  1,                 1,                 1,                 0,                 1,                
+  0,                 0,                 1,                 1,                 1,                
+  0,                 1,                 1,                 0,                 1,                
+  0,                 1,                 0,                 1,                 0,                
+  0,                 0,                 1,                 1,                 0,                
+  1,                 1,                 0,                 1,                 0,                
+  1,                 0,                 1,                 0,                 0,                
+  0,                 0,                 0,                 0,                 1,                
+  1,                 0,                 0,                 1,                 0,                
+  1,                 1,                 0,                 0,                 0,                
+  0,                 0,                 0,                 1,                 1,                
+  0,                 0,                 0,                 1,                 0,                
+  1,                 0,                 1,                 1,                 1,                
+  1,                 0,                 0,                 1,                 1,                
+  0,                 0,                 1,                 0,                 0,                
+  0,                 0,                 0,                 1,                 0,                
+  0,                 1,                 1,                 0,                 1,                
+  1,                 0,                 0,                 1,                 1,                
+  0,                 1,                 1,                 1,                 0,                
+  1,                 0,                 0,                 0,                 0,                
+  0,                 0,                 0,                 0,                 1,                
+  0,                 1,                 0,                 0,                 0,                
+  1,                 0,                 1,                 0,                 1,                
+  0,                 0,                 0,                 1,                 0,                
+  1,                 0,                 0,                 0))]
   
   XX
 }
@@ -148,11 +177,12 @@ mlpTeachAlgo = function (X, Y) {
 nnetTeachAlgo = function (X, Y) {
   Y = factor(Y, labels=c('a', 'b'))
 
-  trControl = trainControl(method='cv', number=5, classProbs=T, summaryFunction=mnLogLoss)
+  #trControl = trainControl(method='cv', number=10, repeats=10, classProbs=T, summaryFunction=mnLogLoss)
+  trControl = trainControl(method='cv', number=5, repeats=1, classProbs=T, summaryFunction=mnLogLoss)
 
   tuneGrid = expand.grid(
     size = 3:6,
-    decay = c(0.010, 0.013, 0.015, 0.017, 0.020, 0.025, 0.030, 0.033, 0.035, 0.037, 0.040)
+    decay = seq(from=0, to=0.2, length.out=30)
   )
   
   capture.output(
@@ -174,8 +204,8 @@ knnTeachAlgo = function (X, Y) {
   trControl = trainControl(method='cv', number=5, repeats=1, classProbs=T, summaryFunction=mnLogLoss)
   
   tuneGrid = expand.grid(
-    kmax = (99:101)*2+1,
-    distance=2,
+    kmax = c(195, 197, 199),
+    distance=2:12,
     kernel=c("optimal")
   )
   
@@ -268,14 +298,14 @@ lgbnNnetAggregatedTrain = function (XL) {
 #my.rfe(XLL)
 
 
-#set.seed(2708);a3 = lgbTrainAlgo(XLL)
+set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2708);a2 = xgbTrainAlgo(XLL)
-set.seed(2707);a1 = nnetTrainAlgo(XLL)
+##set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2708);a4 = svmTrainAlgo(XLL)
 #set.seed(2708);a5 = mlpTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
 "
-alg = meanAggregator(c(a1))
+alg = meanAggregator(c(annet))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
