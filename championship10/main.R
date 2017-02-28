@@ -8,6 +8,7 @@ require(RSNNS)
 require(caret)
 require(lightgbm)
 require(nnet)
+require(doParallel)
 
 debugSource("algos.R")
 debugSource("genetic.R")
@@ -28,8 +29,8 @@ extendCols = function (XX) {
     }
   }
   
-  #XX = XX[, which(1 == c(0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0,0, 0, 0, 0, 1, 0, 0,1, 1, 1, 0, 1, 1, 1,1, 1, 0, 1, 0, 0, 1,0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0))]
-  #XX = XX[, which(1 == c(1, 1, 1, 1, 0, 0, 1, 1, 1,1, 0, 0, 1, 0, 0, 1, 0, 1,1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1))]
+  XX = XX[, which(1 == c(0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0,0, 0, 0, 0, 1, 0, 0,1, 1, 1, 0, 1, 1, 1,1, 1, 0, 1, 0, 0, 1,0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0))]
+  XX = XX[, which(1 == c(1, 1, 1, 1, 0, 0, 1, 1, 1,1, 0, 0, 1, 0, 0, 1, 0, 1,1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1))]
   "XX = XX[, which(1 == c(1,                 1,                 0,                 0,                 0,                
   0,                 0,                 0,                 1,                 1,                
   0,                 0,                 0,                 1,                 0,                
@@ -60,7 +61,7 @@ extendCols = function (XX) {
   0,                 0,                 0,                 1,                 0,                
   1,                 0,                 0,                 0))]"
   
-  XX = XX[, which(1 == c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))]
+  #XX = XX[, which(1 == c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))]
   
   XX
 }
@@ -179,18 +180,18 @@ mlpTeachAlgo = function (X, Y) {
 nnetTeachAlgo = function (X, Y) {
   Y = factor(Y, labels=c('a', 'b'))
 
-  #trControl = trainControl(method='cv', number=10, repeats=40, classProbs=T, summaryFunction=mnLogLoss)
-  trControl = trainControl(method='cv', number=5, repeats=1, classProbs=T, summaryFunction=mnLogLoss)
+  trControl = trainControl(method='cv', number=10, repeats=40, classProbs=T, summaryFunction=mnLogLoss)
+  #trControl = trainControl(method='cv', number=5, repeats=1, classProbs=T, summaryFunction=mnLogLoss)
 
   tuneGrid = expand.grid(
-    size = 3:6,
-    decay = seq(from=0, to=0.3, length.out=50)
+    size = 4,#3:6,
+    decay = 0.1408163 - seq(from=0, by=1e-7, length.out=20)# seq(from=0, to=0.3, length.out=50)
   )
   
   capture.output(
     model <- train(X, Y, method='nnet', metric='logLoss', maxit=1000, 
                    maximize=F, trControl=trControl, verbose=F,
-                   tuneGrid=NULL)
+                   tuneGrid=tuneGrid)
   )
   
   mmm <<- model
@@ -302,15 +303,15 @@ lgbnNnetAggregatedTrain = function (XL) {
 
 set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2708);a2 = xgbTrainAlgo(XLL)
-#cl <- makeCluster(detectCores())
-#registerDoParallel(cl)
-#set.seed(2707);annet = nnetTrainAlgo(XLL)
-#stopCluster(cl)
+cl <- makeCluster(detectCores())
+registerDoParallel(cl)
+set.seed(2707);annet = nnetTrainAlgo(XLL)
+stopCluster(cl)
 #set.seed(2708);a4 = svmTrainAlgo(XLL)
 #set.seed(2708);a5 = mlpTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
 "
-alg = meanAggregator(c(algb))
+alg = meanAggregator(c(algb, annet))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
