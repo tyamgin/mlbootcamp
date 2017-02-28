@@ -349,7 +349,7 @@ set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2708);a5 = mlpTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
 
-alg = meanAggregator(c(algb, algb, algb, annet, annet))
+alg = meanAggregator(c(algb, algb, annet, annet, annet))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
