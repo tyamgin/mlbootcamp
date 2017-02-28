@@ -29,9 +29,44 @@ extendCols = function (XX) {
     }
   }
   
+  # "tqfold 0 iterations remains, mean=0.379375133577985 sd=0.00884458981072915"
   XX = XX[, which(1 == c(0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0,0, 0, 0, 0, 1, 0, 0,1, 1, 1, 0, 1, 1, 1,1, 1, 0, 1, 0, 0, 1,0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0))]
   XX = XX[, which(1 == c(1, 1, 1, 1, 0, 0, 1, 1, 1,1, 0, 0, 1, 0, 0, 1, 0, 1,1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1))]
-  "XX = XX[, which(1 == c(1,                 1,                 0,                 0,                 0,                
+  
+  #last "tqfold 0 iterations remains, mean=0.379544967115814 sd=0.00888422118808115"
+  "XX = XX[, which(1 == c(1,                 1,                 0,                 1,                 1,                
+  1,                 1,                 0,                 1,                 1,                
+  1,                 1,                 0,                 0,                 0,                
+  1,                 0,                 0,                 0,                 0,                
+  0,                 1,                 0,                 0,                 1,                
+  0,                 0,                 0,                 0,                 0,                
+  0,                 0,                 0,                 1,                 1,                
+  0,                 0,                 1,                 1,                 0,                
+  0,                 1,                 0,                 1,                 0,                
+  1,                 1,                 0,                 0,                 0,                
+  0,                 1,                 0,                 1,                 1,                
+  0,                 1,                 0,                 1,                 1,                
+  0,                 0,                 1,                 1,                 0,                
+  0,                 1,                 0,                 1,                 0,                
+  1,                 0,                 0,                 0,                 1,                
+  0,                 1,                 1,                 1,                 1,                
+  1,                 0,                 1,                 1,                 1,                
+  1,                 0,                 1,                 0,                 1,                
+  0,                 0,                 1,                 1,                 1,                
+  0,                 1,                 0,                 1,                 0,                
+  0,                 1,                 0,                 1,                 0,                
+  0,                 1,                 1,                 1,                 0,                
+  1,                 1,                 0,                 0,                 0,                
+  0,                 0,                 0,                 0,                 0,                
+  0,                 0,                 0,                 1,                 1,                
+  1,                 0,                 0,                 0,                 0,                
+  0,                 0,                 1,                 1,                 1,                
+  0,                 1,                 0,                 0,                 1,                
+  1,                 1,                 1,                 0))]"
+  
+  # pre last "tqfold 0 iterations remains, mean=0.379438947268411 sd=0.00877389849010951"
+  "
+  XX = XX[, which(1 == c(1,                 1,                 0,                 0,                 0,                
   0,                 0,                 0,                 1,                 1,                
   0,                 0,                 0,                 1,                 0,                
   1,                 1,                 1,                 1,                 1,                
@@ -59,7 +94,10 @@ extendCols = function (XX) {
   0,                 1,                 0,                 0,                 0,                
   1,                 0,                 1,                 0,                 1,                
   0,                 0,                 0,                 1,                 0,                
-  1,                 0,                 0,                 0))]"
+  1,                 0,                 0,                 0))]
+  "
+  
+  #super last "tqfold 0 iterations remains, mean=0.379215446151919 sd=0.00882421181974091"
   
   #XX = XX[, which(1 == c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))]
   
@@ -180,12 +218,12 @@ mlpTeachAlgo = function (X, Y) {
 nnetTeachAlgo = function (X, Y) {
   Y = factor(Y, labels=c('a', 'b'))
 
-  trControl = trainControl(method='cv', number=10, repeats=40, classProbs=T, summaryFunction=mnLogLoss)
+  trControl = trainControl(method='cv', number=5, repeats=50, classProbs=T, summaryFunction=mnLogLoss)
   #trControl = trainControl(method='cv', number=5, repeats=1, classProbs=T, summaryFunction=mnLogLoss)
 
   tuneGrid = expand.grid(
-    size = 4,#3:6,
-    decay = 0.1408163 - seq(from=0, by=1e-7, length.out=20)# seq(from=0, to=0.3, length.out=50)
+    size = 5,#3:6,
+    decay = 0.1 - seq(from=0, by=1e-7, length.out=20)# seq(from=0, to=0.3, length.out=50)
   )
   
   capture.output(
@@ -292,7 +330,7 @@ lgbnNnetAggregatedTrain = function (XL) {
   ))
 }
 
-#set.seed(2708); print(validation.tqfold(XLL, svmTrainAlgo, folds=5, iters=6, verbose=T))
+#set.seed(2707); print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=10, verbose=T))
 #print(geneticSelect(iterations=200, XL=extendXYCols(XLL), teach=function (XL) {
 #  my.normalizedTrain(XL, function (XL) {
 #    my.train.lgb(XL, rowsFactor=0.9, iters=4)
@@ -301,7 +339,7 @@ lgbnNnetAggregatedTrain = function (XL) {
 #my.rfe(XLL)
 
 
-set.seed(2708);algb = lgbTrainAlgo(XLL)
+#set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2708);a2 = xgbTrainAlgo(XLL)
 cl <- makeCluster(detectCores())
 registerDoParallel(cl)
@@ -311,7 +349,7 @@ stopCluster(cl)
 #set.seed(2708);a5 = mlpTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
 "
-alg = meanAggregator(c(algb, annet))
+alg = meanAggregator(c(annet))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
