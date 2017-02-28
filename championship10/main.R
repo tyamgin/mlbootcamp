@@ -30,7 +30,7 @@ extendCols = function (XX) {
   
   #XX = XX[, which(1 == c(0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0,0, 0, 0, 0, 1, 0, 0,1, 1, 1, 0, 1, 1, 1,1, 1, 0, 1, 0, 0, 1,0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0))]
   #XX = XX[, which(1 == c(1, 1, 1, 1, 0, 0, 1, 1, 1,1, 0, 0, 1, 0, 0, 1, 0, 1,1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1))]
-  XX = XX[, which(1 == c(1,                 1,                 0,                 0,                 0,                
+  "XX = XX[, which(1 == c(1,                 1,                 0,                 0,                 0,                
   0,                 0,                 0,                 1,                 1,                
   0,                 0,                 0,                 1,                 0,                
   1,                 1,                 1,                 1,                 1,                
@@ -58,7 +58,9 @@ extendCols = function (XX) {
   0,                 1,                 0,                 0,                 0,                
   1,                 0,                 1,                 0,                 1,                
   0,                 0,                 0,                 1,                 0,                
-  1,                 0,                 0,                 0))]
+  1,                 0,                 0,                 0))]"
+  
+  XX = XX[, which(1 == c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))]
   
   XX
 }
@@ -177,12 +179,12 @@ mlpTeachAlgo = function (X, Y) {
 nnetTeachAlgo = function (X, Y) {
   Y = factor(Y, labels=c('a', 'b'))
 
-  #trControl = trainControl(method='cv', number=10, repeats=10, classProbs=T, summaryFunction=mnLogLoss)
+  #trControl = trainControl(method='cv', number=10, repeats=40, classProbs=T, summaryFunction=mnLogLoss)
   trControl = trainControl(method='cv', number=5, repeats=1, classProbs=T, summaryFunction=mnLogLoss)
 
   tuneGrid = expand.grid(
     size = 3:6,
-    decay = seq(from=0, to=0.2, length.out=30)
+    decay = seq(from=0, to=0.3, length.out=50)
   )
   
   capture.output(
@@ -300,12 +302,15 @@ lgbnNnetAggregatedTrain = function (XL) {
 
 set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2708);a2 = xgbTrainAlgo(XLL)
-##set.seed(2707);annet = nnetTrainAlgo(XLL)
+#cl <- makeCluster(detectCores())
+#registerDoParallel(cl)
+set.seed(2707);annet = nnetTrainAlgo(XLL)
+#stopCluster(cl)
 #set.seed(2708);a4 = svmTrainAlgo(XLL)
 #set.seed(2708);a5 = mlpTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
 "
-alg = meanAggregator(c(annet))
+alg = meanAggregator(c(algb, annet))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
