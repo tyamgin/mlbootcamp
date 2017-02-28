@@ -30,8 +30,8 @@ extendCols = function (XX) {
   }
   
   # "tqfold 0 iterations remains, mean=0.379375133577985 sd=0.00884458981072915"
-  XX = XX[, which(1 == c(0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0,0, 0, 0, 0, 1, 0, 0,1, 1, 1, 0, 1, 1, 1,1, 1, 0, 1, 0, 0, 1,0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0))]
-  XX = XX[, which(1 == c(1, 1, 1, 1, 0, 0, 1, 1, 1,1, 0, 0, 1, 0, 0, 1, 0, 1,1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1))]
+  #XX = XX[, which(1 == c(0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0,0, 0, 0, 0, 1, 0, 0,1, 1, 1, 0, 1, 1, 1,1, 1, 0, 1, 0, 0, 1,0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0))]
+  #XX = XX[, which(1 == c(1, 1, 1, 1, 0, 0, 1, 1, 1,1, 0, 0, 1, 0, 0, 1, 0, 1,1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1))]
   
   #last "tqfold 0 iterations remains, mean=0.379544967115814 sd=0.00888422118808115"
   "XX = XX[, which(1 == c(1,                 1,                 0,                 1,                 1,                
@@ -99,7 +99,7 @@ extendCols = function (XX) {
   
   #super last "tqfold 0 iterations remains, mean=0.379215446151919 sd=0.00882421181974091"
   
-  #XX = XX[, which(1 == c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))]
+  XX = XX[, which(1 == c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))]
   
   XX
 }
@@ -189,8 +189,8 @@ my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
       nthread=4, verbose=0, early_stopping_rounds=50,
       min_data_in_leaf=100, lambda_l2=5
     )
-  }
   aggregator(algos)
+  }
 }
 
 mlpTeachAlgo = function (X, Y) {
@@ -217,10 +217,10 @@ mlpTeachAlgo = function (X, Y) {
 }
 nnetTeachAlgo = function (X, Y) {
   Y = factor(Y, labels=c('a', 'b'))
-
-  trControl = trainControl(method='cv', number=5, repeats=50, classProbs=T, summaryFunction=mnLogLoss)
-  #trControl = trainControl(method='cv', number=5, repeats=1, classProbs=T, summaryFunction=mnLogLoss)
-
+  
+  #trControl = trainControl(method='cv', number=5, repeats=50, classProbs=T, summaryFunction=mnLogLoss)
+  trControl = trainControl(method='cv', number=5, repeats=1, classProbs=T, summaryFunction=mnLogLoss)
+  
   tuneGrid = expand.grid(
     size = 5,#3:6,
     decay = 0.1 - seq(from=0, by=1e-7, length.out=20)# seq(from=0, to=0.3, length.out=50)
@@ -229,7 +229,7 @@ nnetTeachAlgo = function (X, Y) {
   capture.output(
     model <- train(X, Y, method='nnet', metric='logLoss', maxit=1000, 
                    maximize=F, trControl=trControl, verbose=F,
-                   tuneGrid=tuneGrid)
+                   tuneGrid=NULL)
   )
   
   mmm <<- model
@@ -339,19 +339,19 @@ lgbnNnetAggregatedTrain = function (XL) {
 #my.rfe(XLL)
 
 
-#set.seed(2708);algb = lgbTrainAlgo(XLL)
+set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2708);a2 = xgbTrainAlgo(XLL)
-cl <- makeCluster(detectCores())
-registerDoParallel(cl)
+#cl <- makeCluster(detectCores())
+#registerDoParallel(cl)
 set.seed(2707);annet = nnetTrainAlgo(XLL)
-stopCluster(cl)
+#stopCluster(cl)
 #set.seed(2708);a4 = svmTrainAlgo(XLL)
 #set.seed(2708);a5 = mlpTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
-"
-alg = meanAggregator(c(annet))
+
+alg = meanAggregator(c(algb, algb, algb, annet, annet))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
 write(results, file='res.txt', sep='\n')
-"
+print('done')
