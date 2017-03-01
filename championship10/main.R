@@ -218,8 +218,8 @@ mlpTeachAlgo = function (X, Y) {
 nnetTeachAlgo = function (X, Y) {
   Y = factor(Y, labels=c('a', 'b'))
   
-  number = 200
-  trControl = trainControl(method='cv', number=number, classProbs=T, summaryFunction=mnLogLoss, seeds=1:(number+1))
+  number = 1000
+  trControl = trainControl(method='boot632', number=number, classProbs=T, summaryFunction=mnLogLoss, seeds=1:(number+2))
   
   #for(sz in 4:5) {
   #  for(dec in c(0.05, 0.10, 0.15, 0.20)) {
