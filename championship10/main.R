@@ -189,8 +189,10 @@ my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
       nthread=4, verbose=0, early_stopping_rounds=50,
       min_data_in_leaf=100, lambda_l2=5
     )
-  aggregator(algos)
+    if (it %% 100 == 0)
+      gc()
   }
+  aggregator(algos)
 }
 
 mlpTeachAlgo = function (X, Y) {
@@ -324,7 +326,7 @@ xgbTrainAlgo = function (XL) {
 lgbTrainAlgo = function (XL) {
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
-      my.train.lgb(XL, rowsFactor=0.9, iters=200)
+      my.train.lgb(XL, rowsFactor=0.9, iters=400)
     })
   })
 }
@@ -345,20 +347,19 @@ lgbnNnetAggregatedTrain = function (XL) {
 #my.rfe(XLL)
 
 
-#set.seed(2708);algb = lgbTrainAlgo(XLL)
+set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2708);a2 = xgbTrainAlgo(XLL)
-cl <- makeCluster(detectCores())
-registerDoParallel(cl)
-set.seed(2707);annet = nnetTrainAlgo(XLL)
-stopCluster(cl)
+#cl <- makeCluster(detectCores())
+#registerDoParallel(cl)
+#set.seed(2707);annet = nnetTrainAlgo(XLL)
+#stopCluster(cl)
 #set.seed(2708);a4 = svmTrainAlgo(XLL)
 #set.seed(2708);a5 = mlpTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
-"
-alg = meanAggregator(c(annet))
+
+alg = meanAggregator(c(algb))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
 write(results, file='res.txt', sep='\n')
 print('done')
-"
