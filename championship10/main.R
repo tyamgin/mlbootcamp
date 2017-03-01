@@ -218,22 +218,28 @@ mlpTeachAlgo = function (X, Y) {
 nnetTeachAlgo = function (X, Y) {
   Y = factor(Y, labels=c('a', 'b'))
   
-  #trControl = trainControl(method='cv', number=5, repeats=50, classProbs=T, summaryFunction=mnLogLoss)
-  trControl = trainControl(method='cv', number=5, repeats=1, classProbs=T, summaryFunction=mnLogLoss)
+  number = 200
+  trControl = trainControl(method='cv', number=number, classProbs=T, summaryFunction=mnLogLoss, seeds=1:(number+1))
   
-  tuneGrid = expand.grid(
-    size = 5,#3:6,
-    decay = 0.1 - seq(from=0, by=1e-7, length.out=20)# seq(from=0, to=0.3, length.out=50)
-  )
-  
-  capture.output(
-    model <- train(X, Y, method='nnet', metric='logLoss', maxit=1000, 
-                   maximize=F, trControl=trControl, verbose=F,
-                   tuneGrid=NULL)
-  )
-  
-  mmm <<- model
-  print(model)
+  #for(sz in 4:5) {
+  #  for(dec in c(0.05, 0.10, 0.15, 0.20)) {
+  sz=5
+  dec=0.15
+      tuneGrid = expand.grid(
+        size = sz,
+        decay = dec
+      )
+      
+      capture.output(
+        model <- train(X, Y, method='nnet', metric='logLoss', maxit=1000, 
+                       maximize=F, trControl=trControl, verbose=F,
+                       tuneGrid=tuneGrid)
+      )
+      
+      mmm <<- model
+      print(model)
+  #  }
+  #}
   
   function (X) {
     predict(model, X, type='prob')$b
@@ -339,19 +345,20 @@ lgbnNnetAggregatedTrain = function (XL) {
 #my.rfe(XLL)
 
 
-set.seed(2708);algb = lgbTrainAlgo(XLL)
+#set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2708);a2 = xgbTrainAlgo(XLL)
-#cl <- makeCluster(detectCores())
-#registerDoParallel(cl)
+cl <- makeCluster(detectCores())
+registerDoParallel(cl)
 set.seed(2707);annet = nnetTrainAlgo(XLL)
-#stopCluster(cl)
+stopCluster(cl)
 #set.seed(2708);a4 = svmTrainAlgo(XLL)
 #set.seed(2708);a5 = mlpTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
-
-alg = meanAggregator(c(algb, algb, annet, annet, annet))
+"
+alg = meanAggregator(c(annet))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
 write(results, file='res.txt', sep='\n')
 print('done')
+"
