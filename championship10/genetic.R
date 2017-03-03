@@ -19,13 +19,13 @@ mutation = function(a, p = 0.1) {
 }
 
 vapnik.logloss = function(nrows, ncols) { 
-  (ncols * (log(2*nrows/ncols) + 1) / nrows - log(0.05) / nrows)^0.5 / 200
+  (ncols * (log(2*nrows/ncols) + 1) / nrows - log(0.05) / nrows)^0.5 / 100
 }
 
 tqfoldEstimation = function(XL, G, teach) {
   p = sum(G)
   if (p <= 1)
-    return( 10^10 )
+    return( list(int=1e10, ext=1e10) )
   
   L = nrow(XL)
   m = ncol(XL) - 1

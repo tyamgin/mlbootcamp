@@ -9,10 +9,12 @@ require(caret)
 require(lightgbm)
 require(nnet)
 require(doParallel)
+require(randomForest)
 
 debugSource("algos.R")
 debugSource("genetic.R")
 debugSource("rfe.R")
+debugSource("stacking.R")
 
 XX = read.csv(file="x_train.csv", head=T, sep=";", na.strings="?")
 YY = read.csv(file="y_train.csv", head=F, sep=";", na.strings="?")
@@ -99,7 +101,10 @@ extendCols = function (XX) {
   
   #super last "tqfold 0 iterations remains, mean=0.379215446151919 sd=0.00882421181974091"
   
-  XX = XX[, which(1 == c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))]
+  #XX = XX[, which(1 == c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))]
+  
+  #lll
+  XX = XX[, which(1 == c(0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0))]
   
   XX
 }
@@ -220,7 +225,7 @@ mlpTeachAlgo = function (X, Y) {
 nnetTeachAlgo = function (X, Y) {
   Y = factor(Y, labels=c('a', 'b'))
   
-  number = 1000
+  number = 5
   trControl = trainControl(method='boot632', number=number, classProbs=T, summaryFunction=mnLogLoss, seeds=1:(number+2))
   
   #for(sz in 4:5) {
@@ -253,8 +258,8 @@ knnTeachAlgo = function (X, Y) {
   trControl = trainControl(method='cv', number=5, repeats=1, classProbs=T, summaryFunction=mnLogLoss)
   
   tuneGrid = expand.grid(
-    kmax = c(195, 197, 199),
-    distance=2:12,
+    kmax = 199,
+    distance=3,
     kernel=c("optimal")
   )
   
@@ -271,7 +276,39 @@ knnTeachAlgo = function (X, Y) {
     predict(model, X, type='prob')$b
   }
 }
+rfTeachAlgo = function (X, Y) {
+  Y = factor(Y, labels=c('a', 'b'))
 
+  
+  "
+  trControl = trainControl(method='cv', number=5, repeats=1, classProbs=T, summaryFunction=mnLogLoss)
+  
+  tuneGrid = expand.grid(
+    mtry = 4
+  )
+  
+  capture.output(
+    model <- train(X, Y, method='rf', metric='logLoss',
+                   maximize=F, trControl=trControl, maxit=1000, nodesize=1, maxnodes=20, ntree=2000, importance=T,
+                   tuneGrid=tuneGrid)
+  )
+  
+  rfm <<- model
+  print(model)
+
+  function (X) {
+    predict(model, X, type='prob')$b
+  }
+"
+  
+  model = randomForest(X, Y, nodesize=1, maxnodes=10, ntree=5000, mtry=2)
+  #classwt=c(0.7, 0.3)
+  
+  function (x) {
+    matrix(predict(model, x, type='prob'), ncol=2)[,2]
+  }
+
+}
 
 svmTrainAlgo = function (XL) {
   my.normalizedTrain(XL, function (XL) {
@@ -279,8 +316,11 @@ svmTrainAlgo = function (XL) {
     X = XL[, -ncol(XL)]
     Y = factor(XL[, ncol(XL)], labels=c('a', 'b'))
     
-    tuneGrid = expand.grid(weight=c(5, 10), cost=c(0.5, 1, 2, 5))
-    trControl = trainControl(method='cv', number=3, classProbs=T, summaryFunction=mnLogLoss)
+    tuneGrid = expand.grid(
+      weight=4,#c(5, 10), 
+      cost=0.5#c(0.5, 1, 2, 5)
+    )
+    trControl = trainControl(method='cv', number=5, classProbs=T, summaryFunction=mnLogLoss)
     capture.output(
       model <- train(X, Y, method='svmLinearWeights', metric='logLoss', maximize=F, 
                      trControl=trControl, tuneGrid=tuneGrid,
@@ -314,6 +354,12 @@ knnTrainAlgo = function (XL) {
   })
 }
 
+rfTrainAlgo = function (XL) {
+  my.normalizedTrain(XL, function (XL) {
+    rfTeachAlgo(XL[, -ncol(XL)], XL[, ncol(XL)])
+  })
+}
+
 
 xgbTrainAlgo = function (XL) {
   my.extendedColsTrain(XL, function(XL) {
@@ -326,36 +372,44 @@ xgbTrainAlgo = function (XL) {
 lgbTrainAlgo = function (XL) {
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
-      my.train.lgb(XL, rowsFactor=0.9, iters=400)
+      my.train.lgb(XL, rowsFactor=0.9, iters=200)
     })
   })
 }
 
-lgbnNnetAggregatedTrain = function (XL) {
-  gmeanAggregator(c(
-    nnetTrainAlgo(XL),
-    lgbTrainAlgo(XL)
-  ))
+
+stackedAlgo = function (XL) {
+  my.normalizedTrain(XL, function (XL) {
+    my.stacking(XL[, -ncol(XL)], XL[, ncol(XL)], c(svmTrainAlgo), lgbTrainAlgo)#nnetTrainAlgo, 
+  })
 }
 
-#set.seed(2707); print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=10, verbose=T))
-#print(geneticSelect(iterations=200, XL=extendXYCols(XLL), teach=function (XL) {
+#cl <- makeCluster(detectCores())
+#registerDoParallel(cl)
+
+#set.seed(2707); print(validation.tqfold(XLL, stackedAlgo, folds=3, iters=10, verbose=T))
+#set.seed(2709);print(geneticSelect(iterations=200, XL=extendXYCols(XLL), teach=function (XL) {
 #  my.normalizedTrain(XL, function (XL) {
 #    my.train.lgb(XL, rowsFactor=0.9, iters=4)
 #  })
-#}, maxPopulationSize=13, mutationProb=0.2, startOnesProbab=0.2))
+#}, maxPopulationSize=13, mutationProb=0.1, startOnesProbab=0.15))
 #my.rfe(XLL)
 
 
 set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2708);a2 = xgbTrainAlgo(XLL)
-#cl <- makeCluster(detectCores())
-#registerDoParallel(cl)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
-#stopCluster(cl)
-#set.seed(2708);a4 = svmTrainAlgo(XLL)
+#set.seed(2708);asvm = svmTrainAlgo(XLL)
 #set.seed(2708);a5 = mlpTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
+#set.seed(2708);arf = rfTrainAlgo(XLL)
+
+#rs = resamples(list(svm=svmModel1, nnet=mmm, knn=knnm))
+#modelCor(rs)
+
+#stopCluster(cl)
+
+
 
 alg = meanAggregator(c(algb))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
