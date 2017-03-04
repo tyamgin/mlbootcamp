@@ -3,7 +3,7 @@ nnetTeachAlgo = function (XL, XK=NULL) {
   Y = factor(XL[, ncol(XL)], labels=c('a', 'b'))
   
   number = 5
-  trControl = trainControl(method='none', number=number, classProbs=T, summaryFunction=mnLogLoss, seeds=1:(number+2))
+  trControl = trainControl(method='none', number=number, classProbs=T, summaryFunction=mnLogLoss)
 
   tuneGrid = expand.grid(
     size = 5,
