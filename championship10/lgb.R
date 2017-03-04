@@ -1,4 +1,4 @@
-my.boot = function (XL, train, aggregator, iters=10, rowsFactor=0.3) {
+my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3) {
   algos = list()
   n = nrow(XLL)
   for (it in 1:iters) {

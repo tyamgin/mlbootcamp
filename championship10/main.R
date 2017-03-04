@@ -128,4 +128,3 @@ XXX = preCols(XXX)
 results = alg(XXX)
 write(results, file='res.txt', sep='\n')
 print('done')
-
