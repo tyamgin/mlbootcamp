@@ -19,7 +19,7 @@ mutation = function(a, p = 0.1) {
 }
 
 vapnik.logloss = function(nrows, ncols) { 
-  (ncols * (log(2*nrows/ncols) + 1) / nrows - log(0.05) / nrows)^0.5 / 100
+  (ncols * (log(2*nrows/ncols) + 1) / nrows - log(0.05) / nrows)^0.5 / 100 + ncols/10000
 }
 
 tqfoldEstimation = function(XL, G, teach) {
@@ -31,7 +31,7 @@ tqfoldEstimation = function(XL, G, teach) {
   m = ncol(XL) - 1
   subXL = XL[, c(which(G == 1), m + 1)]
   
-  e = mean(validation.tqfold(subXL, teach, folds=5, iters=2, verbose=F))
+  e = mean(validation.tqfold(subXL, teach, folds=4, iters=3, verbose=F))
   list(int=e, ext=(e + vapnik.logloss(L, p)))
 }
 
