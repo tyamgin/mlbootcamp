@@ -124,7 +124,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 
 
 
-alg = meanAggregator(c(algb, annetbt, annetmagic))
+alg = meanAggregator(c(algb, algb, annetbt, annetmagic))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
