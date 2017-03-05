@@ -18,8 +18,8 @@ mutation = function(a, p = 0.1) {
   a
 }
 
-vapnik.logloss = function(nrows, ncols) { 
-  (ncols * (log(2*nrows/ncols) + 1) / nrows - log(0.05) / nrows)^0.5 / 100 + ncols/10000
+vapnik.logloss = function(nrows, ncols) {
+  (ncols * (log(2*nrows/ncols) + 1) / nrows - log(0.05) / nrows)^0.5 / 100 + ncols/50000
 }
 
 tqfoldEstimation = function(XL, G, teach) {
@@ -47,7 +47,7 @@ geneticSelect = function(iterations,  # количество итераций
 ) {
   L = nrow(XL)
   size = ncol(XL) - 1
-  R = matrix(NA, maxPopulationSize, size + 2) # генерация хромосом
+  R = matrix(NA, 2*maxPopulationSize^2, size + 2) # генерация хромосом
   
   chr = function(vec) { # получить хромосому
     vec[1:size]
@@ -61,7 +61,7 @@ geneticSelect = function(iterations,  # количество итераций
     vec
   }
   
-  for(i in 1:maxPopulationSize)
+  for(i in 1:nrow(XL))
     R[i, ] = computed(c(sample(0:1, size, T, prob=c(1-startOnesProbab, startOnesProbab)), NA, NA))
   
   best = R[1, ]

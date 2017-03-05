@@ -10,7 +10,7 @@ nnetTeachAlgo = function (XL, XK=NULL) {
 
   tuneGrid = expand.grid(
     size = 5,
-    decay = 0.15
+    decay = 0.01
   )
   
   capture.output(
@@ -46,6 +46,6 @@ nnetTrainAlgo = function (XL) {
 
 nnetBootTrainAlgo = function (XL) {
   my.normalizedTrain(XL, function (XL) {
-    my.boot(XL, nnetTeachAlgo, meanAggregator, iters=200, rowsFactor=0.632)
+    my.boot(XL, nnetTeachAlgo, meanAggregator, iters=10, rowsFactor=0.632)
   })
 }
