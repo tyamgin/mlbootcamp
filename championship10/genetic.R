@@ -47,7 +47,7 @@ geneticSelect = function(iterations,  # количество итераций
 ) {
   L = nrow(XL)
   size = ncol(XL) - 1
-  R = matrix(NA, 2*maxPopulationSize^2, size + 2) # генерация хромосом
+  R = matrix(NA, maxPopulationSize^2, size + 2) # генерация хромосом
   
   chr = function(vec) { # получить хромосому
     vec[1:size]
@@ -61,8 +61,12 @@ geneticSelect = function(iterations,  # количество итераций
     vec
   }
   
-  for(i in 1:nrow(XL))
-    R[i, ] = computed(c(sample(0:1, size, T, prob=c(1-startOnesProbab, startOnesProbab)), NA, NA))
+  exports = c('validation.tqfold', 'my.normalizedTrain', 'nnetTrainAlgo', 
+              'nnetTeachAlgo', 'error.logloss', 'vapnik.logloss')
+  packages = c('caret')
+  R = unname(foreach(i=1:nrow(R), .combine=rbind, .export=exports, .packages=packages) %dopar% {
+    computed(c(sample(0:1, size, T, prob=c(1-startOnesProbab, startOnesProbab)), NA, NA))
+  })
   
   best = R[1, ]
   bestIteration = 0
@@ -74,8 +78,9 @@ geneticSelect = function(iterations,  # количество итераций
     print(c("iteration", iter))
     
     # sort
-    for (i in 1:nrow(R))
-      R[i, ] = computed(R[i, ])
+    R = unname(foreach(i=1:nrow(R), .combine=rbind, .export=exports, .packages=packages) %dopar% {
+      computed(R[i, ])
+    })
     R = R[order(R[, size + 1]), ]
     
     if (removeDuplicates) {

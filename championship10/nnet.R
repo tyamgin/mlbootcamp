@@ -44,8 +44,28 @@ nnetTrainAlgo = function (XL) {
   })
 }
 
+nnetMagicTrainAlgo = function (XL) {
+  my.normalizedTrain(XL, function (XL) {
+    X = XL[, -ncol(XL)]
+    Y = factor(XL[, ncol(XL)], labels=c('a', 'b'))
+
+    trControl = trainControl(method='cv', number=5, classProbs=T, summaryFunction=mnLogLoss)
+    
+    capture.output(
+      model <- train(X, Y, method='nnet', metric='logLoss', maxit=1000,
+                     maximize=F, trControl=trControl, verbose=F)
+    )
+    mmm <<- model
+    print(model)
+    
+    function (X) {
+      predict(model, X, type='prob')$b
+    }
+  })
+}
+
 nnetBootTrainAlgo = function (XL) {
   my.normalizedTrain(XL, function (XL) {
-    my.boot(XL, nnetTeachAlgo, meanAggregator, iters=10, rowsFactor=0.632)
+    my.boot(XL, nnetTeachAlgo, meanAggregator, iters=200, rowsFactor=0.632)
   })
 }

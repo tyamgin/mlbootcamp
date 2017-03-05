@@ -31,7 +31,7 @@ my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
 lgbTrainAlgo = function (XL) {
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
-      my.train.lgb(XL, rowsFactor=0.9, iters=25)
+      my.train.lgb(XL, rowsFactor=0.9, iters=200)
     })
   })
 }
