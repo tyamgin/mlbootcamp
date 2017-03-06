@@ -7,7 +7,7 @@ getPreDefinedData = function (XL) {
   XA = matrix(NA, 0, m + 1)
   for (i in 2:(n+1)) {
     if (i > n || sum(XL[i, -(m + 1)] == XL[i - 1, -(m + 1)]) != m) {
-      if (cnt > 50) {
+      if (cnt > 500) {
         idxes = (i-cnt):(i-1)
         answers = XL[idxes, m + 1]
         o = sum(answers == 1)
