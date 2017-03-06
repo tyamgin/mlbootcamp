@@ -124,7 +124,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 #stopCluster(cl)
 
 
-alg = gmeanAggregator(c(algb, annetmagic))
+alg = meanAggregator(c(algb, annetmagic))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = preCols(XXX)
 results = alg(XXX)
