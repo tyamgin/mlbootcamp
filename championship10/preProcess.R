@@ -33,7 +33,8 @@ correctAnswers = function (XL, X, Y) {
   for (i in 1:nrow(X)) {
     for (j in 1:nrow(XA)) {
       if (all(XA[j, -ncol(XA)] == X[i, ])) {
-        Y[i] = max(0.02, min(0.98, XA[j, ncol(XA)]))
+        #Y[i] = max(0.02, min(0.98, XA[j, ncol(XA)]))
+        Y[i] = XA[j, ncol(XA)]
         break
       }
     }

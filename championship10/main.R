@@ -104,10 +104,10 @@ my.normalizedTrain = function (XL, trainFunc) {
 #set.seed(2707); print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=10, verbose=T))
 #set.seed(2701);print(geneticSelect(iterations=200, XL=extendXYCols(XLL), teach=function (XL) {
 #  my.normalizedTrain(XL, function (XL) {
-#    #my.train.lgb(XL, iters=4, rowsFactor=0.9)
+#    #my.train.lgb(XL, iters=1, rowsFactor=0.9)
 #    nnetTrainAlgo(XL) #dec=0.01
 #  })
-#}, maxPopulationSize=13, mutationProb=0.15, startOnesProbab=0.15))
+#}, maxPopulationSize=13, mutationProb=0.2, startOnesProbab=0.35))
 
 
 #set.seed(2708);algb = lgbTrainAlgo(XLL)
