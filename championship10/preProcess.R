@@ -45,3 +45,14 @@ correctAnswers = function (XL, X, Y) {
   }
   Y
 }
+
+preProcessedTrain = function (XL, train) {
+  P = getPreDefinedData(XL)
+  model = train(P$XL)
+  #model = train(XL)
+  
+  function (X) {
+    res = model(X)
+    correctAnswers(XL, X, res)
+  }
+}
