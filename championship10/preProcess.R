@@ -7,7 +7,7 @@ getPreDefinedData = function (XL) {
   XA = matrix(NA, 0, m + 1)
   for (i in 2:(n+1)) {
     if (i > n || sum(XL[i, -(m + 1)] == XL[i - 1, -(m + 1)]) != m) {
-      if (cnt > 3) {
+      if (cnt > 50) {
         idxes = (i-cnt):(i-1)
         answers = XL[idxes, m + 1]
         o = sum(answers == 1)
@@ -22,9 +22,13 @@ getPreDefinedData = function (XL) {
     }
   }
   
+  XL2 = XA
+  for (i in 1:nrow(XL2))
+    XL2[i, m + 1] = round(XL2[i, m + 1])
+    
   list(
     XA = XA,
-    XL = XL[!removed, ]
+    XL = rbind(XL[!removed, ], XL2)
   )
 }
 
@@ -40,7 +44,4 @@ correctAnswers = function (XL, X, Y) {
     }
   }
   Y
-}
-
-preDefinedTrain = function (XL, train) {
 }

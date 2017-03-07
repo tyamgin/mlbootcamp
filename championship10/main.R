@@ -63,11 +63,11 @@ extendXYCols = function (XL) {
   cbind(X, Y)
 }
 
-preCols = function (XX) {
+unnameMatrix = function (XX) {
   as.matrix(unname(data.matrix(XX)))
 }
 
-XX = preCols(XX)
+XX = unnameMatrix(XX)
 
 XLL = as.matrix(unname(cbind(data.matrix(XX), YY)))
 
@@ -101,7 +101,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 #cl <- makeCluster(detectCores())
 #registerDoParallel(cl)
 
-#set.seed(2707); print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=10, verbose=T))
+set.seed(2707); print(validation.tqfold(getPreDefinedData(XLL)$XL, lgbTrainAlgo, folds=7, iters=10, verbose=T))
 #set.seed(2701);print(geneticSelect(iterations=200, XL=extendXYCols(XLL), teach=function (XL) {
 #  my.normalizedTrain(XL, function (XL) {
 #    #my.train.lgb(XL, iters=1, rowsFactor=0.9)
@@ -123,12 +123,13 @@ my.normalizedTrain = function (XL, trainFunc) {
 
 #stopCluster(cl)
 
-
+"
 alg = meanAggregator(c(algb, annetmagic))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
-XXX = preCols(XXX)
+XXX = unnameMatrix(XXX)
 results = alg(XXX)
 results = correctAnswers(XLL, XXX, results)
 
 write(results, file='res.txt', sep='\n')
 print('done')
+"
