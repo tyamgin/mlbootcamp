@@ -110,7 +110,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 #}, maxPopulationSize=13, mutationProb=0.2, startOnesProbab=0.35))
 
 
-set.seed(2708);algb = lgbTrainAlgo(getPreDefinedData(XLL)$XL)
+#set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);annetmagic = nnetMagicTrainAlgo(XLL)
 #set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
@@ -127,8 +127,8 @@ set.seed(2708);algb = lgbTrainAlgo(getPreDefinedData(XLL)$XL)
 alg = meanAggregator(c(algb, annetmagic))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
-results = alg(XXX)
-results = correctAnswers(XLL, XXX, results)
+results1 = alg(XXX)
+results = correctAnswers(XLL, XXX, results1)
 
 write(results, file='res.txt', sep='\n')
 print('done')
