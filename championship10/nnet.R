@@ -9,7 +9,7 @@ nnetTeachAlgo = function (XL, XK=NULL) {
   trControl = trainControl(method='none', number=number, classProbs=T, summaryFunction=mnLogLoss)
 
   tuneGrid = expand.grid(
-    size = 9,
+    size = 5,
     decay = 0.01
   )
   
