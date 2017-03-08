@@ -7,7 +7,7 @@ getPreDefinedData = function (XL) {
   XA = matrix(NA, 0, m + 1)
   for (i in 2:(n+1)) {
     if (i > n || sum(XL[i, -(m + 1)] == XL[i - 1, -(m + 1)]) != m) {
-      if (cnt > 10) {
+      if (cnt > 20) {
         idxes = (i-cnt):(i-1)
         answers = XL[idxes, m + 1]
         o = sum(answers == 1)
@@ -38,7 +38,6 @@ correctAnswers = function (XL, X, Y) {
   for (i in 1:nrow(X)) {
     for (j in 1:nrow(XA)) {
       if (all(XA[j, -ncol(XA)] == X[i, ])) {
-        #Y[i] = max(0.02, min(0.98, XA[j, ncol(XA)]))
         Y[i] = XA[j, ncol(XA)]
         break
       }

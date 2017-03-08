@@ -1,7 +1,7 @@
 # see https://www.kaggle.com/wiki/LogarithmicLoss
 error.logloss = function (act, pred) {
   if (length(act) != length(pred)) {
-    error("length's must be equal")
+    stop("length's must be equal")
   }
   eps = 1e-15
   pred = pmin(pmax(pred, eps), 1 - eps)
