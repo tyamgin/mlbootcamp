@@ -130,7 +130,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 #stopCluster(cl)
 
 
-alg = meanAggregator(c(algb, annetbt, annetmagic))
+alg = meanAggregator(c(algb, annetbt))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 results1 = alg(XXX)
