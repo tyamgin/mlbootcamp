@@ -19,13 +19,13 @@ mutation = function(a, p = 0.1) {
 }
 
 vapnik.logloss = function(nrows, ncols) {
-  (ncols * (log(2*nrows/ncols) + 1) / nrows - log(0.05) / nrows)^0.5 / 100 + ncols/80000
+  (ncols * (log(2*nrows/ncols) + 1) / nrows - log(0.05) / nrows)^0.5 / 100
 }
 
 tqfoldEstimation = function(XL, G, teach) {
   p = sum(G)
   if (p <= 1)
-    return( list(int=1e10, ext=1e10) )
+    return( list(int=1e10+p, ext=1e10+p) )
   
   L = nrow(XL)
   m = ncol(XL) - 1
@@ -34,6 +34,10 @@ tqfoldEstimation = function(XL, G, teach) {
   e = mean(validation.tqfold(subXL, teach, folds=3, iters=3, verbose=F))
   list(int=e, ext=(e + vapnik.logloss(L, p)))
 }
+
+my.dopar.exports = c('validation.tqfold', 'my.normalizedTrain', 'nnetTrainAlgo', 
+                           'nnetTeachAlgo', 'error.logloss', 'vapnik.logloss')
+my.dopar.packages = c('caret')
 
 geneticSelect = function(iterations,  # количество итераций
                          XL, # выборка
@@ -61,10 +65,8 @@ geneticSelect = function(iterations,  # количество итераций
     vec
   }
   
-  exports = c('validation.tqfold', 'my.normalizedTrain', 'nnetTrainAlgo', 
-              'nnetTeachAlgo', 'error.logloss', 'vapnik.logloss')
-  packages = c('caret')
-  R = unname(foreach(i=1:nrow(R), .combine=rbind, .export=exports, .packages=packages) %dopar% {
+
+  R = unname(foreach(i=1:nrow(R), .combine=rbind, .export=my.dopar.exports, .packages=my.dopar.packages) %dopar% {
     computed(c(sample(0:1, size, T, prob=c(1-startOnesProbab, startOnesProbab)), NA, NA))
   })
   
@@ -78,7 +80,7 @@ geneticSelect = function(iterations,  # количество итераций
     print(c("iteration", iter))
     
     # sort
-    R = unname(foreach(i=1:nrow(R), .combine=rbind, .export=exports, .packages=packages) %dopar% {
+    R = unname(foreach(i=1:nrow(R), .combine=rbind, .export=my.dopar.exports, .packages=my.dopar.packages) %dopar% {
       computed(R[i, ])
     })
     R = R[order(R[, size + 1]), ]
@@ -118,4 +120,53 @@ geneticSelect = function(iterations,  # количество итераций
   }
   
   best
+}
+
+addRemoveSelect = function(iterations,  # количество итераций
+                         XL, # выборка
+                         teach, # teach(XL) - обучение
+                         estimate = tqfoldEstimation, # оценка
+                         startVec = c(T)
+) {
+  L = nrow(XL)
+  size = ncol(XL) - 1
+  
+  vec = startVec
+  if (length(vec) < size) {
+    vec = c(vec, rep(F, size - length(vec)))
+  }
+
+  iterPts = c()
+  intPts = c()
+  extPts = c()
+  
+  for (it in 1:iterations) {
+    for (i in 1:size) {
+      newVec = vec
+      newVec[i] = !newVec[i]
+      
+      e = foreach(v=list(vec, newVec), .export=my.dopar.exports, .packages=my.dopar.packages) %dopar% {
+        estimate(XL, v, teach)
+      }
+      
+      est = e[[1]]
+      newEst = e[[2]]
+      
+      if (newEst$ext < est$ext) {
+        vec = newVec
+
+        intPts = c(intPts, newEst$int)
+        extPts = c(extPts, newEst$ext)
+        iterPts = c(iterPts, it + i / size)
+        print(paste0("current ", newEst$ext, newEst$int))
+        print(vec)
+        
+        plot(c(iterPts, iterPts), c(intPts, extPts), col=c(rep("green", length(intPts)), rep("red", length(extPts))), pch=20)
+      }
+      print(i)
+      print(est)
+      print(newEst)
+    }
+    print(paste0(iterations - it, " iterations remains"))
+  }
 }
