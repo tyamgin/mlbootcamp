@@ -31,7 +31,7 @@ tqfoldEstimation = function(XL, G, teach) {
   m = ncol(XL) - 1
   subXL = XL[, c(which(G == 1), m + 1)]
   
-  e = mean(validation.tqfold(subXL, teach, folds=3, iters=3, verbose=F))
+  e = mean(validation.tqfold(subXL, teach, folds=3, iters=6, verbose=F))
   list(int=e, ext=(e + vapnik.logloss(L, p)))
 }
 
@@ -141,32 +141,40 @@ addRemoveSelect = function(iterations,  # количество итераций
   extPts = c()
   
   for (it in 1:iterations) {
-    for (i in 1:size) {
-      newVec = vec
-      newVec[i] = !newVec[i]
-      
-      e = foreach(v=list(vec, newVec), .export=my.dopar.exports, .packages=my.dopar.packages) %dopar% {
-        estimate(XL, v, teach)
+    addOrRemove = sample(0:1, 1)
+    i = 1
+    for (k in sample(size)) {
+      if (vec[k] == addOrRemove) {
+        i = k
+        break
       }
-      
-      est = e[[1]]
-      newEst = e[[2]]
-      
-      if (newEst$ext < est$ext) {
-        vec = newVec
-
-        intPts = c(intPts, newEst$int)
-        extPts = c(extPts, newEst$ext)
-        iterPts = c(iterPts, it + i / size)
-        print(paste0("current ", newEst$ext, newEst$int))
-        print(vec)
-        
-        plot(c(iterPts, iterPts), c(intPts, extPts), col=c(rep("green", length(intPts)), rep("red", length(extPts))), pch=20)
-      }
-      print(i)
-      print(est)
-      print(newEst)
     }
+    
+    newVec = vec
+    newVec[i] = !newVec[i]
+    
+    e = foreach(v=list(vec, newVec), .export=my.dopar.exports, .packages=my.dopar.packages) %dopar% {
+      estimate(XL, v, teach)
+    }
+    
+    est = e[[1]]
+    newEst = e[[2]]
+    
+    if (newEst$ext < est$ext) {
+      vec = newVec
+
+      intPts = c(intPts, newEst$int)
+      extPts = c(extPts, newEst$ext)
+      iterPts = c(iterPts, it)
+      print(paste0("current ", newEst$ext, newEst$int))
+      print(vec)
+      
+      plot(c(iterPts, iterPts), c(intPts, extPts), col=c(rep("green", length(intPts)), rep("red", length(extPts))), pch=20)
+    }
+    print(i)
+    print(est)
+    print(newEst)
+    
     print(paste0(iterations - it, " iterations remains"))
   }
 }
