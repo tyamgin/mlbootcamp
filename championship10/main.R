@@ -38,11 +38,11 @@ extendCols = function (XX, idxes=NULL) {
         XX = cbind(XX, num * denum)
       }
     }
-    
-    #lgb
-    #super last "tqfold 0 iterations remains, mean=0.379215446151919 sd=0.00882421181974091"
-    #XX = XX[, which(1 == c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))]
-    XX = XX[, which(1 == idxes)]
+    if (is.logical(idxes) && idxes) {
+      #все
+    } else {
+      XX = XX[, which(1 == idxes)]
+    }
   }
   
   XX
@@ -52,7 +52,7 @@ insertXLCol = function (XL, Z, idxes=NULL) {
   Y = XL[, ncol(XL), drop=F]
   cbind(X, Z, Y)
 }
-extendXYCols = function (XL) {
+extendXYCols = function (XL, idxes) {
   X = XL[, -ncol(XL), drop=F]
   Y = XL[, ncol(XL), drop=F]
   X = extendCols(X, idxes)
@@ -114,7 +114,8 @@ my.normalizedTrain = function (XL, trainFunc) {
 #set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);annetmagic = nnetMagicTrainAlgo(XLL)
-#set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
+#annetbtPrev
+set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
 #set.seed(2708);asvm = svmTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
 #set.seed(2708);arf = rfTrainAlgo(XLL)
@@ -125,7 +126,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 #stopCluster(cl)
 
 
-alg = meanAggregator(c(annetmagic))
+alg = meanAggregator(c(annetbt))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 results1 = alg(XXX)
