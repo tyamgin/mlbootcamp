@@ -36,7 +36,8 @@ tqfoldEstimation = function(XL, G, teach) {
 }
 
 my.dopar.exports = c('validation.tqfold', 'my.normalizedTrain', 'nnetTrainAlgo', 
-                           'nnetTeachAlgo', 'error.logloss', 'vapnik.logloss')
+                           'nnetTeachAlgo', 'error.logloss', 'vapnik.logloss', 'nnetBootTrainAlgo',
+                     'my.boot', 'meanAggregator')
 my.dopar.packages = c('caret')
 
 geneticSelect = function(iterations,  # количество итераций

@@ -9,7 +9,7 @@ nnetTeachAlgo = function (XL, XK=NULL) {
   trControl = trainControl(method='none', number=number, classProbs=T, summaryFunction=mnLogLoss)
 
   tuneGrid = expand.grid(
-    size = 5,
+    size = 9,##!!!!!!!!!
     decay = 0.01
   )
   
@@ -66,6 +66,6 @@ nnetMagicTrainAlgo = function (XL) {
 
 nnetBootTrainAlgo = function (XL) {
   my.normalizedTrain(XL, function (XL) {
-    my.boot(XL, nnetTeachAlgo, meanAggregator, iters=200, rowsFactor=0.632)
+    my.boot(XL, nnetTeachAlgo, meanAggregator, iters=10, rowsFactor=0.632)
   })
 }
