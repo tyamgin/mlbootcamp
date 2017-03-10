@@ -9,7 +9,7 @@ nnetTeachAlgo = function (XL, XK=NULL) {
   trControl = trainControl(method='none', number=number, classProbs=T, summaryFunction=mnLogLoss)
 
   tuneGrid = expand.grid(
-    size = 9,##!!!!!!!!!
+    size = 5,
     decay = 0.01
   )
   
@@ -30,18 +30,12 @@ nnetTeachAlgo = function (XL, XK=NULL) {
   }
 }
 
-nnetExTrainAlgo = function (XL) {
+nnetTrainAlgo = function (XL) {
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
       nnetTeachAlgo(XL)
     })
-  })
-}
-
-nnetTrainAlgo = function (XL) {
-  my.normalizedTrain(XL, function (XL) {
-    nnetTeachAlgo(XL)
-  })
+  }, NULL)
 }
 
 nnetMagicTrainAlgo = function (XL) {
@@ -66,6 +60,6 @@ nnetMagicTrainAlgo = function (XL) {
 
 nnetBootTrainAlgo = function (XL) {
   my.normalizedTrain(XL, function (XL) {
-    my.boot(XL, nnetTeachAlgo, meanAggregator, iters=10, rowsFactor=0.632)
+    my.boot(XL, nnetTeachAlgo, meanAggregator, iters=200, rowsFactor=0.632)
   })
 }

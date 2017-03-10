@@ -26,32 +26,28 @@ debugSource("preProcess.R")
 XX = read.csv(file="x_train.csv", head=T, sep=";", na.strings="?")
 YY = read.csv(file="y_train.csv", head=F, sep=";", na.strings="?")
 
-extendCols = function (XX) {
-  sz = ncol(XX)
-  for (j in 2:sz) {
-    for (k in 1:(j-1)) {
-      num = XX[, j]
-      denum = XX[, k]
-      
-      XX = cbind(XX, num / (denum + ifelse(min(denum) == 0, 1, 0)))
-      XX = cbind(XX, num * denum)
+extendCols = function (XX, idxes=NULL) {
+  if (!is.null(idxes)) {
+    sz = ncol(XX)
+    for (j in 2:sz) {
+      for (k in 1:(j-1)) {
+        num = XX[, j]
+        denum = XX[, k]
+        
+        XX = cbind(XX, num / (denum + ifelse(min(denum) == 0, 1, 0)))
+        XX = cbind(XX, num * denum)
+      }
     }
+    
+    #lgb
+    #super last "tqfold 0 iterations remains, mean=0.379215446151919 sd=0.00882421181974091"
+    #XX = XX[, which(1 == c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))]
+    XX = XX[, which(1 == idxes)]
   }
-  
-  # "tqfold 0 iterations remains, mean=0.379375133577985 sd=0.00884458981072915"
-  #XX = XX[, which(1 == c(0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0,1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0,0, 0, 0, 0, 1, 0, 0,1, 1, 1, 0, 1, 1, 1,1, 1, 0, 1, 0, 0, 1,0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0))]
-  #XX = XX[, which(1 == c(1, 1, 1, 1, 0, 0, 1, 1, 1,1, 0, 0, 1, 0, 0, 1, 0, 1,1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1))]
-  
-  #super last "tqfold 0 iterations remains, mean=0.379215446151919 sd=0.00882421181974091"
-  
-  #XX = XX[, which(1 == c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))]
-  
-  #lll
-  #XX = XX[, which(1 == c(0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0))]
   
   XX
 }
-insertXLCol = function (XL, Z) {
+insertXLCol = function (XL, Z, idxes=NULL) {
   X = XL[, -ncol(XL), drop=F]
   Y = XL[, ncol(XL), drop=F]
   cbind(X, Z, Y)
@@ -59,7 +55,7 @@ insertXLCol = function (XL, Z) {
 extendXYCols = function (XL) {
   X = XL[, -ncol(XL), drop=F]
   Y = XL[, ncol(XL), drop=F]
-  X = extendCols(X)
+  X = extendCols(X, idxes)
   cbind(X, Y)
 }
 
@@ -68,15 +64,14 @@ unnameMatrix = function (XX) {
 }
 
 XX = unnameMatrix(XX)
+XLL = unnameMatrix(cbind(data.matrix(XX), YY))
 
-XLL = as.matrix(unname(cbind(data.matrix(XX), YY)))
 
-
-my.extendedColsTrain = function (XL, trainFunc) {
-  XL = extendXYCols(XL)
+my.extendedColsTrain = function (XL, trainFunc, idxes=NULL) {
+  XL = extendXYCols(XL, idxes)
   model = trainFunc(XL)
   function (X) {
-    X = extendCols(X)
+    X = extendCols(X, idxes)
     model(X)
   }
 }
@@ -98,8 +93,8 @@ my.normalizedTrain = function (XL, trainFunc) {
 }
 
 
-cl <- makeCluster(detectCores())
-registerDoParallel(cl)
+#cl <- makeCluster(detectCores())
+#registerDoParallel(cl)
 
 #set.seed(2707); print(validation.tqfold(getPreDefinedData(XLL)$XL, lgbTrainAlgo, folds=7, iters=10, verbose=T))
 #set.seed(2701);print(geneticSelect(iterations=200, XL=extendXYCols(XLL), teach=function (XL) {
@@ -109,17 +104,17 @@ registerDoParallel(cl)
 #  })
 #}, maxPopulationSize=13, mutationProb=0.2, startOnesProbab=0.35))
 
-set.seed(2707);print(addRemoveSelect(iterations=10000, XL=extendXYCols(XLL), teach=function (XL) {
-  my.normalizedTrain(XL, function (XL) {
-    nnetBootTrainAlgo(XL)
-  })
-}, startVec=c(T, T, T, T)))
+#set.seed(2707);print(addRemoveSelect(iterations=10000, XL=extendXYCols(XLL), teach=function (XL) {
+#  my.normalizedTrain(XL, function (XL) {
+#    nnetBootTrainAlgo(XL)
+#  })
+#}, startVec=c(T, T, T, T)))
 
 
 #set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);annetmagic = nnetMagicTrainAlgo(XLL)
-#set.seed(2707);annetbt = nnetBootTrainAlgo(getPreDefinedData(XLL)$XL)
+set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
 #set.seed(2708);asvm = svmTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
 #set.seed(2708);arf = rfTrainAlgo(XLL)
@@ -127,10 +122,10 @@ set.seed(2707);print(addRemoveSelect(iterations=10000, XL=extendXYCols(XLL), tea
 #rs = resamples(list(svm=svmModel1, nnet=mmm, knn=knnm))
 #modelCor(rs)
 
-stopCluster(cl)
+#stopCluster(cl)
 
-"
-alg = meanAggregator(c(algb))
+
+alg = meanAggregator(c(annetbt))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 results1 = alg(XXX)
@@ -138,4 +133,3 @@ results = correctAnswers(XLL, XXX, results1)
 
 write(results, file='res.txt', sep='\n')
 print('done')
-"

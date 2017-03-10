@@ -35,9 +35,3 @@ lgbTrainAlgo = function (XL) {
     })
   })
 }
-
-lgb2TrainAlgo = function (XL) {
-  my.normalizedTrain(XL, function (XL) {
-    my.train.lgb(XL, rowsFactor=0.9, iters=25)
-  })
-}
