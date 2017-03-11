@@ -21,6 +21,7 @@ debugSource("knn.R")
 debugSource("genetic.R")
 debugSource("rfe.R")
 debugSource("stacking.R")
+debugSource("ensembling.R")
 debugSource("preProcess.R")
 
 XX = read.csv(file="x_train.csv", head=T, sep=";", na.strings="?")
@@ -96,7 +97,8 @@ my.normalizedTrain = function (XL, trainFunc) {
 #cl <- makeCluster(2)
 #registerDoParallel(cl)
 
-#set.seed(2707); print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=10, verbose=T))
+#my.ensemble.enumerate(XLL)
+#set.seed(2707); print(validation.tqfold(XLL, lgbNnetmagicTrainAlgo, folds=7, iters=10, verbose=T))
 #set.seed(2701);print(geneticSelect(iterations=200, XL=extendXYCols(XLL), teach=function (XL) {
 #  my.normalizedTrain(XL, function (XL) {
 #    #my.train.lgb(XL, iters=1, rowsFactor=0.9)
@@ -127,7 +129,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 #stopCluster(cl)
 
 
-alg = meanAggregator(c(algb, annetmagic))
+alg = gmeanAggregator(c(algb, annetmagic))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 results1 = alg(XXX)

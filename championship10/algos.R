@@ -61,18 +61,20 @@ svm.getBaseAlgos = function (XL, count=10, partsFactor=0.3) {
   algos
 }
 
-meanAggregator = function (baseAlgos) {
+meanAggregator = function (baseAlgos, w=NULL) {
   l = length(baseAlgos)
+  if (is.null(w))
+    w = rep(1/l, l)
   function(x) {
     s = 0
-    for (algo in baseAlgos) {
-      if (is.function(algo)) {
-        s = s + algo(x);
+    for (i in 1:l) {
+      if (is.function(baseAlgos[[i]])) {
+        s = s + w[i] * baseAlgos[[i]](x)
       } else {
-        s = s + predict(algo, x);
+        s = s + w[i] * predict(baseAlgos[[i]], x)
       }
     }
-    s / l
+    s
   }
 }
 
