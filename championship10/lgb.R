@@ -19,10 +19,10 @@ my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
     valids = list(train=dtrain, test=dtest)
     
     lgb.train(
-      data=dtrain, num_leaves=7, max_depth=3, learning_rate=0.06,
-      nrounds=1000, valids=valids, 
+      data=dtrain, num_leaves=9, max_depth=4, learning_rate=0.06,
+      nrounds=2000, valids=valids, 
       eval=c('binary_logloss'), objective = 'binary',
-      nthread=4, verbose=0, early_stopping_rounds=50,
+      nthread=4, verbose=0, early_stopping_rounds=100,
       min_data_in_leaf=100, lambda_l2=5
     )
   }, aggregator, iters=iters, rowsFactor=rowsFactor)
