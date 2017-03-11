@@ -113,10 +113,9 @@ my.normalizedTrain = function (XL, trainFunc) {
 #}, startVec=c(T,  T, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F)))
 
 
-set.seed(2708);algb = lgbTrainAlgo(XLL)
+#set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);annetmagic = nnetMagicTrainAlgo(XLL)
-#annetbtPrev
 #set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
 #set.seed(2708);asvm = svmTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
@@ -128,7 +127,7 @@ set.seed(2708);algb = lgbTrainAlgo(XLL)
 #stopCluster(cl)
 
 
-alg = meanAggregator(c(algb))
+alg = meanAggregator(c(algb, annetmagic))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 results1 = alg(XXX)
