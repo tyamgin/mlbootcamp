@@ -93,7 +93,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 }
 
 
-#cl <- makeCluster(detectCores())
+#cl <- makeCluster(2)
 #registerDoParallel(cl)
 
 #set.seed(2707); print(validation.tqfold(getPreDefinedData(XLL)$XL, lgbTrainAlgo, folds=7, iters=10, verbose=T))
@@ -104,18 +104,20 @@ my.normalizedTrain = function (XL, trainFunc) {
 #  })
 #}, maxPopulationSize=13, mutationProb=0.2, startOnesProbab=0.35))
 
-#set.seed(2707);print(addRemoveSelect(iterations=10000, XL=extendXYCols(XLL), teach=function (XL) {
+#set.seed(2708);print(addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, T), teach=function (XL) {
 #  my.normalizedTrain(XL, function (XL) {
-#    nnetBootTrainAlgo(XL)
+#    #nnetBootTrainAlgo(XL)
+#    my.train.lgb(XL, iters=10, rowsFactor=0.9)
 #  })
-#}, startVec=c(T, T, T, T)))
+#}, startVec=1==c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1)))
+#}, startVec=c(T,  T, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F)))
 
 
 #set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);annetmagic = nnetMagicTrainAlgo(XLL)
 #annetbtPrev
-set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
+#set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
 #set.seed(2708);asvm = svmTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
 #set.seed(2708);arf = rfTrainAlgo(XLL)
@@ -125,7 +127,7 @@ set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
 
 #stopCluster(cl)
 
-
+"
 alg = meanAggregator(c(annetbt))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
@@ -134,3 +136,4 @@ results = correctAnswers(XLL, XXX, results1)
 
 write(results, file='res.txt', sep='\n')
 print('done')
+"
