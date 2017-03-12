@@ -25,59 +25,25 @@ validation.tqfold.enumerate = function (callback, XLL, folds=5, iters=10) {
       XK = XLL[controlIdxes, ]
       XL = XLL[-controlIdxes, ]  
       
-      callback(XL, XK)
+      callback(XL, XK, it, fold)
     }
   }
 }
 
 validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F) {
   XKerr = c()
-  resamples = unname(foreach(it=1:iters, .combine=rbind) %do% sample(nrow(XLL)))
-  for (it in 1:iters) {
-    perm = resamples[it, ]
-    for (fold in 1:folds) {
-      foldLength = floor(nrow(XLL) / folds)
-      foldStart = (fold - 1) * foldLength
-      foldEnd = foldStart + foldLength - 1
-      
-      controlIdxes = perm[foldStart:foldEnd]
-      XK = XLL[controlIdxes, ]
-      XL = XLL[-controlIdxes, ]  
-      
-      algo = teachFunc(XL)
-      e = error.logloss(XK[, ncol(XL)], algo(XK[, -ncol(XL)]))
-      if (verbose)
-        print(e)
-      
-      XKerr = c(XKerr, e)
-    }
-    if (verbose) {
-      print(paste0('tqfold ', iters - it, ' iterations remains, mean=', mean(XKerr), ' sd=', sd(XKerr)))
-    }
-  }
+  
+  validation.tqfold.enumerate(function (XL, XK, it, fold) {
+    algo = teachFunc(XL)
+    e = error.logloss(XK[, ncol(XL)], algo(XK[, -ncol(XL)]))
+
+    XKerr <<- c(XKerr, e)
+    
+    if (verbose)
+      print(paste0('tqfold ', it, '-', fold, '/', iters, '-', folds, ' cur=', e, ' mean=', mean(XKerr), ' sd=', sd(XKerr)))
+    
+  }, XLL, folds=folds, iters=iters)
   XKerr
-}
-
-
-svm.getBaseAlgos = function (XL, count=10, partsFactor=0.3) {
-  algos = c()
-  n = nrow(XL)
-  for (i in 1:count) {
-    subXL = XL[sample(1:n, n*partsFactor), ]
-    svp <- ksvm(subXL[,-ncol(XL)], subXL[,ncol(XL)], type="C-svc", kernel='rbfdot', C=1, prob.model=T)
-    #kpar=list(sigma=1)
-    algos = c(algos, local({
-      svp <- svp
-      function (x) {
-        if (is.null(nrow(x))) {
-          x = matrix(x, nrow=1)
-        }
-        predict(svp, x, type="prob")[,2]
-      }
-    }))
-    #print(paste0(count - i, ' svm algos remains'))
-  }
-  algos
 }
 
 meanAggregator = function (baseAlgos, w=NULL) {

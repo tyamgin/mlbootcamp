@@ -69,9 +69,12 @@ XLL = unnameMatrix(cbind(data.matrix(XX), YY))
 
 
 my.extendedColsTrain = function (XL, trainFunc, idxes=NULL) {
+  featuresNumber = ncol(XL) - 1
   XL = extendXYCols(XL, idxes)
   model = trainFunc(XL)
   function (X) {
+    if (ncol(X) != featuresNumber)
+      stop('invalid number of columns')
     X = extendCols(X, idxes)
     model(X)
   }
@@ -98,6 +101,8 @@ my.normalizedTrain = function (XL, trainFunc) {
 #registerDoParallel(cl)
 
 #my.ensemble.enumerate(XLL)
+#my.ensemble.stacking(XLL)
+
 #set.seed(2707); print(validation.tqfold(XLL, lgbNnetmagicTrainAlgo, folds=7, iters=10, verbose=T))
 #set.seed(2701);print(geneticSelect(iterations=200, XL=extendXYCols(XLL), teach=function (XL) {
 #  my.normalizedTrain(XL, function (XL) {
@@ -129,7 +134,7 @@ set.seed(2708);algb = lgbTrainAlgo(XLL)
 #stopCluster(cl)
 
 
-alg = meanAggregator(c(algb, annetmagic), c(0.4, 0.6))
+alg = meanAggregator(c(algb))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 results1 = alg(XXX)

@@ -43,16 +43,16 @@ my.stacking2 = function (X, Y, models, aggregate) {
 }
 
 glmTrainAlgo = function (XL) {
-  my.normalizedTrain(XL, function (XL) {
+  #my.normalizedTrain(XL, function (XL) {
     X = XL[, -ncol(XL)]
     Y = factor(XL[, ncol(XL)], labels=c('a', 'b'))
     
     tuneGrid = NULL # there is no tuning parameters
     trControl = trainControl(method='none', number=5, classProbs=T, summaryFunction=mnLogLoss)
-    capture.output(
+    #capture.output(
       model <- train(X, Y, method='glm', metric='logLoss', maximize=F, 
-                     trControl=trControl, tuneGrid=tuneGrid)
-    )
+                     trControl=trControl, tuneGrid=tuneGrid, family=inverse.gaussian)
+    #)
     
     mglm <<- model
     #print(model)
@@ -60,5 +60,5 @@ glmTrainAlgo = function (XL) {
     function (X) {
       predict(model, X, type='prob')$b
     }
-  })
+  #})
 }
