@@ -12,10 +12,29 @@ error.mean = function (act, pred) {
   mean(abs(act - pred))
 }
 
+validation.tqfold.enumerate = function (callback, XLL, folds=5, iters=10) {
+  resamples = unname(foreach(it=1:iters, .combine=rbind) %do% sample(nrow(XLL)))
+  for (it in 1:iters) {
+    perm = resamples[it, ]
+    for (fold in 1:folds) {
+      foldLength = floor(nrow(XLL) / folds)
+      foldStart = (fold - 1) * foldLength
+      foldEnd = foldStart + foldLength - 1
+      
+      controlIdxes = perm[foldStart:foldEnd]
+      XK = XLL[controlIdxes, ]
+      XL = XLL[-controlIdxes, ]  
+      
+      callback(XL, XK)
+    }
+  }
+}
+
 validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F) {
   XKerr = c()
+  resamples = unname(foreach(it=1:iters, .combine=rbind) %do% sample(nrow(XLL)))
   for (it in 1:iters) {
-    perm = sample(nrow(XLL))
+    perm = resamples[it, ]
     for (fold in 1:folds) {
       foldLength = floor(nrow(XLL) / folds)
       foldStart = (fold - 1) * foldLength

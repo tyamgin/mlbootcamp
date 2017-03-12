@@ -115,7 +115,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 #}, startVec=c(T,  T, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F)))
 
 
-#set.seed(2708);algb = lgbTrainAlgo(XLL)
+set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);annetmagic = nnetMagicTrainAlgo(XLL)
 #set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
@@ -129,7 +129,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 #stopCluster(cl)
 
 
-alg = meanAggregator(c(algb, annetmagic), c(0.6, 0.4))
+alg = meanAggregator(c(algb, annetmagic), c(0.4, 0.6))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 results1 = alg(XXX)
