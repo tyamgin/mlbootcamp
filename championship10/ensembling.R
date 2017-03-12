@@ -101,12 +101,14 @@ logitTrainAlgo = function (XL, models) {
   for (i in 1:nrow(XL2))
     XL2[i, ncol(XL2)] = which.min(abs(Y2[i, ] - XL[i, ncol(XL)])) - 1
   
-  glmModel = glmTrainAlgo(XL2)
-  #glmModel = svmTrainAlgo(XL2)
-  #glmModel = lgb2TrainAlgo(XL2)
+  #finalModel = glmTrainAlgo(XL2)
+  #finalModel = svmTrainAlgo(XL2)
+  #finalModel = lgb2TrainAlgo(XL2)
+  #finalModel = lgbTrainAlgo(XL2)
+  finalModel = nnetBootTrainAlgo(XL2)
   
   function (X) {
-    pp = glmModel(X)
+    pp = finalModel(X)
     models[[1]](X) * (1 - pp) + models[[2]](X) * pp
   }
 }
