@@ -120,7 +120,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 #}, startVec=c(T,  T, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F)))
 
 
-set.seed(2708);algb = lgbTrainAlgo(XLL)
+#set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);annetmagic = nnetMagicTrainAlgo(XLL)
 #set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
