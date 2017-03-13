@@ -20,7 +20,7 @@ my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
     
     r = lgb.train(
       data=dtrain, num_leaves=9, max_depth=4, learning_rate=0.06,
-      nrounds=200, 
+      nrounds=nrd, 
       #valids=valids, 
       eval=c('binary_logloss'), objective = 'binary',
       nthread=4, verbose=0, 
@@ -35,7 +35,7 @@ my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
 lgbTrainAlgo = function (XL) {
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
-      my.train.lgb(XL, rowsFactor=1, iters=200)
+      my.train.lgb(XL, rowsFactor=1, iters=25)
     })
   }, c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))
 }
