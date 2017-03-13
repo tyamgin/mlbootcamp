@@ -103,7 +103,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 #my.ensemble.enumerate(XLL)
 #my.ensemble.stacking(XLL)
 
-set.seed(2707); print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=10, verbose=T))
+#set.seed(2707); print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=10, verbose=T))
 #set.seed(2701);print(geneticSelect(iterations=200, XL=extendXYCols(XLL), teach=function (XL) {
 #  my.normalizedTrain(XL, function (XL) {
 #    #my.train.lgb(XL, iters=1, rowsFactor=0.9)
@@ -120,7 +120,7 @@ set.seed(2707); print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=10, ve
 #}, startVec=c(T,  T, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F)))
 
 
-#set.seed(2708);algb = lgbTrainAlgo(XLL)
+set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);annetmagic = nnetMagicTrainAlgo(XLL)
 #set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
@@ -133,7 +133,7 @@ set.seed(2707); print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=10, ve
 
 #stopCluster(cl)
 
-"
+
 alg = meanAggregator(c(algb))
 #alg = logitTrainAlgo(XLL, c(algb, annetmagic))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
@@ -143,4 +143,3 @@ results = correctAnswers(XLL, XXX, results1)
 
 write(results, file='res.txt', sep='\n')
 print('done')
-"
