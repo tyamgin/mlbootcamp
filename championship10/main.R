@@ -134,8 +134,8 @@ set.seed(2708);algb = lgbTrainAlgo(XLL)
 #stopCluster(cl)
 
 
-alg = meanAggregator(c(algb))
-#alg = logitTrainAlgo(XLL, c(algb, annetmagic))
+#alg = meanAggregator(c(algb))
+alg = logitTrainAlgo(XLL, c(algb, annetmagic))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 results1 = alg(XXX)
