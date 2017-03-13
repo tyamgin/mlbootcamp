@@ -1,12 +1,12 @@
-my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3) {
+my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F) {
   algos = list()
   n = nrow(XLL)
   for (it in 1:iters) {
-    sampleIdxes = sample(n, rowsFactor*n)
+    sampleIdxes = sample(n, rowsFactor*n, replace=replace)
     
     XK = XLL[-sampleIdxes, ]
     XL = XLL[sampleIdxes, ]  
-
+    
     algos[[it]] = train(XL, XK)
   }
   aggregator(algos)
@@ -18,20 +18,24 @@ my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
     dtest = lgb.Dataset(data=XK[, -ncol(XK)], label=XK[, ncol(XK)], free_raw_data=FALSE)
     valids = list(train=dtrain, test=dtest)
     
-    lgb.train(
+    r = lgb.train(
       data=dtrain, num_leaves=9, max_depth=4, learning_rate=0.06,
-      nrounds=2000, valids=valids, 
+      nrounds=200, 
+      #valids=valids, 
       eval=c('binary_logloss'), objective = 'binary',
-      nthread=4, verbose=0, early_stopping_rounds=200,
+      nthread=4, verbose=0, 
+      #early_stopping_rounds=200,
       min_data_in_leaf=100, lambda_l2=5
     )
-  }, aggregator, iters=iters, rowsFactor=rowsFactor)
+    r
+  }, aggregator, iters=iters, rowsFactor=rowsFactor, replace=T)
 }
+
 
 lgbTrainAlgo = function (XL) {
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
-      my.train.lgb(XL, rowsFactor=0.95, iters=500)
+      my.train.lgb(XL, rowsFactor=0.95, iters=200)
     })
   }, c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))
 }
