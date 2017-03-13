@@ -103,7 +103,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 #my.ensemble.enumerate(XLL)
 #my.ensemble.stacking(XLL)
 
-#set.seed(2707); print(validation.tqfold(XLL, lgbNnetmagicTrainAlgo, folds=7, iters=10, verbose=T))
+set.seed(2707); print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=10, verbose=T))
 #set.seed(2701);print(geneticSelect(iterations=200, XL=extendXYCols(XLL), teach=function (XL) {
 #  my.normalizedTrain(XL, function (XL) {
 #    #my.train.lgb(XL, iters=1, rowsFactor=0.9)
@@ -133,9 +133,9 @@ my.normalizedTrain = function (XL, trainFunc) {
 
 #stopCluster(cl)
 
-
-#alg = meanAggregator(c(algb))
-alg = logitTrainAlgo(XLL, c(algb, annetmagic))
+"
+alg = meanAggregator(c(algb))
+#alg = logitTrainAlgo(XLL, c(algb, annetmagic))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 results1 = alg(XXX)
@@ -143,3 +143,4 @@ results = correctAnswers(XLL, XXX, results1)
 
 write(results, file='res.txt', sep='\n')
 print('done')
+"
