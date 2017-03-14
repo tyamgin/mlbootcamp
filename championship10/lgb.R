@@ -4,6 +4,7 @@ my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F,
   cl <- makeCluster(nthread)
   registerDoParallel(cl)
   
+  #ls(envir=globalenv())
   algos = foreach(it=1:iters, .export=my.dopar.exports, .packages=my.dopar.packages) %dopar% {
     sampleIdxes = sample(n, rowsFactor*n, replace=replace)
     

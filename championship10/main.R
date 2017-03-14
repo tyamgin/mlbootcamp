@@ -107,7 +107,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 #  nrd <<- i
 #  print('----------------------')
 #  print(i)
-#  set.seed(2707); print(validation.tqfold(XLL, nnetBootTrainAlgo, folds=7, iters=10, verbose=T))
+#  set.seed(2707); print(validation.tqfold(XLL, nnetBootEliteTrainAlgo, folds=7, iters=10, verbose=T))
 #}
 #set.seed(2701);print(geneticSelect(iterations=200, XL=extendXYCols(XLL), teach=function (XL) {
 #  my.normalizedTrain(XL, function (XL) {
@@ -129,6 +129,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);annetmagic = nnetMagicTrainAlgo(XLL)
 #set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
+#set.seed(2707);annetbt2 = nnetBootEliteTrainAlgo(XLL)
 #set.seed(2708);asvm = svmTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
 #set.seed(2708);arf = rfTrainAlgo(XLL)
@@ -139,7 +140,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 #stopCluster(cl)
 
 
-alg = meanAggregator(c(annetbt))
+alg = meanAggregator(c(annetbt2))
 #alg = logitTrainAlgo(XLL, c(algb, annetmagic))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
