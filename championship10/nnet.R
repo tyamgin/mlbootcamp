@@ -58,11 +58,30 @@ nnetMagicTrainAlgo = function (XL) {
   })
 }
 
+nnetBootEliteTrainAlgo = function (XL) {
+  my.normalizedTrain(XL, function (XL) {
+    my.boot(XL, function (XL, XK) {
+      selAlgo = NULL
+      minError = 1e10
+      for (i in 1:3) {
+        algo = nnetTeachAlgo(XL)
+        err = error.logloss(XK[, ncol(XK)], algo(XK[, -ncol(XK)]))
+        
+        if (err < minError) {
+          minError = err
+          selAlgo = algo
+        }
+      }
+      selAlgo
+    }, meanAggregator, iters=25, rowsFactor=0.8, nthread=4)
+  })
+}
+
 nnetBootTrainAlgo = function (XL) {
-  my.extendedColsTrain(XL, function(XL) {
+  #my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
-      my.boot(XL, nnetTeachAlgo, meanAggregator, iters=200, rowsFactor=0.632)
+      my.boot(XL, nnetTeachAlgo, meanAggregator, iters=200, rowsFactor=0.8)
     })
   #}, c(T,  T, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F))
-  })
+  #})
 }

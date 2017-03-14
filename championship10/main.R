@@ -103,12 +103,12 @@ my.normalizedTrain = function (XL, trainFunc) {
 #my.ensemble.enumerate(XLL)
 #my.ensemble.stacking(XLL)
 
-for(i in c(100, 120, 140, 160, 180, 220, 240)) {
-  nrd <<- i
-  print('----------------------')
-  print(i)
-  set.seed(2707); print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=10, verbose=T))
-}
+#for(i in c(170, 175, 180, 185, 190, 195, 200, 205, 210, 215)) {
+#  nrd <<- i
+#  print('----------------------')
+#  print(i)
+#  set.seed(2707); print(validation.tqfold(XLL, nnetBootTrainAlgo, folds=7, iters=10, verbose=T))
+#}
 #set.seed(2701);print(geneticSelect(iterations=200, XL=extendXYCols(XLL), teach=function (XL) {
 #  my.normalizedTrain(XL, function (XL) {
 #    #my.train.lgb(XL, iters=1, rowsFactor=0.9)
@@ -139,7 +139,7 @@ for(i in c(100, 120, 140, 160, 180, 220, 240)) {
 #stopCluster(cl)
 
 
-alg = meanAggregator(c(algb, annetmagic))
+alg = meanAggregator(c(annetbt))
 #alg = logitTrainAlgo(XLL, c(algb, annetmagic))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)

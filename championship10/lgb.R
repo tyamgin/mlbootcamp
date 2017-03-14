@@ -1,14 +1,19 @@
-my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F) {
-  algos = list()
+my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F, nthread=1) {
   n = nrow(XLL)
-  for (it in 1:iters) {
+  
+  cl <- makeCluster(nthread)
+  registerDoParallel(cl)
+  
+  algos = foreach(it=1:iters, .export=my.dopar.exports, .packages=my.dopar.packages) %dopar% {
     sampleIdxes = sample(n, rowsFactor*n, replace=replace)
     
     XK = XLL[-sampleIdxes, ]
     XL = XLL[sampleIdxes, ]  
     
-    algos[[it]] = train(XL, XK)
+    train(XL, XK)
   }
+  
+  stopCluster(cl)
   aggregator(algos)
 }
 
@@ -20,10 +25,10 @@ my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
     
     r = lgb.train(
       data=dtrain, num_leaves=9, max_depth=4, learning_rate=0.06,
-      nrounds=nrd, 
+      nrounds=195, 
       #valids=valids, 
       eval=c('binary_logloss'), objective = 'binary',
-      nthread=4, verbose=0, 
+      nthread=1, verbose=0, 
       #early_stopping_rounds=200,
       min_data_in_leaf=100, lambda_l2=5
     )
@@ -35,7 +40,7 @@ my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
 lgbTrainAlgo = function (XL) {
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
-      my.train.lgb(XL, rowsFactor=1, iters=25)
+      my.train.lgb(XL, rowsFactor=1, iters=200)
     })
   }, c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))
 }
