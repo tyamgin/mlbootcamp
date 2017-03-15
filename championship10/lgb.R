@@ -34,7 +34,7 @@ my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
       min_data_in_leaf=100, lambda_l2=5
     )
     r
-  }, aggregator, iters=iters, rowsFactor=rowsFactor, replace=T)
+  }, aggregator, iters=iters, rowsFactor=rowsFactor, replace=T, nthread=4)
 }
 
 

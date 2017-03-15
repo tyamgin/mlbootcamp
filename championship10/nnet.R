@@ -2,11 +2,7 @@ nnetTeachAlgo = function (XL, XK=NULL) {
   X = XL[, -ncol(XL)]
   Y = factor(XL[, ncol(XL)], labels=c('a', 'b'))
   
-  #XX = XK[, -ncol(XK)]
-  #YY = factor(XK[, ncol(XK)], labels=c('a', 'b'))
-  
-  number = 5
-  trControl = trainControl(method='none', number=number, classProbs=T, summaryFunction=mnLogLoss)
+  trControl = trainControl(method='none', classProbs=T, summaryFunction=mnLogLoss)
 
   tuneGrid = expand.grid(
     size = 5,
@@ -14,16 +10,10 @@ nnetTeachAlgo = function (XL, XK=NULL) {
   )
   
   capture.output(
-    #model <- train(X, Y, method='mlp', metric='logLoss', maxit=500, #abstol=1e-3, softmax=T,
-    #               maximize=F, trControl=trControl, verbose=F, learnFuncParams=c(0.2, 0.1),
-    #               #inputsTest=XX, targetsTest=YY,
-    #               tuneGrid=tuneGrid)
-    
     model <- train(X, Y, method='nnet', metric='logLoss', maxit=1000,
                    maximize=F, trControl=trControl, verbose=F,
                    tuneGrid=tuneGrid)
   )
-  mmm <<- model
   
   function (X) {
     predict(model, X, type='prob')$b
@@ -60,10 +50,11 @@ nnetMagicTrainAlgo = function (XL) {
 
 nnetBootEliteTrainAlgo = function (XL) {
   my.normalizedTrain(XL, function (XL) {
+    ddd=tmp.decay;
     my.boot(XL, function (XL, XK) {
       selAlgo = NULL
       minError = 1e10
-      for (i in 1:3) {
+      for (i in 1:10) {
         
         ##### copy-paste
         asd = function () {
@@ -73,7 +64,7 @@ nnetBootEliteTrainAlgo = function (XL) {
           capture.output(
             model <- train(X, Y, method='nnet', metric='logLoss', maxit=1000, maximize=F, verbose=F,
                            trControl=trainControl(method='none', classProbs=T, summaryFunction=mnLogLoss), 
-                           tuneGrid=expand.grid(size = 5, decay = 0.01)
+                           tuneGrid=expand.grid(size = 5, decay = ddd)
                            )
           )
           function (X) {
@@ -100,7 +91,7 @@ nnetBootEliteTrainAlgo = function (XL) {
         }
       }
       selAlgo
-    }, meanAggregator, iters=200, rowsFactor=0.8, nthread=4)
+    }, meanAggregator, iters=25, rowsFactor=tmp.factor, nthread=4)
   })
 }
 
