@@ -13,6 +13,9 @@ my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F,
     XK = XLL[-sampleIdxes, ]
     XL = XLL[sampleIdxes, ]  
     
+    if (it %% 20 == 0)
+      gc()
+    
     train(XL, XK)
   }
   
@@ -20,6 +23,15 @@ my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F,
     stopCluster(cl)
   }
   aggregator(algos)
+}
+
+my.coputed(model, newdata) {
+  ansvec = predict(model, newdata)
+  function (X) {
+    if (nrow(X) != length(ansvec))
+      stop("this is computed algo")
+    ansvec
+  }
 }
 
 my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregator, newdata=NULL) {
@@ -39,22 +51,17 @@ my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
     )
     
     if (!is.null(newdata)) {
-      ansvec = predict(model, newdata)
-      function (X) {
-        if (nrow(X) != length(ansvec))
-          stop("this is computed algo")
-        ansvec
-      }
+      my.coputed(model, newdata)
     }
     model
   }, aggregator, iters=iters, rowsFactor=rowsFactor, replace=T, nthread=1)
 }
 
 
-lgbTrainAlgo = function (XL) {
+lgbTrainAlgo = function (XL, newdata=NULL) {
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
-      my.train.lgb(XL, rowsFactor=1, iters=25)
+      my.train.lgb(XL, rowsFactor=1, iters=200, newdata=newdata)
     })
   }, c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))
 }
