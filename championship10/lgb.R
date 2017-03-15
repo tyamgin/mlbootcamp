@@ -1,8 +1,10 @@
 my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F, nthread=1) {
   n = nrow(XLL)
   
-  cl <- makeCluster(nthread)
-  registerDoParallel(cl)
+  if (nthread > 1) {
+    cl <- makeCluster(nthread)
+    registerDoParallel(cl)
+  }
   
   #ls(envir=globalenv())
   algos = foreach(it=1:iters, .export=my.dopar.exports, .packages=my.dopar.packages) %dopar% {
@@ -14,34 +16,45 @@ my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F,
     train(XL, XK)
   }
   
-  stopCluster(cl)
+  if (nthread > 1) {
+    stopCluster(cl)
+  }
   aggregator(algos)
 }
 
-my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregator) {
+my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregator, newdata=NULL) {
   my.boot(XLL, function (XL, XK) {
     dtrain = lgb.Dataset(data=XL[, -ncol(XL)], label=XL[, ncol(XL)], free_raw_data=FALSE)
     dtest = lgb.Dataset(data=XK[, -ncol(XK)], label=XK[, ncol(XK)], free_raw_data=FALSE)
     valids = list(train=dtrain, test=dtest)
     
-    r = lgb.train(
+    model = lgb.train(
       data=dtrain, num_leaves=9, max_depth=4, learning_rate=0.06,
       nrounds=195, 
       #valids=valids, 
       eval=c('binary_logloss'), objective = 'binary',
-      nthread=1, verbose=0, 
+      nthread=4, verbose=0, 
       #early_stopping_rounds=200,
       min_data_in_leaf=100, lambda_l2=5
     )
-    r
-  }, aggregator, iters=iters, rowsFactor=rowsFactor, replace=T, nthread=4)
+    
+    if (!is.null(newdata)) {
+      ansvec = predict(model, newdata)
+      function (X) {
+        if (nrow(X) != length(ansvec))
+          stop("this is computed algo")
+        ansvec
+      }
+    }
+    model
+  }, aggregator, iters=iters, rowsFactor=rowsFactor, replace=T, nthread=1)
 }
 
 
 lgbTrainAlgo = function (XL) {
   my.extendedColsTrain(XL, function(XL) {
     my.normalizedTrain(XL, function (XL) {
-      my.train.lgb(XL, rowsFactor=1, iters=200)
+      my.train.lgb(XL, rowsFactor=1, iters=25)
     })
   }, c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1))
 }

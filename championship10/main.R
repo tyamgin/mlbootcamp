@@ -103,15 +103,15 @@ my.normalizedTrain = function (XL, trainFunc) {
 #my.ensemble.enumerate(XLL)
 #my.ensemble.stacking(XLL)
 
-for(j in c(0.8, 0.95, 0.9, 0.95)) {
-  for(i in c(0, 0.005, 0.01, 0.02)) {
-    tmp.decay <<- i
-    tmp.factor <<- j
-    print('-----------------------------------')
-    print(c(i, j))
-    set.seed(2707); print(validation.tqfold(XLL, nnetBootEliteTrainAlgo, folds=7, iters=10, verbose=T))
-  }
-}
+#for(j in c(0.8, 0.95, 0.9, 0.95)) {
+#  for(i in c(0, 0.005, 0.01, 0.02)) {
+#    tmp.decay <<- i
+#    tmp.factor <<- j
+#    print('-----------------------------------')
+#    print(c(i, j))
+#    set.seed(2707); print(validation.tqfold(XLL, nnetBootEliteTrainAlgo, folds=7, iters=10, verbose=T))
+#  }
+#}
 
 #set.seed(2701);print(geneticSelect(iterations=200, XL=extendXYCols(XLL), teach=function (XL) {
 #  my.normalizedTrain(XL, function (XL) {
@@ -129,7 +129,7 @@ for(j in c(0.8, 0.95, 0.9, 0.95)) {
 #}, startVec=c(T,  T, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F)))
 
 
-#set.seed(2708);algb = lgbTrainAlgo(XLL)
+set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);annetmagic = nnetMagicTrainAlgo(XLL)
 #set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
@@ -143,14 +143,17 @@ for(j in c(0.8, 0.95, 0.9, 0.95)) {
 
 #stopCluster(cl)
 
-"
-alg = meanAggregator(c(annetbt2))
+print('computed')
+#alg = meanAggregator(c(algb))
+alg = algb
 #alg = logitTrainAlgo(XLL, c(algb, annetbt2))
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
+print('66')
 results1 = alg(XXX)
+print('77')
 results = correctAnswers(XLL, XXX, results1)
+print('88')
 
 write(results, file='res.txt', sep='\n')
 print('done')
-"
