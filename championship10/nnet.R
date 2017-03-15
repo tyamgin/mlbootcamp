@@ -50,11 +50,10 @@ nnetMagicTrainAlgo = function (XL) {
 
 nnetBootEliteTrainAlgo = function (XL) {
   my.normalizedTrain(XL, function (XL) {
-    ddd=tmp.decay;
     my.boot(XL, function (XL, XK) {
       selAlgo = NULL
       minError = 1e10
-      for (i in 1:10) {
+      for (i in 1:20) {
         
         ##### copy-paste
         asd = function () {
@@ -64,7 +63,7 @@ nnetBootEliteTrainAlgo = function (XL) {
           capture.output(
             model <- train(X, Y, method='nnet', metric='logLoss', maxit=1000, maximize=F, verbose=F,
                            trControl=trainControl(method='none', classProbs=T, summaryFunction=mnLogLoss), 
-                           tuneGrid=expand.grid(size = 5, decay = ddd)
+                           tuneGrid=expand.grid(size = 5, decay = 0.01)
                            )
           )
           function (X) {
@@ -91,7 +90,7 @@ nnetBootEliteTrainAlgo = function (XL) {
         }
       }
       selAlgo
-    }, meanAggregator, iters=25, rowsFactor=tmp.factor, nthread=4)
+    }, meanAggregator, iters=200, rowsFactor=0.9, nthread=4)
   })
 }
 

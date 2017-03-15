@@ -140,7 +140,7 @@ my.fromFileAlgo = function (path) {
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);annetmagic = nnetMagicTrainAlgo(XLL)
 #set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
-#set.seed(2707);annetbt2 = nnetBootEliteTrainAlgo(XLL)
+set.seed(2707);annetbt2 = nnetBootEliteTrainAlgo(XLL)
 #set.seed(2708);asvm = svmTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
 #set.seed(2708);arf = rfTrainAlgo(XLL)
@@ -150,13 +150,14 @@ my.fromFileAlgo = function (path) {
 
 #stopCluster(cl)
 
-#print('computed')
-#alg = meanAggregator(c(my.fromFileAlgo("nnet200_08_10.txt")))
-alg = logitTrainAlgo(XLL, c(my.fromFileAlgo("lgb500old_631b.txt"), my.fromFileAlgo("nnet200_08_10.txt")))
+print('computed')
+#alg = meanAggregator(c(my.fromFileAlgo('nnet200_08_10.txt')))
+#alg = logitTrainAlgo(XLL, c(my.fromFileAlgo('lgb500old_631b.txt'), my.fromFileAlgo('nnet200_08_10.txt')))
+alg = annetbt2
 
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 results1 = alg(XXX)
-results = correctAnswers(XLL, XXX, results1)
+results = results1 #correctAnswers(XLL, XXX, results1)#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 write(results, file='res.txt', sep='\n')
 print('done')
