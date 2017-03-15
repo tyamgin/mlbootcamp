@@ -95,6 +95,14 @@ my.normalizedTrain = function (XL, trainFunc) {
     model(X)
   }
 }
+my.fromFileAlgo = function (path) {
+  ansvec = as.matrix(read.csv(file=path, head=F))[, 1]
+  function (X) {
+    if (nrow(X) != length(ansvec))
+      stop('this is computed algo')
+    ansvec
+  }
+}
 
 
 #cl <- makeCluster(2)
@@ -128,7 +136,7 @@ my.normalizedTrain = function (XL, trainFunc) {
 #}, startVec=1==c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1)))
 #}, startVec=c(T,  T, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F)))
 
-set.seed(2708);algb = lgbTrainAlgo(XLL)
+#set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);annetmagic = nnetMagicTrainAlgo(XLL)
 #set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
@@ -142,10 +150,9 @@ set.seed(2708);algb = lgbTrainAlgo(XLL)
 
 #stopCluster(cl)
 
-print('computed')
-#alg = meanAggregator(c(algb))
-alg = algb
-#alg = logitTrainAlgo(XLL, c(algb, annetbt2))
+#print('computed')
+#alg = meanAggregator(c(my.fromFileAlgo("nnet200_08_10.txt")))
+alg = logitTrainAlgo(XLL, c(my.fromFileAlgo("algb200.txt"), my.fromFileAlgo("nnet200_08_10.txt")))
 
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
