@@ -152,7 +152,7 @@ my.fromFileAlgo = function (path) {
 
 #print('computed')
 #alg = meanAggregator(c(my.fromFileAlgo("nnet200_08_10.txt")))
-alg = logitTrainAlgo(XLL, c(my.fromFileAlgo("algb200.txt"), my.fromFileAlgo("nnet200_08_10.txt")))
+alg = logitTrainAlgo(XLL, c(my.fromFileAlgo("lgb500old_631b.txt"), my.fromFileAlgo("nnet200_08_10.txt")))
 
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
