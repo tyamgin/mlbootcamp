@@ -1,4 +1,4 @@
-getPreDefinedData = function (XL) {
+getPreProcessedData = function (XL) {
   XL = XL[do.call(order, as.data.frame(XL)), ]
   n = nrow(XL)
   m = ncol(XL) - 1
@@ -33,8 +33,8 @@ getPreDefinedData = function (XL) {
   )
 }
 
-correctAnswers = function (XL, X, Y) {
-  XA = getPreDefinedData(XL)$XA
+correctPreProcessedAnswers = function (XL, X, Y) {
+  XA = getPreProcessedData(XL)$XA
   for (i in 1:nrow(X)) {
     for (j in 1:nrow(XA)) {
       if (all(XA[j, -ncol(XA)] == X[i, ])) {
@@ -44,15 +44,4 @@ correctAnswers = function (XL, X, Y) {
     }
   }
   Y
-}
-
-preProcessedTrain = function (XL, train) {
-  P = getPreDefinedData(XL)
-  model = train(P$XL)
-  #model = train(XL)
-  
-  function (X) {
-    res = model(X)
-    correctAnswers(XL, X, res)
-  }
 }

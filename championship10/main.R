@@ -16,13 +16,16 @@ debugSource("algos.R")
 debugSource("nnet.R")
 debugSource("svm.R")
 debugSource("xgb.R")
+debugSource("glm.R")
 debugSource("lgb.R")
-debugSource("knn.R")
 debugSource("genetic.R")
-debugSource("rfe.R")
-debugSource("stacking.R")
 debugSource("ensembling.R")
 debugSource("preProcess.R")
+
+my.dopar.exports = c('validation.tqfold', 'my.normalizedTrain', 'nnetTrainAlgo', 'my.extendedColsTrain',
+                     'nnetTeachAlgo', 'error.logloss', 'vapnik.logloss', 'nnetBootTrainAlgo',
+                     'my.boot', 'meanAggregator', 'extendXYCols', 'extendCols', 'my.train.lgb')
+my.dopar.packages = c('caret', 'lightgbm')
 
 XX = read.csv(file="x_train.csv", head=T, sep=";", na.strings="?")
 YY = read.csv(file="y_train.csv", head=F, sep=";", na.strings="?")
@@ -108,18 +111,10 @@ my.fromFileAlgo = function (path) {
 #cl <- makeCluster(2)
 #registerDoParallel(cl)
 
-#my.ensemble.enumerate(XLL)
 #my.ensemble.stacking(XLL)
 
-#for(j in c(0.8, 0.95, 0.9, 0.95)) {
-#  for(i in c(0, 0.005, 0.01, 0.02)) {
-#    tmp.decay <<- i
-#    tmp.factor <<- j
-#    print('-----------------------------------')
-#    print(c(i, j))
-#    set.seed(2707); print(validation.tqfold(XLL, nnetBootEliteTrainAlgo, folds=7, iters=10, verbose=T))
-#  }
-#}
+#set.seed(2707); print(validation.tqfold(XLL, nnetBootEliteTrainAlgo, folds=7, iters=10, verbose=T))
+
 
 #set.seed(2701);print(geneticSelect(iterations=200, XL=extendXYCols(XLL), teach=function (XL) {
 #  my.normalizedTrain(XL, function (XL) {
@@ -136,28 +131,26 @@ my.fromFileAlgo = function (path) {
 #}, startVec=1==c(1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1)))
 #}, startVec=c(T,  T, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F)))
 
-#set.seed(2708);algb = lgbTrainAlgo(XLL)
+set.seed(2708);algb = lgbTrainAlgo(XLL)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
-#set.seed(2707);annetmagic = nnetMagicTrainAlgo(XLL)
+#set.seed(2707);annetmagic = nnetMagicTrainAlgo(XLL) # saved to annetmagic.RData
 #set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
-#set.seed(2707);annetbt2 = nnetBootEliteTrainAlgo(getPreDefinedData(XLL)$XL)
+set.seed(2707);annetbt2 = nnetBootEliteTrainAlgo(XLL)
 #set.seed(2708);asvm = svmTrainAlgo(XLL)
-#set.seed(2708);aknn = knnTrainAlgo(XLL)
-#set.seed(2708);arf = rfTrainAlgo(XLL)
 
-#rs = resamples(list(svm=svmModel1, nnet=mmm, knn=knnm))
-#modelCor(rs)
 
 #stopCluster(cl)
 
 print('computed')
-alg = meanAggregator(c(my.fromFileAlgo('lgb_old_features.txt'), my.fromFileAlgo('nnet200_09_20.txt')))
+alg = gmeanAggregator(c(algb, annetbt2))
+#alg = meanAggregator(c(my.fromFileAlgo('lgb_old_features.txt'), my.fromFileAlgo('nnet200_09_20.txt')))
 #alg = logitTrainAlgo(XLL, c(my.fromFileAlgo('algb200.txt'), my.fromFileAlgo('nnet200_09_20.txt')))
 #alg = algb
 
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 results1 = alg(XXX)
-results = correctAnswers(XLL, XXX, results1)
+results = correctPreProcessedAnswers(XLL, XXX, results1)
 write(results, file='res.txt', sep='\n')
 print('done')
+

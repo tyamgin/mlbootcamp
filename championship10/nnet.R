@@ -28,6 +28,8 @@ nnetTrainAlgo = function (XL) {
   }, NULL)
 }
 
+load("res/annetmagic.RData")
+
 nnetMagicTrainAlgo = function (XL) {
   my.normalizedTrain(XL, function (XL) {
     X = XL[, -ncol(XL)]
@@ -39,8 +41,6 @@ nnetMagicTrainAlgo = function (XL) {
       model <- train(X, Y, method='nnet', metric='logLoss', maxit=1000,
                      maximize=F, trControl=trControl, verbose=F)
     )
-    mmm <<- model
-    print(model)
     
     function (X) {
       predict(model, X, type='prob')$b
@@ -55,27 +55,24 @@ nnetBootEliteTrainAlgo = function (XL) {
       minError = 1e10
       for (i in 1:20) {
         
-        ##### copy-paste
-        asd = function () {
+        ##### копипаст, почему-то не работает с dopar
+        getAlgo = function () {
           X = XL[, -ncol(XL)]
           Y = factor(XL[, ncol(XL)], labels=c('a', 'b'))
   
           capture.output(
             model <- train(X, Y, method='nnet', metric='logLoss', maxit=1000, maximize=F, verbose=F,
                            trControl=trainControl(method='none', classProbs=T, summaryFunction=mnLogLoss), 
-                           tuneGrid=expand.grid(size = 5, decay = 0.01)
+                           tuneGrid=expand.grid(size=5, decay=0.01)
                            )
           )
           function (X) {
             predict(model, X, type='prob')$b
           }
         }
-        algo = asd()
+        algo = getAlgo()
         
         error.logloss = function (act, pred) {
-          if (length(act) != length(pred)) {
-            stop("length's must be equal")
-          }
           eps = 1e-15
           pred = pmin(pmax(pred, eps), 1 - eps)
           sum(act * log(pred) + (1 - act) * log(1 - pred)) * -1/NROW(act)
@@ -95,10 +92,7 @@ nnetBootEliteTrainAlgo = function (XL) {
 }
 
 nnetBootTrainAlgo = function (XL) {
-  #my.extendedColsTrain(XL, function(XL) {
-    my.normalizedTrain(XL, function (XL) {
-      my.boot(XL, nnetTeachAlgo, meanAggregator, iters=200, rowsFactor=0.8)
-    })
-  #}, c(T,  T, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F,  T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F, F))
-  #})
+  my.normalizedTrain(XL, function (XL) {
+    my.boot(XL, nnetTeachAlgo, meanAggregator, iters=200, rowsFactor=0.8)
+  })
 }
