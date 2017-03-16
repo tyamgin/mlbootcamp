@@ -151,9 +151,9 @@ my.fromFileAlgo = function (path) {
 #stopCluster(cl)
 
 print('computed')
-#alg = gmeanAggregator(c(my.fromFileAlgo('lgb500old_631b.txt'), my.fromFileAlgo('nnet200_09_20.txt')))
-alg = logitTrainAlgo(XLL, c(my.fromFileAlgo('algb200.txt'), my.fromFileAlgo('nnet200_09_20.txt')))
-#alg = annetbt2
+alg = gmeanAggregator(c(my.fromFileAlgo('lgb_old_features.txt'), my.fromFileAlgo('nnet200_09_20.txt')))
+#alg = logitTrainAlgo(XLL, c(my.fromFileAlgo('algb200.txt'), my.fromFileAlgo('nnet200_09_20.txt')))
+#alg = algb
 
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
