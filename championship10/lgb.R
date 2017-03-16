@@ -54,7 +54,7 @@ lgbTrainAlgo = function (XL, newdata=NULL) {
 
 lgb2TrainAlgo = function (XL) {
   my.normalizedTrain(XL, function (XL) {
-    my.train.lgb(XL, rowsFactor=0.95, iters=25)
+    my.train.lgb(XL, rowsFactor=1, iters=200)
   })
 }
 
