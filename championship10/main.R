@@ -140,7 +140,7 @@ my.fromFileAlgo = function (path) {
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);annetmagic = nnetMagicTrainAlgo(XLL)
 #set.seed(2707);annetbt = nnetBootTrainAlgo(XLL)
-#set.seed(2707);annetbt2 = nnetBootEliteTrainAlgo(XLL)
+#set.seed(2707);annetbt2 = nnetBootEliteTrainAlgo(getPreDefinedData(XLL)$XL)
 #set.seed(2708);asvm = svmTrainAlgo(XLL)
 #set.seed(2708);aknn = knnTrainAlgo(XLL)
 #set.seed(2708);arf = rfTrainAlgo(XLL)
@@ -151,8 +151,8 @@ my.fromFileAlgo = function (path) {
 #stopCluster(cl)
 
 print('computed')
-alg = gmeanAggregator(c(my.fromFileAlgo('lgb500old_631b.txt'), my.fromFileAlgo('nnet200_09_20.txt')))
-#alg = logitTrainAlgo(XLL, c(my.fromFileAlgo('lgb500old_631b.txt'), my.fromFileAlgo('nnet200_08_10.txt')))
+#alg = gmeanAggregator(c(my.fromFileAlgo('lgb500old_631b.txt'), my.fromFileAlgo('nnet200_09_20.txt')))
+alg = logitTrainAlgo(XLL, c(my.fromFileAlgo('algb200.txt'), my.fromFileAlgo('nnet200_09_20.txt')))
 #alg = annetbt2
 
 XXX = read.csv(file='x_test.csv', head=T, sep=';', na.strings='?')
