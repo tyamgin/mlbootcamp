@@ -5,6 +5,7 @@ require(lightgbm)
 require(foreach)
 require(caret)
 require(randomForest)
+require(lars)
 
 debugSource("algos.R")
 debugSource("lgb.R")
@@ -23,6 +24,24 @@ XX = unnameMatrix(XX)
 #pc = princomp(XX)
 #XX = XX %*% solve(t(pc$loadings))
 #XX = XX[, 1:30]
+
+"
+XX2 = XX
+while(ncol(XX2) > 70) {
+  corMat = cor(XX2)
+  rr = foreach(x=corMat, .combine=c) %do% { sum(x^2) }
+  remCol = which.max(rr)
+  print(paste0('remove column ', remCol, ' (sum=', max(rr), ')'))
+  XX2 = XX2[,-remCol]
+}
+
+
+png(filename='graph/name2.png', width=2000, height=2000)
+corrgram(XX2, order=NULL, panel=panel.shade, text.panel=panel.txt, main='Correlogram')
+dev.off()
+
+XX = XX2
+"
 
 XLL = unnameMatrix(cbind(data.matrix(XX), YY))
 
@@ -87,6 +106,8 @@ my.roundedTrain = function (XL, trainFunc) {
   }
 }
 
+
+
 #set.seed(2707);algb = lgbTrainAlgo(XLL)
 set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
@@ -111,14 +132,6 @@ alg=annet
   #scale_y_continuous("Count", breaks = seq(0,200,by = 20)) +
   #labs(title = "Histogram")
 
-"
-corrgram(XX[,which(1==c(0,0,0,1,0,0,0,0,0,1,1,1,1,0,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,
-               0,1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,1,0,1,1,1,1,0,0,0,0,0,1,
-               0,1,0,1,0,1,0,0,1,1,0,0,0,0,0,0,0,1,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,
-               1,0,1,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,1,0,0,0,1,1,1,0,1,0,0,0,0,
-               0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,1,1,1,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,1,0,1,1,1,0,
-               0,0,0,1,0,1,0,0,1,1,0,0,0))], order=NULL, panel=panel.shade, text.panel=panel.txt, main='Correlogram') 
-"
 
 #plot(density((X_X[,77]-mean(X_X[,77])/sd(X_X[,77]))))
 #lines(density((X_X[,103]-mean(X_X[,103])/sd(X_X[,103]))), col='red')
