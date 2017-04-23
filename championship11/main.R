@@ -88,9 +88,10 @@ my.roundedTrain = function (XL, trainFunc) {
 }
 
 #set.seed(2707);algb = lgbTrainAlgo(XLL)
+set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, nnetTrainAlgo, folds=7, iters=4, verbose=T))
-#alg=algb
+alg=annet
 
 #set.seed(2707);print(geneticSelect(iterations=200, XL=XLL, teach=function (XL) {
 #  my.normalizedTrain(XL, function (XL) {
@@ -110,20 +111,21 @@ my.roundedTrain = function (XL, trainFunc) {
   #scale_y_continuous("Count", breaks = seq(0,200,by = 20)) +
   #labs(title = "Histogram")
 
+"
 corrgram(XX[,which(1==c(0,0,0,1,0,0,0,0,0,1,1,1,1,0,1,1,0,1,1,1,1,1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,
                0,1,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,1,0,1,1,1,1,0,0,0,0,0,1,
                0,1,0,1,0,1,0,0,1,1,0,0,0,0,0,0,0,1,0,1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,
                1,0,1,0,0,0,0,0,1,0,0,0,1,1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,1,0,0,0,1,1,1,0,1,0,0,0,0,
                0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,1,1,1,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,1,0,1,1,1,0,
-               0,0,0,1,0,1,0,0,1,1,0,0,0))], order=NULL, panel=panel.shade, text.panel=panel.txt, main="Correlogram") 
+               0,0,0,1,0,1,0,0,1,1,0,0,0))], order=NULL, panel=panel.shade, text.panel=panel.txt, main='Correlogram') 
+"
 
 #plot(density((X_X[,77]-mean(X_X[,77])/sd(X_X[,77]))))
 #lines(density((X_X[,103]-mean(X_X[,103])/sd(X_X[,103]))), col='red')
 
-"
+
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 results = alg(XXX)
 write(results, file='res/res.txt', sep='\n')
 print('done')
-"
