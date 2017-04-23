@@ -11,7 +11,7 @@ my.train.nnet = function (XL, XK=NULL) {
   )
   
   capture.output(
-    model <- train(X, Y, method='rf', metric='Accuracy', maxit=1000, MaxNWts=10000,
+    model <- train(X, Y, method='rf', metric='Accuracy', maxit=1000, MaxNWts=10000, ntree=3000,
                    maximize=F, trControl=trControl, verbose=F,
                    tuneGrid=tuneGrid)
   )
