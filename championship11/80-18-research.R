@@ -8,3 +8,4 @@ my.norm = function (x) { (x-mean(x))/sd(x)  }
 
 plot(density(my.norm(XX[,80])))
 lines(density(my.norm(XX[,18])), col='red')
+print('done')

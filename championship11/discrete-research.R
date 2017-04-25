@@ -14,3 +14,51 @@ lines(density(my.norm(XX[,201])), col='red')
 #png(filename='graph/name2.png', width=2000, height=2000)
 corrgram(X[,cols], order=NULL, panel=panel.shade, upper.panel=panel.pie, text.panel=panel.txt, main='Correlogram')
 #dev.off()
+
+#########################################
+
+my.norm = function (x) {
+  (x - mean(x)) / sd(x)
+}
+
+my.checkGcd = function (arr, gcd, eps=1e-3) {
+  for (a in arr) {
+    if (abs(round(a / gcd) - a / gcd) > eps) {
+      print(paste0('failed ', a, ' ', gcd))
+      return(F)
+    }
+  }
+  return(T)
+}
+
+my.transformDiscreteFeature = function (arr, gcd) {
+  l = length(arr)
+  ord = order(arr)
+  res = rep(0, l)
+  for(i in 2:l) {
+    d = arr[ord[i]] - arr[ord[i - 1]]
+    res[ord[i]] = res[ord[i - 1]] + round(d / gcd)
+  }
+  res
+}
+
+# 12  - 0.00333333333
+# 77  - 0.028170
+# 80  - 0.00166666666 # paste(round(sort(unique(round(diff(sort(XX[,80])), 6))) / 0.00166666666), collapse=',')
+# 97  - 0.000767
+# 98  - 0.062194
+# 116 - 0.004132
+# 132 - 0.067202
+# 139 - 0.013974
+# 157 - 0.001661
+# 183 - 0.006024
+# 201 - 0.008846
+
+col = 139
+"
+plot(density(my.norm(my.transformDiscreteFeature(XX[,col], 0.013974))))
+lines(density(my.norm(XX[,col])), col='red')
+"
+
+sort(unique(round(diff(sort(XX[,col])), 6)))
+my.checkGcd( sort(unique(round(diff(sort(XX[,col])), 6))), 0.008846, eps=1e-2 )

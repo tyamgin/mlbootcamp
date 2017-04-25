@@ -27,7 +27,10 @@ tqfoldEstimation = function(XL, G, teach) {
   m = ncol(XL) - 1
   subXL = XL[, c(which(G == 1), m + 1)]
   
-  e = mean(validation.tqfold(subXL, teach, folds=4, iters=5, verbose=F))
+  nextSeed = sample(1:10^5, 1)
+  set.seed(666)
+  e = mean(validation.tqfold(subXL, teach, folds=4, iters=4, verbose=F))
+  set.seed(nextSeed)
   list(int=e, ext=e)
 }
 

@@ -1,6 +1,3 @@
-my.dopar.exports = c()
-my.dopar.packages = c()
-
 my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F, nthread=1) {
   n = nrow(XLL)
   
@@ -27,20 +24,19 @@ my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F,
   aggregator(algos)
 }
 
-my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregator) {
+my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregator, lgb.nthread=4) {
   my.boot(XLL, function (XL, XK) {
     dtrain = lgb.Dataset(data=XL[, -ncol(XL)], label=XL[, ncol(XL)], free_raw_data=FALSE)
     dtest = lgb.Dataset(data=XK[, -ncol(XK)], label=XK[, ncol(XK)], free_raw_data=FALSE)
     valids = list(train=dtrain, test=dtest)
     
-    tmp.lgb.model <<- lgb.train(
+    lgb.train(
       data=dtrain, num_leaves=16, max_depth=4, learning_rate=0.06,
       nrounds=2000, 
       min_data_in_leaf=100, lambda_l2=5,
       valids=valids, early_stopping_rounds=200,
-      eval=c('multi_error'), objective='multiclass',num_classes=5, verbose=0, nthread=4
+      eval=c('multi_error'), objective='multiclass', num_classes=5, verbose=0, nthread=lgb.nthread
     )
-    tmp.lgb.model
   }, aggregator, iters=iters, rowsFactor=rowsFactor, replace=T, nthread=1)
 }
 
@@ -51,11 +47,43 @@ lgbTrainAlgo = function (XL) {
       my.normalizedTrain(XL, function (XL) {
         my.train.lgb(XL, rowsFactor=0.9, iters=20)
       })
-    })
-    #}, c(1,0,1,1,1,1,0,0,1,1,0,1,0,0,1,1,1,0,1,0,1,1,0,0,0,0,1,0,0,1,0,0,0,0,1,0,1,0,1,1,1,1,0,0,1,0,0,0,
-    #     0,1,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,0,0,1,0,0,1,1,0,1,0,0,1,1,1,1,1,0,1,1,0,0,0,1,0,1,0,0,0,0,0,0,
-    #     1,0,0,1,1,0,1,1,1,0,0,0,1,0,1,0,0,0,1,1,1,1,1,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1,0,1,1,1,1,1,1,0,1,0,
-    #     0,1,0,0,1,1,1,0,1,0,0,0,1,1,1,1,1,0,0,1,0,1,0,0,0,1,0,1,1,1,0,0,0,1,1,1,0,1,0,0,0,1,1,1,0,1,1,1,
-    #     0,1,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,1,1,0,0,0,1,0,0,0,0,0,0,0,0))
+    }, c(1,0,1,1,1,1,
+         1,0,1,0,0,1,
+         1,0,0,0,0,0,
+         1,0,1,0,0,1,
+         0,0,0,0,1,1,
+         1,1,0,0,1,1,
+         0,0,1,0,0,1,
+         0,0,1,1,0,1,
+         0,1,0,1,0,0,
+         0,1,0,0,1,1,
+         0,0,0,1,0,0,
+         0,0,1,0,1,0,
+         0,0,1,1,0,1,
+         0,0,1,0,0,0,
+         0,0,0,1,1,1,
+         0,0,0,0,0,1,
+         1,0,0,0,0,0,
+         0,1,1,1,0,1,
+         0,0,0,1,1,0,
+         0,1,1,1,1,0,
+         1,1,0,1,0,0,
+         0,1,1,1,1,0,
+         0,0,1,1,0,1,
+         1,0,0,1,0,0,
+         0,0,1,0,0,0,
+         1,0,1,0,0,0,
+         1,0,1,0,1,0,
+         0,1,0,0,0,0,
+         0,1,0,0,0,0,
+         0,1,0,1,0,0,
+         0,1,1,1,1,0,
+         0,0,1,1,1,0,
+         0,0,0,0,0,0,
+         1,1,1,1,0,0,
+         0,0,0,0,0,1,
+         0,0,0,0,1,1,
+         1,1,0,0,0,1,
+         0))
   })
 }

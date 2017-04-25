@@ -3,14 +3,23 @@ require(ggplot2)
 require(corrgram)
 require(lightgbm)
 require(foreach)
+require(doParallel)
 require(caret)
 require(randomForest)
 require(lars)
+require(xgboost)
 
 debugSource("algos.R")
 debugSource("lgb.R")
+debugSource("xgb.R")
 debugSource("nnet.R")
 debugSource("genetic.R")
+
+my.dopar.exports = c('validation.tqfold', 'validation.tqfold.enumerate', 'my.normalizedTrain', 'nnetTrainAlgo', 
+                     'my.extendedColsTrain', 'my.roundedTrain', 'error.accuracy',
+                     'my.boot', 'meanAggregator', 'extendXYCols', 'extendCols', 'my.train.lgb',
+                     'my.dopar.exports', 'my.dopar.packages')
+my.dopar.packages = c('caret', 'lightgbm', 'foreach')
 
 XX = read.csv(file="data/x_train.csv", head=F, sep=";", na.strings="?")
 YY = read.csv(file="data/y_train.csv", head=F, sep=";", na.strings="?")
@@ -111,14 +120,22 @@ my.roundedTrain = function (XL, trainFunc) {
 #set.seed(2707);algb = lgbTrainAlgo(XLL)
 set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
+#set.seed(2707);print(validation.tqfold(XLL, xgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, nnetTrainAlgo, folds=7, iters=4, verbose=T))
 alg=annet
 
-#set.seed(2707);print(geneticSelect(iterations=200, XL=XLL, teach=function (XL) {
-#  my.normalizedTrain(XL, function (XL) {
-#    my.train.lgb(XL, rowsFactor=0.9, iters=4)
-#  })
-#}, maxPopulationSize=13, mutationProb=0.2, startOnesProbab=0.35))
+"
+cl <- makeCluster(4)
+registerDoParallel(cl)
+set.seed(2707);print(geneticSelect(iterations=200, XL=XLL, teach=function (XL) {
+  my.roundedTrain(XL, function (XL) {
+    my.normalizedTrain(XL, function (XL) {
+      my.train.lgb(XL, rowsFactor=0.9, iters=3, lgb.nthread=1)
+    })
+  })
+}, maxPopulationSize=12, mutationProb=0.06, startOnesProbab=0.3))
+stopCluster(cl)
+"
 
 # https://www.r-bloggers.com/7-visualizations-you-should-learn-in-r/
 
