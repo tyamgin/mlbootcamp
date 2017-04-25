@@ -32,6 +32,7 @@ my.checkGcd = function (arr, gcd, eps=1e-3) {
 }
 
 my.transformDiscreteFeature = function (arr, gcd) {
+  "
   l = length(arr)
   ord = order(arr)
   res = rep(0, l)
@@ -40,7 +41,16 @@ my.transformDiscreteFeature = function (arr, gcd) {
     res[ord[i]] = res[ord[i - 1]] + round(d / gcd)
   }
   res
+  "
+  
+  arr = arr - min(arr)
+  res = round(arr / gcd)
+  if (sum(res != round(arr / gcd, 1)) > 0) {
+    stop('bad precision')
+  }
+  res
 }
+
 
 # 12  - 0.00333333333
 # 77  - 0.028170
@@ -54,11 +64,11 @@ my.transformDiscreteFeature = function (arr, gcd) {
 # 183 - 0.006024
 # 201 - 0.008846
 
-col = 139
+col = 80
 "
 plot(density(my.norm(my.transformDiscreteFeature(XX[,col], 0.013974))))
 lines(density(my.norm(XX[,col])), col='red')
 "
 
-sort(unique(round(diff(sort(XX[,col])), 6)))
-my.checkGcd( sort(unique(round(diff(sort(XX[,col])), 6))), 0.008846, eps=1e-2 )
+sort(unique(round(diff(sort(XX[,col])), 5)))
+my.checkGcd( sort(unique(round(diff(sort(XX[,col])), 5))), 0.00166666666, eps=1e-2 )

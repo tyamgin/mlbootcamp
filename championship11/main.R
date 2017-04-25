@@ -14,6 +14,7 @@ debugSource("lgb.R")
 debugSource("xgb.R")
 debugSource("nnet.R")
 debugSource("genetic.R")
+debugSource("preprocess.R")
 
 my.dopar.exports = c('validation.tqfold', 'validation.tqfold.enumerate', 'my.normalizedTrain', 'nnetTrainAlgo', 
                      'my.extendedColsTrain', 'my.roundedTrain', 'error.accuracy',
@@ -29,6 +30,7 @@ unnameMatrix = function (XX) {
 }
 
 XX = unnameMatrix(XX)
+XX = my.data.transformFeatures(XX)
 
 #pc = princomp(XX)
 #XX = XX %*% solve(t(pc$loadings))
@@ -118,11 +120,11 @@ my.roundedTrain = function (XL, trainFunc) {
 
 
 #set.seed(2707);algb = lgbTrainAlgo(XLL)
-set.seed(2707);annet = nnetTrainAlgo(XLL)
-#set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
+#set.seed(2707);annet = nnetTrainAlgo(XLL)
+set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, xgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, nnetTrainAlgo, folds=7, iters=4, verbose=T))
-alg=annet
+#alg=annet
 
 "
 cl <- makeCluster(4)
@@ -153,9 +155,11 @@ stopCluster(cl)
 #plot(density((X_X[,77]-mean(X_X[,77])/sd(X_X[,77]))))
 #lines(density((X_X[,103]-mean(X_X[,103])/sd(X_X[,103]))), col='red')
 
-
+"
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
+XXX = my.data.transformFeatures(XXX)
 results = alg(XXX)
 write(results, file='res/res.txt', sep='\n')
 print('done')
+"
