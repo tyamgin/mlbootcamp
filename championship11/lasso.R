@@ -20,7 +20,7 @@ glmmod <- glmnet(x, y=as.factor(asthma), alpha=1, family="binomial")
 plot(glmmod, xvar="lambda")
 
 
-ttt = glmnet(XLL[,-ncol(XLL)], XLL[,ncol(XLL)], family='multinomial')
+ttt = glmnet(XLL[,-ncol(XLL)], XLL[,ncol(XLL)])
 tmp = coef(ttt)
 col=30
 sum(tmp[,col]>0)

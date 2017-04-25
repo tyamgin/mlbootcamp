@@ -8,7 +8,7 @@ my.train.nnet = function (XL, XK=NULL) {
     #size = 15,
     #decay = 0.01 
     mtry = floor(ncol(XL)/4),
-    numRandomCuts=3
+    numRandomCuts=20
   )
   
   capture.output(

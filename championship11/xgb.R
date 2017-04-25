@@ -4,7 +4,7 @@ my.train.xgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
     dtest = xgb.DMatrix(data=XK[, -ncol(XK)], label=XK[, ncol(XK)])
     watchlist = list(train=dtrain, test=dtest)
     
-    xgb.train(
+    tmp.xgb.model <<- xgb.train(
       data=dtrain, 
       #watchlist=watchlist, 
       max_depth=3, gamma=5, eta=0.06, 
@@ -13,6 +13,7 @@ my.train.xgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
       num_parallel_tree=500,
       nthread=4, nrounds=2, eval_metric='merror', objective='multi:softprob', num_class=5, verbose=0
     )
+    tmp.xgb.model
   }, aggregator, iters=iters, rowsFactor=rowsFactor, replace=T, nthread=1)
 }
 

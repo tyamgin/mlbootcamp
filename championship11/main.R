@@ -117,14 +117,26 @@ my.roundedTrain = function (XL, trainFunc) {
   }
 }
 
-
+"
+set.seed(2707);algb = my.roundedTrain(XLL, function (XL) {
+  my.normalizedTrain(XL, function (XL) {
+    my.train.xgb(XL, rowsFactor=0.9, iters=1)
+  })
+})
+imp = xgb.importance(model=tmp.xgb.model)
+idxes = rep(0, ncol(XX))
+for(s in imp$Feature[1:88]) {
+  idxes[as.integer(s)]=1
+}
+print(paste(idxes, collapse=','))
+"
 
 #set.seed(2707);algb = lgbTrainAlgo(XLL)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
-set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
+#set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, xgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, nnetTrainAlgo, folds=7, iters=4, verbose=T))
-#alg=annet
+alg=annet
 
 "
 cl <- makeCluster(4)
@@ -155,11 +167,10 @@ stopCluster(cl)
 #plot(density((X_X[,77]-mean(X_X[,77])/sd(X_X[,77]))))
 #lines(density((X_X[,103]-mean(X_X[,103])/sd(X_X[,103]))), col='red')
 
-"
+
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
-XXX = my.data.transformFeatures(XXX)
+XXX = my.data.transformFeatures(XXX, T)
 results = alg(XXX)
 write(results, file='res/res.txt', sep='\n')
 print('done')
-"
