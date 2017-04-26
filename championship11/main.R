@@ -17,7 +17,7 @@ debugSource("genetic.R")
 debugSource("preprocess.R")
 
 my.dopar.exports = c('validation.tqfold', 'validation.tqfold.enumerate', 'my.normalizedTrain', 'nnetTrainAlgo', 
-                     'my.extendedColsTrain', 'my.roundedTrain', 'error.accuracy',
+                     'my.extendedColsTrain', 'my.roundedTrain', 'error.accuracy', 'my.train.nnet',
                      'my.boot', 'meanAggregator', 'extendXYCols', 'extendCols', 'my.train.lgb',
                      'my.dopar.exports', 'my.dopar.packages')
 my.dopar.packages = c('caret', 'lightgbm', 'foreach')
@@ -141,13 +141,14 @@ alg=annet
 "
 cl <- makeCluster(4)
 registerDoParallel(cl)
-set.seed(2707);print(geneticSelect(iterations=200, XL=XLL, teach=function (XL) {
+set.seed(2708);print(geneticSelect(iterations=200, XL=XLL, teach=function (XL) {
   my.roundedTrain(XL, function (XL) {
     my.normalizedTrain(XL, function (XL) {
-      my.train.lgb(XL, rowsFactor=0.9, iters=3, lgb.nthread=1)
+      #my.train.lgb(XL, rowsFactor=0.9, iters=3, lgb.nthread=1)
+      my.train.nnet(XL)
     })
   })
-}, maxPopulationSize=12, mutationProb=0.06, startOnesProbab=0.3))
+}, maxPopulationSize=13, mutationProb=0.05, startOnesProbab=0.3))
 stopCluster(cl)
 "
 
