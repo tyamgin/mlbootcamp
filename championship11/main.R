@@ -139,6 +139,7 @@ set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, xgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, nnetTrainAlgo, folds=7, iters=4, verbose=T))
+#set.seed(2707);print(validation.tqfold(XLL, etBtTrainAlgo, folds=7, iters=4, verbose=T))
 alg=annet
 
 "

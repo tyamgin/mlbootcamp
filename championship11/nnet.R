@@ -2,13 +2,13 @@ my.train.nnet = function (XL, XK=NULL) {
   X = XL[, -ncol(XL)]
   Y = factor(XL[, ncol(XL)], labels=c('a', 'b', 'c', 'd', 'e'))
   
-  trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary) #TODO: не понятно как указать метрику
+  trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary)
   
   tuneGrid = expand.grid(
     #size = 15,
     #decay = 0.01 
-    mtry = floor(ncol(XL)/4),
-    numRandomCuts=3
+    mtry = 16,#floor(ncol(XL)/4),
+    numRandomCuts=5
   )
   
   capture.output(
@@ -33,6 +33,18 @@ nnetTrainAlgo = function (XL) {
     my.extendedColsTrain(XL, function(XL) {
       my.normalizedTrain(XL, function (XL) {
         my.train.nnet(XL)
+      })
+    }, neee)
+  })
+}
+
+etBtTrainAlgo = function (XL) {
+  my.roundedTrain(XL, function (XL) {
+    my.extendedColsTrain(XL, function(XL) {
+      my.normalizedTrain(XL, function (XL) {
+        my.boot(XL, function (XL, XK) {
+          my.train.nnet(XL)
+        }, meanAggregator, iters=5, rowsFactor=1, replace=F, nthread=1)
       })
     }, neee)
   })
