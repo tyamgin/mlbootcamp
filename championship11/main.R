@@ -1,5 +1,6 @@
 set.seed(2707)
 require(ggplot2)
+require(GGally)
 require(corrgram)
 require(lightgbm)
 require(foreach)
@@ -113,7 +114,9 @@ my.roundedTrain = function (XL, trainFunc) {
     } else {
       mat = matrix(c(ans$a, ans$b, ans$c, ans$d, ans$e), nrow=5, byrow=T)
     }
-    foreach(x=mat, .combine=c) %do% { which.max(x) - 1 }
+    foreach(x=mat, .combine=c) %do% { 
+      which.max(x) - 1 
+    }
   }
 }
 
@@ -126,7 +129,7 @@ set.seed(2707);algb = my.roundedTrain(XLL, function (XL) {
 imp = xgb.importance(model=tmp.xgb.model)
 idxes = rep(0, ncol(XX))
 for(s in imp$Feature[1:88]) {
-  idxes[as.integer(s)]=1
+  idxes[as.integer(s)+1]=1
 }
 print(paste(idxes, collapse=','))
 "

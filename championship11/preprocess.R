@@ -28,5 +28,9 @@ my.data.transformFeatures = function (XX, skipCheck=F) {
       XX[, i] = my.data.transformDiscreteFeature(XX[, i], my.data.featurestGcd[i], skipCheck=skipCheck||(i==80))
     }
   }
-  XX
+  
+  pc = princomp(XX)
+  XX2 = XX %*% solve(t(pc$loadings))
+  
+  cbind(XX, XX2[, 1])
 }
