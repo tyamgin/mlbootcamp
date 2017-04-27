@@ -7,8 +7,8 @@ my.train.nnet = function (XL, XK=NULL) {
   tuneGrid = expand.grid(
     #size = 15,
     #decay = 0.01 
-    mtry = 16,#floor(ncol(XL)/4),
-    numRandomCuts=5
+    mtry = 18,#floor(ncol(XL)/4),
+    numRandomCuts=30
   )
   
   capture.output(
