@@ -42,8 +42,13 @@ geneticSelect = function(iterations,  # количество итераций
                          estimate = tqfoldEstimation, # оценка
                          d = 100, # дополнительный параметр останова
                          startOnesProbab = 0.5,
-                         removeDuplicates=T
+                         removeDuplicates=T,
+                         config=NULL
 ) {
+  if (is.character(config)) {
+    source(config, local=TRUE)
+  }
+  
   L = nrow(XL)
   size = ncol(XL) - 1
   R = matrix(NA, maxPopulationSize^2, size + 2) # генерация хромосом
@@ -98,13 +103,19 @@ geneticSelect = function(iterations,  # количество итераций
     points(x=rep(iter, popSize), y=R[,size + 1], pch=rep(16, popSize), col=rep("blue", popSize))
     print(
       c(
-        R[1, ], 
+        paste(R[1, ], collapse=','),
         paste0('(', sum(chr(R[1, ])), ')')
       )
     )
     
     if (iter - bestIteration >= d)
       break
+    
+    if (is.character(config)) {
+      source(config, local=TRUE)
+    }
+    print(paste0('debug ', mutationProb))
+    dput(R, file=paste0(iter, '.tmp.txt'))
     
     for (i in 1:popSize) {
       for (j in 1:i) {

@@ -1,5 +1,5 @@
 
-my.data.featurestGcd = rep(-1, ncol(XX))
+my.data.featurestGcd = rep(-1, 223)
 my.data.featurestGcd[12] = 0.00333333333
 my.data.featurestGcd[77] = 0.028170
 my.data.featurestGcd[80] = 0.00166666666
@@ -28,9 +28,5 @@ my.data.transformFeatures = function (XX, skipCheck=F) {
       XX[, i] = my.data.transformDiscreteFeature(XX[, i], my.data.featurestGcd[i], skipCheck=skipCheck||(i==80))
     }
   }
-  
-  pc = princomp(XX)
-  XX2 = XX %*% solve(t(pc$loadings))
-  
-  cbind(XX, XX2[, 1])
+  XX
 }

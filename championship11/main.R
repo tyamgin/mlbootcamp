@@ -9,6 +9,7 @@ require(caret)
 require(randomForest)
 require(lars)
 require(xgboost)
+require(e1071)
 
 debugSource("algos.R")
 debugSource("lgb.R")
@@ -114,6 +115,13 @@ my.roundedTrain = function (XL, trainFunc) {
     } else {
       mat = matrix(c(ans$a, ans$b, ans$c, ans$d, ans$e), nrow=5, byrow=T)
     }
+    
+    if (length(ans) == nrow(X)) {
+      print(c(min(ans), max(ans)))
+      ans = pmax(0, pmin(4, round(ans)))
+      return( ans )
+    }
+    
     foreach(x=mat, .combine=c) %do% { 
       which.max(x) - 1 
     }
@@ -139,20 +147,22 @@ set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, xgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, nnetTrainAlgo, folds=7, iters=4, verbose=T))
+#set.seed(2707);print(validation.tqfold(XLL, etGlmTrainAlgo, folds=7, iters=4, verbose=T))
+#set.seed(2707);print(validation.tqfold(XLL, glmTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, etBtTrainAlgo, folds=7, iters=4, verbose=T))
 alg=annet
 
 "
 cl <- makeCluster(4)
 registerDoParallel(cl)
-set.seed(2708);print(geneticSelect(iterations=200, XL=XLL, teach=function (XL) {
+set.seed(2709);print(geneticSelect(iterations=200, XL=XLL, teach=function (XL) {
   my.roundedTrain(XL, function (XL) {
     my.normalizedTrain(XL, function (XL) {
       #my.train.lgb(XL, rowsFactor=0.9, iters=3, lgb.nthread=1)
       my.train.nnet(XL)
     })
   })
-}, maxPopulationSize=13, mutationProb=0.05, startOnesProbab=0.3))
+}, config='genetic.config'))
 stopCluster(cl)
 "
 
