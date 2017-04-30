@@ -114,15 +114,16 @@ my.roundedTrain = function (XL, trainFunc) {
   model = trainFunc(XL)
   function (X) {
     ans = model(X)
+    nrows = ncol(ans)
     if (is.vector(ans)) {
-      mat = matrix(ans, nrow=5, byrow=F)
+      mat = matrix(ans, nrow=nrows, byrow=F)
     } else {
-      mat = matrix(c(ans$a, ans$b, ans$c, ans$d, ans$e), nrow=5, byrow=T)
+      mat = matrix(c(as.matrix(ans)), nrow=nrows, byrow=T)
     }
     
     if (length(ans) == nrow(X)) {
       print(c(min(ans), max(ans)))
-      ans = pmax(0, pmin(4, round(ans)))
+      ans = pmax(0, pmin(nrows - 1, round(ans)))
       return( ans )
     }
     
@@ -147,14 +148,20 @@ print(paste(idxes, collapse=','))
 "
 
 #set.seed(2707);algb = lgbTrainAlgo(XLL)
-set.seed(2707);annet = nnetTrainAlgo(XLL)
+#set.seed(2707);annet = nnetTrainAlgo(XLL)
+set.seed(2707);aetbin12 = nnetWithBin12TrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, xgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, nnetTrainAlgo, folds=7, iters=4, verbose=T))
+#set.seed(2707);print(validation.tqfold(XLL, nnetWithBin12TrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, etGlmTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, glmTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, etBtTrainAlgo, folds=7, iters=4, verbose=T))
-alg=annet
+alg=aetbin12
+
+#XLLbin12 = XLL
+#XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
+#set.seed(2707);print(validation.tqfold(XLLbin12, nnetTrainAlgo, folds=7, iters=4, verbose=T))
 
 "
 addRemoveSelect(iterations=10000, XL=XLL, teach=function (XL) {

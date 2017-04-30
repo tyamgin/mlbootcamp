@@ -1,19 +1,19 @@
 my.train.nnet = function (XL, XK=NULL) {
   X = XL[, -ncol(XL)]
   colnames(X) <- paste0('X', 1:ncol(X))
-  Y = factor(XL[, ncol(XL)], labels=c('a', 'b', 'c', 'd', 'e'))
+  Y = factor(XL[, ncol(XL)], labels=c('a', 'b', 'c', 'd', 'e')[1:length(unique(XL[, ncol(XL)]))])
   
   trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary)
   
   tuneGrid = expand.grid(
     mtry = floor(ncol(XL)/4),
-    numRandomCuts=25
+    numRandomCuts=5
   )
   
   capture.output(
     model <- train(X, Y, method='extraTrees', metric='Accuracy',
                    maximize=F, trControl=trControl,
-                   ntree=4000,
+                   #ntree=1000,
                    tuneGrid=tuneGrid)
   )
   
@@ -22,6 +22,7 @@ my.train.nnet = function (XL, XK=NULL) {
     predict(model, X, type='prob')
   }
 }
+
 "
 my.train.nnet = function (XL, XK=NULL) {
   X = XL[, -ncol(XL)]
@@ -141,6 +142,13 @@ neee=c(0,1,1,0,0,1,0,0,0,0,1,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0
 #       1,1,1,0,1,1,0,0,0,0,0,1,1,0,1,1,0,0,1,1,1,0,1,0,0,0,1,0,0,0,1,1,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,1,1,0,1,0,1,0,1,0,1,1,
 #       0,1,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,1,1,1,1,1,1,1,0,0,0,0) # new
 
+#neee[126] = 1 - neee[126]
+
+neee=c(0,1,1,0,0,1,0,1,0,0,1,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,
+       0,0,0,0,0,1,1,0,0,0,1,1,0,0,1,0,1,0,0,0,0,1,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,1,0,1,1,1,1,0,1,0,0,0,0,0,1,0,1,0,1,0,0,1,0,0,0,1,0,1,0,1,0,0,0,0,0,0,0,
+       0,0,0,0,1,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,1,1,0,0,1,0,0,0,0,0,1,1,0,0,1,0,0,0,0,1,
+       0,1,0,0)
+
 nnetTrainAlgo = function (XL) {
   my.roundedTrain(XL, function (XL) {
     my.extendedColsTrain(XL, function(XL) {
@@ -194,5 +202,17 @@ etBtTrainAlgo = function (XL) {
       })
     }, neee)
   })
+}
+
+nnetWithBin12TrainAlgo = function (XL) {
+  a = nnetTrainAlgo(XL)
+  XL2 = XL
+  XL2[, ncol(XL2)] = ifelse(XL2[, ncol(XL2)] <= 1, 0, 1)
+  b = nnetTrainAlgo(XL2)
+  function (X) {
+    A = a(X)
+    B = b(X)
+    ifelse(A == 1 | A == 2, B + 1, A)
+  }
 }
 
