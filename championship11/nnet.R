@@ -7,13 +7,13 @@ my.train.nnet = function (XL, XK=NULL) {
   
   tuneGrid = expand.grid(
     mtry = floor(ncol(XL)/4),
-    numRandomCuts=5
+    numRandomCuts=25
   )
   
   capture.output(
     model <- train(X, Y, method='extraTrees', metric='Accuracy',
                    maximize=F, trControl=trControl,
-                   ntree=2000,
+                   ntree=4000,
                    tuneGrid=tuneGrid)
   )
   

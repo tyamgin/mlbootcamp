@@ -10,6 +10,10 @@ require(randomForest)
 require(lars)
 require(xgboost)
 require(e1071)
+require(rJava)
+require(extraTrees)
+
+options(java.parameters = "-Xmx8g")
 
 debugSource("algos.R")
 debugSource("lgb.R")
@@ -151,6 +155,17 @@ set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, glmTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, etBtTrainAlgo, folds=7, iters=4, verbose=T))
 alg=annet
+
+"
+addRemoveSelect(iterations=10000, XL=XLL, teach=function (XL) {
+  my.roundedTrain(XL, function (XL) {
+    my.normalizedTrain(XL, my.train.nnet)
+  })
+}, startVec=c(0,1,1,0,0,1,0,0,0,0,1,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1,
+              0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,0,0,1,0,1,0,0,0,0,1,0,1,0,1,0,0,0,0,1,1,0,0,0,0,0,1,0,1,1,1,1,
+              0,1,0,0,0,0,0,1,0,1,0,1,0,0,1,0,0,0,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,
+              1,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,1,1,0,0,1,0,0,0,0,0,1,1,0,0,1,0,0,0,0,1,0,1,1,0))
+"
 
 "
 cl <- makeCluster(4)

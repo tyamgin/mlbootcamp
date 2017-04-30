@@ -29,7 +29,7 @@ tqfoldEstimation = function(XL, G, teach) {
   
   nextSeed = sample(1:10^5, 1)
   set.seed(666)
-  e = mean(validation.tqfold(subXL, teach, folds=4, iters=6, verbose=F))
+  e = mean(validation.tqfold(subXL, teach, folds=4, iters=3, verbose=F))
   set.seed(nextSeed)
   list(int=e, ext=e)
 }
@@ -114,7 +114,6 @@ geneticSelect = function(iterations,  # количество итераций
     if (is.character(config)) {
       source(config, local=TRUE)
     }
-    print(paste0('debug ', mutationProb))
     dput(R, file=paste0(iter, '.tmp.txt'))
     
     for (i in 1:popSize) {
@@ -126,4 +125,61 @@ geneticSelect = function(iterations,  # количество итераций
   }
   
   best
+}
+
+addRemoveSelect = function(iterations,  # количество итераций
+                           XL, # выборка
+                           teach, # teach(XL) - обучение
+                           estimate = tqfoldEstimation, # оценка
+                           startVec = c(T)
+) {
+  L = nrow(XL)
+  size = ncol(XL) - 1
+  
+  vec = startVec
+  if (length(vec) < size) {
+    vec = c(vec, rep(F, size - length(vec)))
+  }
+  
+  iterPts = c()
+  intPts = c()
+  extPts = c()
+  
+  for (it in 1:iterations) {
+    addOrRemove = sample(0:1, 1)
+    i = 1
+    for (k in sample(size)) {
+      if (vec[k] == addOrRemove) {
+        i = k
+        break
+      }
+    }
+    
+    newVec = vec
+    newVec[i] = !newVec[i]
+    
+    e = foreach(v=list(vec, newVec), .export=my.dopar.exports, .packages=my.dopar.packages) %dopar% {
+      estimate(XL, v, teach)
+    }
+    
+    est = e[[1]]
+    newEst = e[[2]]
+    
+    if (newEst$ext < est$ext) {
+      vec = newVec
+      
+      intPts = c(intPts, newEst$int)
+      extPts = c(extPts, newEst$ext)
+      iterPts = c(iterPts, it)
+      print(paste0("current ", newEst$ext, newEst$int))
+      print(vec)
+      
+      plot(c(iterPts, iterPts), c(intPts, extPts), col=c(rep("green", length(intPts)), rep("red", length(extPts))), pch=20)
+    }
+    print(i)
+    print(est)
+    print(newEst)
+    
+    print(paste0(iterations - it, " iterations remains"))
+  }
 }
