@@ -29,7 +29,7 @@ tqfoldEstimation = function(XL, G, teach) {
   
   nextSeed = sample(1:10^5, 1)
   set.seed(666)
-  e = mean(validation.tqfold(subXL, teach, folds=4, iters=3, verbose=F))
+  e = mean(validation.tqfold(subXL, teach, folds=5, iters=6, verbose=F))
   set.seed(nextSeed)
   list(int=e, ext=e)
 }
@@ -145,6 +145,8 @@ addRemoveSelect = function(iterations,  # количество итераций
   intPts = c()
   extPts = c()
   
+  est = estimate(XL, vec, teach)
+  
   for (it in 1:iterations) {
     addOrRemove = sample(0:1, 1)
     i = 1
@@ -158,15 +160,14 @@ addRemoveSelect = function(iterations,  # количество итераций
     newVec = vec
     newVec[i] = !newVec[i]
     
-    e = foreach(v=list(vec, newVec), .export=my.dopar.exports, .packages=my.dopar.packages) %dopar% {
-      estimate(XL, v, teach)
-    }
+    newEst = estimate(XL, newVec, teach)
     
-    est = e[[1]]
-    newEst = e[[2]]
+    print(i)
+    print(est)
     
     if (newEst$ext < est$ext) {
       vec = newVec
+      est = newEst
       
       intPts = c(intPts, newEst$int)
       extPts = c(extPts, newEst$ext)
@@ -176,8 +177,6 @@ addRemoveSelect = function(iterations,  # количество итераций
       
       plot(c(iterPts, iterPts), c(intPts, extPts), col=c(rep("green", length(intPts)), rep("red", length(extPts))), pch=20)
     }
-    print(i)
-    print(est)
     print(newEst)
     
     print(paste0(iterations - it, " iterations remains"))

@@ -34,6 +34,7 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F) {
       g <- (ggplot(df, aes(act, pred, colour=color)) 
             + geom_point(aes(size = value)) 
             + theme_bw() 
+            + theme(legend.position="none")
             + xlab("Actual") 
             + ylab("Prediction")
             + scale_colour_manual(breaks=df$color, values=c("black", "green", "red"))
