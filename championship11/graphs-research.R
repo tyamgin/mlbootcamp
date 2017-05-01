@@ -46,6 +46,8 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   }
 }
 
+
+
 m.fill = scale_fill_manual(values=1:5)
 m.color = scale_color_manual(values=1:5)
 
@@ -96,4 +98,3 @@ gg = ggpairs(X_X2[,1:5], aes(alpha=0.4, colour=Y_Y), upper=NULL)
 for(ii in 1:gg$nrow) for(jj in 1:gg$ncol) gg[ii, jj] = gg[ii, jj] + m.fill + m.color
 print(gg)
 
-ggplot(X_X, aes(x=X_X[,194], y=Y_Y, fill=Y_Y, color=Y_Y)) + geom_point(alpha=.3) + m.fill + m.color

@@ -81,14 +81,32 @@ extendXYCols = function (XL, idxes) {
   cbind(X, Y)
 }
 
+eext = function (X) {
+  R = matrix(NA, nrow=nrow(X), ncol=0)
+  for(i in 1:nrow(gl.mat)) {
+    thr = gl.mat$threshold[i]
+    col = gl.mat$col[i]
+    R = cbind(ifelse(X[, col] < thr, 0, 1), R)
+  }
+  R
+}
+
 my.extendedColsTrain = function (XL, trainFunc, idxes=NULL) {
   featuresNumber = ncol(XL) - 1
+  
+  E = eext(XL)
   XL = extendXYCols(XL, idxes)
+  XL = cbind(E, XL)
+
   model = trainFunc(XL)
   function (X) {
     if (ncol(X) != featuresNumber)
       stop('invalid number of columns')
+    
+    E = eext(X)
     X = extendCols(X, idxes)
+    X = cbind(E, X)
+
     model(X)
   }
 }
@@ -106,6 +124,27 @@ my.normalizedTrain = function (XL, trainFunc) {
   function (X) {
     for (j in 1:m)
       X[, j] = (X[, j] - means[j]) / sds[j]
+    model(X)
+  }
+}
+
+my.log = function(x, base=exp(1)) {
+  for(i in 1:length(x)) {
+    if (x[i] > 0)
+      x[i] = log(x[i], base)
+    else if (x[i] < 0)
+      x[i] = -log(-x[i], base)
+  }
+  x
+}
+
+my.logTrain = function (XL, trainFunc) {
+  for (i in 1:(ncol(XL)-1))
+    XL[, i] = my.log(XL[, i])
+  model = trainFunc(XL)
+  function (X) {
+    for (i in 1:ncol(X))
+      X[, i] = my.log(X[, i])
     model(X)
   }
 }
@@ -160,6 +199,7 @@ set.seed(2707);aetbin12 = nnetWithBin12TrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, etBtTrainAlgo, folds=7, iters=4, verbose=T))
 alg=aetbin12
 
+
 #XLLbin12 = XLL
 #XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
 #set.seed(2707);print(validation.tqfold(XLLbin12, nnetTrainAlgo, folds=7, iters=4, verbose=T))
@@ -169,10 +209,10 @@ addRemoveSelect(iterations=10000, XL=XLL, teach=function (XL) {
   my.roundedTrain(XL, function (XL) {
     my.normalizedTrain(XL, my.train.nnet)
   })
-}, startVec=c(0,1,0,0,0,1,0,1,0,0,1,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,
-              0,0,0,0,0,1,1,0,0,0,1,1,0,0,1,0,1,0,0,0,0,1,0,1,0,1,0,0,0,0,1,0,0,0,0,0,0,1,0,1,1,1,1,0,1,0,0,0,0,0,1,0,1,0,1,0,0,1,0,0,0,1,0,1,0,1,0,0,0,0,0,0,0,
-              0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,1,1,0,0,1,0,0,0,0,0,1,1,0,0,1,0,0,0,0,1,
-              0,1,0,0))
+}, startVec=c(0,0,1,0,0,1,0,0,0,0,1,1,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,1,0,0,0,1,0,0,0,
+              1,0,0,0,0,0,1,1,0,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,1,1,1,1,1,0,0,1,0,0,0,0,0,0,1,0,1,1,0,0,1,1,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,
+              1,0,0,0,0,1,1,0,0,0,1,0,0,1,0,0,1,1,0,0,0,0,0,0,1,1,1,0,0,1,1,0,0,0,0,1,0,0,0,0,0,0,1,0,1,0,0,0,1,1,0,1,0,0,1,1,1,1,0,1,0,1,0,0,
+              0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,0))
 "
 
 "

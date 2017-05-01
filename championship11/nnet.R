@@ -6,14 +6,17 @@ my.train.nnet = function (XL, XK=NULL) {
   trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary)
   
   tuneGrid = expand.grid(
-    mtry = floor(ncol(XL)/4),
-    numRandomCuts=3
+    numRandomCuts=5,
+    mtry = floor(ncol(XL)/4)
+    #k=1
+    #size=13,
+    #decay=7
   )
   
   capture.output(
     model <- train(X, Y, method='extraTrees', metric='Accuracy',
                    maximize=F, trControl=trControl,
-                   #ntree=1000,
+                   ntree=1000,
                    numThreads=4,
                    tuneGrid=tuneGrid)
   )
@@ -159,9 +162,11 @@ neee=c(0,1,0,0,0,1,0,1,0,0,1,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,
 nnetTrainAlgo = function (XL) {
   my.roundedTrain(XL, function (XL) {
     my.extendedColsTrain(XL, function(XL) {
-      my.normalizedTrain(XL, function (XL) {
-        my.train.nnet(XL)
-      })
+      #my.logTrain(XL, function (XL) {
+        my.normalizedTrain(XL, function (XL) {
+          my.train.nnet(XL)
+        })
+      #})
     }, neee)
   })
 }
