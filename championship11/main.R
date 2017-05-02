@@ -12,6 +12,7 @@ require(xgboost)
 require(e1071)
 require(rJava)
 require(extraTrees)
+require(DiagrammeR)
 
 options(java.parameters = "-Xmx8g")
 
@@ -94,18 +95,18 @@ eext = function (X) {
 my.extendedColsTrain = function (XL, trainFunc, idxes=NULL) {
   featuresNumber = ncol(XL) - 1
   
-  E = eext(XL)
+  #E = eext(XL)
   XL = extendXYCols(XL, idxes)
-  XL = cbind(E, XL)
+  #XL = cbind(E, XL)
 
   model = trainFunc(XL)
   function (X) {
     if (ncol(X) != featuresNumber)
       stop('invalid number of columns')
     
-    E = eext(X)
+    #E = eext(X)
     X = extendCols(X, idxes)
-    X = cbind(E, X)
+    #X = cbind(E, X)
 
     model(X)
   }
@@ -187,9 +188,10 @@ for(s in imp$Feature[1:88]) {
 print(paste(idxes, collapse=','))
 "
 
+set.seed(2707);axgb = xgbTrainAlgo(XLL)
 #set.seed(2707);algb = lgbTrainAlgo(XLL)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
-set.seed(2707);aetbin12 = nnetWithBin12TrainAlgo(XLL)
+#set.seed(2707);aetbin12 = nnetWithBin12TrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, xgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, nnetTrainAlgo, folds=7, iters=4, verbose=T))
@@ -197,7 +199,7 @@ set.seed(2707);aetbin12 = nnetWithBin12TrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, etGlmTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, glmTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, etBtTrainAlgo, folds=7, iters=4, verbose=T))
-alg=aetbin12
+alg=axgb
 
 
 #XLLbin12 = XLL
@@ -205,15 +207,20 @@ alg=aetbin12
 #set.seed(2707);print(validation.tqfold(XLLbin12, nnetTrainAlgo, folds=7, iters=4, verbose=T))
 
 "
+set.seed(2700)
 addRemoveSelect(iterations=10000, XL=XLL, teach=function (XL) {
   my.roundedTrain(XL, function (XL) {
     my.normalizedTrain(XL, my.train.nnet)
   })
-}, startVec=c(0,0,1,0,0,1,0,0,0,0,1,1,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,0,1,0,0,0,1,0,0,0,
-              1,0,0,0,0,0,1,1,0,0,0,0,1,0,1,0,0,0,0,1,0,0,0,0,0,1,1,1,1,1,0,0,1,0,0,0,0,0,0,1,0,1,1,0,0,1,1,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,
-              1,0,0,0,0,1,1,0,0,0,1,0,0,1,0,0,1,1,0,0,0,0,0,0,1,1,1,0,0,1,1,0,0,0,0,1,0,0,0,0,0,0,1,0,1,0,0,0,1,1,0,1,0,0,1,1,1,1,0,1,0,1,0,0,
-              0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,1,0,0,0,1,0,0))
+}, startVec=c(0,1,0,0,0,1,0,1,0,0,1,1,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,
+              0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,
+              0,0,0,0,0,0,1,1,0,0,0,1,1,1,0,1,0,0,0,0,0,0,1,0,1,0,1,0,0,0,0,1,0,0,0,1,
+              0,0,1,0,1,1,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,
+              0,0,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0,
+              0,0,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,
+              0,0,1,0,1,0,0))
 "
+
 
 "
 cl <- makeCluster(4)
@@ -252,3 +259,4 @@ XXX = my.data.transformFeatures(XXX, T)
 results = alg(XXX)
 write(results, file='res/res.txt', sep='\n')
 print('done')
+
