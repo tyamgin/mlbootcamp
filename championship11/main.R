@@ -188,7 +188,7 @@ for(s in imp$Feature[1:88]) {
 print(paste(idxes, collapse=','))
 "
 
-set.seed(2707);axgb = xgbTrainAlgo(XLL)
+#set.seed(2707);axgb = xgbTrainAlgo(XLL)
 #set.seed(2707);algb = lgbTrainAlgo(XLL)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
 #set.seed(2707);aetbin12 = nnetWithBin12TrainAlgo(XLL)
@@ -199,16 +199,16 @@ set.seed(2707);axgb = xgbTrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, etGlmTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, glmTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, etBtTrainAlgo, folds=7, iters=4, verbose=T))
-alg=axgb
+#alg=axgb
 
 
 #XLLbin12 = XLL
 #XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
 #set.seed(2707);print(validation.tqfold(XLLbin12, nnetTrainAlgo, folds=7, iters=4, verbose=T))
 
-"
-set.seed(2700)
-addRemoveSelect(iterations=10000, XL=XLL, teach=function (XL) {
+
+set.seed(2704)
+addRemoveSelect(iterations=10000, XL=cbind(XLL[, -ncol(XLL)], eext(XLL), XLL[, ncol(XLL)]), teach=function (XL) {
   my.roundedTrain(XL, function (XL) {
     my.normalizedTrain(XL, my.train.nnet)
   })
@@ -219,7 +219,7 @@ addRemoveSelect(iterations=10000, XL=XLL, teach=function (XL) {
               0,0,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0,
               0,0,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,
               0,0,1,0,1,0,0))
-"
+
 
 
 "
@@ -252,11 +252,11 @@ stopCluster(cl)
 #plot(density((X_X[,77]-mean(X_X[,77])/sd(X_X[,77]))))
 #lines(density((X_X[,103]-mean(X_X[,103])/sd(X_X[,103]))), col='red')
 
-
+"
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 XXX = my.data.transformFeatures(XXX, T)
 results = alg(XXX)
 write(results, file='res/res.txt', sep='\n')
 print('done')
-
+"

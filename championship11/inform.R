@@ -52,15 +52,23 @@ my.simpleInform = function(x, y) {
     while (yit < length(y) && y[yit + 1] < thr)
       yit = yit + 1
     
+    xx = xit / length(x)
+    yy = yit / length(y)
+    
+    alpha = 0.03
+    
     inform = max(
-      xit / (yit + 1),
-      yit / (xit + 1),
-      (length(x) - xit) / (length(y) - yit + 1),
-      (length(y) - yit) / (length(x) - xit + 1)
+      ifelse(yy < alpha, xx - yy, 0),
+      ifelse(xx < alpha, yy - xx, 0),
+      ifelse(1 - yy < alpha, (1 - xx) - (1 - yy), 0),
+      ifelse(1 - xx < alpha, (1 - yy) - (1 - xx), 0)
     )
+    
     if (inform > maxInform) {
       maxInform = inform
       selThr = thr
+      selXX=xx
+      selYY=yy
     }
   }
   list(
@@ -73,44 +81,47 @@ my.simpleInform = function(x, y) {
 m.fill = scale_fill_manual(values=1:5)
 m.color = scale_color_manual(values=1:5)
 X_X = data.frame(XLL)
-Y_Y = factor(X_X$X224, labels=c('a', 'b', 'c', 'd', 'e'))
-
-col = 1
-x = XX[which(XLL[, ncol(XLL)] == 2), col]
-y = XX[which(XLL[, ncol(XLL)] == 1), col]
-
-thr = my.simpleInform(x, y)$threshold
-
-print(ggplot(NULL, aes(x=X_X[, col], y=Y_Y, fill=Y_Y, color=Y_Y)) + geom_point(alpha=.3) + m.fill + m.color + geom_vline(xintercept=thr))
+labels = c('a', 'b', 'c', 'd', 'e')
+Y_Y = factor(X_X$X224, labels=labels)
 
 
-mat = foreach(i = 1:ncol(XX), .combine = rbind) %do% {
-  x = XX[which(XLL[, ncol(XLL)] == 2), i]
-  y = XX[which(XLL[, ncol(XLL)] == 1), i]
-  
-  dt = my.simpleInform(x, y)
-  data.frame(inform = dt$inform, threshold = dt$threshold, col = i)
+mat = foreach(cl=1:4, .combine=rbind) %do% {
+  foreach(i=1:ncol(XX), .combine=rbind) %do% {
+    x = XX[which(XLL[, ncol(XLL)] == cl), i]
+    y = XX[which(XLL[, ncol(XLL)] == cl - 1), i]
+    
+    dt = my.simpleInform(x, y)
+    data.frame(inform = dt$inform, threshold = dt$threshold, col = i, class=cl)
+  }
 }
-
-
-gl.mat = mat[rev(order(mat$inform))[1:4], ]
+gl.mat = mat[rev(order(mat$inform))[1:200], ]
 
 "
+Y = YY[, 1]
+
 for(i in 1:ncol(XX)) {
-  png(filename=paste0('graph/ycor/', i, '.png'), width=1200, height=900)
   
-  x = XX[which(XLL[, ncol(XLL)] == 2), i]
-  y = XX[which(XLL[, ncol(XLL)] == 1), i]
-  
-  thr = my.simpleInform(x, y)$threshold
-  
-  print(
-    ggplot(X_X, aes(x=X_X[, i], y=Y_Y, fill=Y_Y, color=Y_Y)) 
+  pl = (
+    ggplot(NULL, aes(x=XX[, i], y=Y, fill=as.factor(Y), color=as.factor(Y))) 
     + geom_point(alpha=.3) 
     + m.fill 
     + m.color
-    + geom_vline(xintercept=thr)
   )
+  
+  segs = foreach(cl=1:4, .combine=rbind) %do% {
+    x = XX[which(XLL[, ncol(XLL)] == cl), i]
+    y = XX[which(XLL[, ncol(XLL)] == cl - 1), i]
+  
+    thr = my.simpleInform(x, y)$threshold
+ 
+    data.frame(x=thr, y1=cl-1, y2=cl)
+    #+ geom_vline(aes(xintercept=thr), colour=3, linetype='dashed')
+  }
+  pl1 = pl + geom_segment(aes(x=x, y=y1, xend=x, yend=y2, fill=as.factor(0)), data=segs, colour='black', linetype='dashed')
+  
+  png(filename=paste0('graph/ycor/', i, '.png'), width=1200, height=900)
+  print(pl1)
   dev.off()
 }
+
 "
