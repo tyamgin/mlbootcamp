@@ -64,7 +64,7 @@ my.transformDiscreteFeature = function (arr, gcd) {
 # 183 - 0.006024
 # 201 - 0.008846
 
-col = 80
+col = 139
 "
 plot(density(my.norm(my.transformDiscreteFeature(XX[,col], 0.013974))))
 lines(density(my.norm(XX[,col])), col='red')

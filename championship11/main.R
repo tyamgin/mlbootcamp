@@ -183,9 +183,8 @@ my.gridSearch(XLL, function (params) {
   function (XL) {
     etTrainAlgo(XL, params)
   }
-}, expand.grid(numRandomCuts=1, mtry=2, ntree=c(310)))
+}, expand.grid(numRandomCuts=c(1,10,20), mtry=2:4, ntree=c(310, 2000)))
 "
-
 
 "
 my.gridSearch(XLL, function (params) {
@@ -194,6 +193,7 @@ my.gridSearch(XLL, function (params) {
   }
 }, expand.grid(size=3, maxit=c(100), decay=c(0)))
 "
+
 "
 my.gridSearch(XLL, function (params) {
   function (XL) {
@@ -214,12 +214,12 @@ my.gridSearch(XLL, function (params) {
   subsample=1, 
   nthread=4, 
   nrounds=c(300,350,400)
-), verbose=F)
+), verbose=T)
 "
 
 #set.seed(2707);axgb = xgbTrainAlgo(XLL)
 #set.seed(2707);algb = lgbTrainAlgo(XLL)
-set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=5, mtry=2, ntree=1000))
+set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000)); print('trained')
 #set.seed(2707);aetbin12 = nnetWithBin12TrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, xgbTrainAlgo, folds=7, iters=4, verbose=T))
