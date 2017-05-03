@@ -196,6 +196,7 @@ my.gridSearch(XLL, function (params) {
 }, expand.grid(numRandomCuts=c(1,3,5,7,9), mtry=3:7, ntree=c(500, 1000)))
 "
 
+"
 my.gridSearch(XLL, function (params) {
   function (XL) {
     xgbTrainAlgo(XL, params)
@@ -217,10 +218,11 @@ my.gridSearch(XLL, function (params) {
     nthread=4, 
     nrounds=350
   ), verbose=T)
+"
 
 #set.seed(2707);axgb = xgbTrainAlgo(XLL)
 #set.seed(2707);algb = lgbTrainAlgo(XLL)
-#set.seed(2707);annet = nnetTrainAlgo(XLL)
+set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=300))
 #set.seed(2707);aetbin12 = nnetWithBin12TrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, xgbTrainAlgo, folds=7, iters=4, verbose=T))
@@ -229,7 +231,7 @@ my.gridSearch(XLL, function (params) {
 #set.seed(2707);print(validation.tqfold(XLL, etGlmTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, glmTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, etBtTrainAlgo, folds=7, iters=4, verbose=T))
-#alg=axgb
+alg=aEt
 
 
 #XLLbin12 = XLL
@@ -282,11 +284,11 @@ stopCluster(cl)
 #plot(density((X_X[,77]-mean(X_X[,77])/sd(X_X[,77]))))
 #lines(density((X_X[,103]-mean(X_X[,103])/sd(X_X[,103]))), col='red')
 
-"
+
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 XXX = my.data.transformFeatures(XXX, T)
 results = alg(XXX)
 write(results, file='res/res.txt', sep='\n')
 print('done')
-"
+
