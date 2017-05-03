@@ -1,29 +1,3 @@
-my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F, nthread=1) {
-  n = nrow(XLL)
-  
-  if (nthread > 1) {
-    cl <- makeCluster(nthread)
-    registerDoParallel(cl)
-  }
-  
-  algos = foreach(it=1:iters, .export=my.dopar.exports, .packages=my.dopar.packages) %do% {
-    sampleIdxes = sample(n, rowsFactor*n, replace=replace)
-    
-    XK = XLL[-sampleIdxes, ]
-    XL = XLL[sampleIdxes, ]  
-    
-    if (it %% 20 == 0)
-      gc()
-    
-    train(XL, XK)
-  }
-  
-  if (nthread > 1) {
-    stopCluster(cl)
-  }
-  aggregator(algos)
-}
-
 my.train.lgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregator, lgb.nthread=4) {
   my.boot(XLL, function (XL, XK) {
     dtrain = lgb.Dataset(data=XL[, -ncol(XL)], label=XL[, ncol(XL)], free_raw_data=FALSE)

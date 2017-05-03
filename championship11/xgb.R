@@ -1,7 +1,4 @@
-my.train.xgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregator,
-                         max_depth=4, gamma=5, lambda=1, alpha=0.2, eta=0.06, tree_method='exact',
-                         colsample_bytree=0.635, min_child_weight=2, subsample=1, nthread=4, nrounds=350
-                         ) {
+my.train.xgb = function (XLL, params) {
   my.boot(XLL, function (XL, XK) {
     dtrain = xgb.DMatrix(data=XL[, -ncol(XL)], label=XL[, ncol(XL)])
     dtest = xgb.DMatrix(data=XK[, -ncol(XK)], label=XK[, ncol(XK)])
@@ -10,22 +7,22 @@ my.train.xgb = function (XLL, iters=10, rowsFactor=0.3, aggregator=meanAggregato
     tmp.xgb.model <<- xgb.train(
       data=dtrain, 
       #watchlist=watchlist, 
-      max_depth=max_depth, 
-      gamma=gamma, 
-      lambda=lambda,
-      alpha=alpha,
-      eta=eta, 
-      tree_method=tree_method,
-      colsample_bytree=colsample_bytree,
-      min_child_weight=min_child_weight,
-      subsample=subsample,
+      max_depth=params$max_depth, 
+      gamma=params$gamma, 
+      lambda=params$lambda,
+      alpha=params$alpha,
+      eta=params$eta, 
+      tree_method=params$tree_method,
+      colsample_bytree=params$colsample_bytree,
+      min_child_weight=params$min_child_weight,
+      subsample=params$subsample,
       #early_stopping_rounds=200,
-      nthread=nthread, 
-      nrounds=nrounds, 
+      nthread=params$nthread, 
+      nrounds=params$nrounds, 
       eval_metric='merror', objective='multi:softprob', num_class=5, verbose=0
     )
     tmp.xgb.model
-  }, aggregator, iters=iters, rowsFactor=rowsFactor, replace=T, nthread=1)
+  }, params$aggregator, iters=params$iters, rowsFactor=params$rowsFactor, replace=T, nthread=1)
 }
 
 xeee = c(0,1,0,0,0,1,0,1,0,0,1,1,0,1,0,0,0,1,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,1,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,
@@ -33,13 +30,16 @@ xeee = c(0,1,0,0,0,1,0,1,0,0,1,1,0,1,0,0,0,1,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1
          0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,
          0,1,0,1)
 
-#xeee = rep(1, 223)
+xeee=rep(0, 223)
+for (i in c(139,  80,  12, 201, 183,  77, 132, 157,  97, 116,  98)) {
+  xeee[i] = 1
+}
 
-xgbTrainAlgo = function (XL) {
+xgbTrainAlgo = function (XL, params) {
   my.roundedTrain(XL, function (XL) {
     my.extendedColsTrain(XL, function(XL) {
       my.normalizedTrain(XL, function (XL) {
-        my.train.xgb(XL, rowsFactor=1, iters=1)
+        my.train.xgb(XL, params)
       })
     }, xeee)
   })

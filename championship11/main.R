@@ -188,6 +188,36 @@ for(s in imp$Feature[1:88]) {
 print(paste(idxes, collapse=','))
 "
 
+"
+my.gridSearch(XLL, function (params) {
+  function (XL) {
+    etTrainAlgo(XL, params)
+  }
+}, expand.grid(numRandomCuts=c(1,3,5,7,9), mtry=3:7, ntree=c(500, 1000)))
+"
+
+my.gridSearch(XLL, function (params) {
+  function (XL) {
+    xgbTrainAlgo(XL, params)
+  }
+}, expand.grid(
+    iters=1,
+    rowsFactor=1,
+    aggregator='meanAggregator',
+    
+    max_depth=4, 
+    gamma=5, 
+    lambda=1, 
+    alpha=0.2, 
+    eta=0.06, 
+    tree_method='exact',
+    colsample_bytree=0.635, 
+    min_child_weight=2, 
+    subsample=1, 
+    nthread=4, 
+    nrounds=350
+  ), verbose=T)
+
 #set.seed(2707);axgb = xgbTrainAlgo(XLL)
 #set.seed(2707);algb = lgbTrainAlgo(XLL)
 #set.seed(2707);annet = nnetTrainAlgo(XLL)
@@ -206,7 +236,7 @@ print(paste(idxes, collapse=','))
 #XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
 #set.seed(2707);print(validation.tqfold(XLLbin12, nnetTrainAlgo, folds=7, iters=4, verbose=T))
 
-
+"
 set.seed(2704)
 addRemoveSelect(iterations=10000, XL=cbind(XLL[, -ncol(XLL)], eext(XLL), XLL[, ncol(XLL)]), teach=function (XL) {
   my.roundedTrain(XL, function (XL) {
@@ -219,7 +249,7 @@ addRemoveSelect(iterations=10000, XL=cbind(XLL[, -ncol(XLL)], eext(XLL), XLL[, n
               0,0,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0,
               0,0,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,
               0,0,1,0,1,0,0))
-
+"
 
 
 "

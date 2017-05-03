@@ -1,3 +1,36 @@
+my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F, nthread=1) {
+  n = nrow(XLL)
+  
+  if (nthread > 1) {
+    cl <- makeCluster(nthread)
+    registerDoParallel(cl)
+  }
+  
+  algos = foreach(it=1:iters, .export=my.dopar.exports, .packages=my.dopar.packages) %do% {
+    sampleIdxes = sample(n, rowsFactor*n, replace=replace)
+    
+    XK = XLL[-sampleIdxes, ]
+    XL = XLL[sampleIdxes, ]  
+    
+    if (it %% 20 == 0)
+      gc()
+    
+    train(XL, XK)
+  }
+  
+  if (nthread > 1) {
+    stopCluster(cl)
+  }
+  
+  if (is.character(aggregator) || is.factor(aggregator)) {
+    do.call(as.character(aggregator), list(algos))
+  } else if (is.function(aggregator)) {
+    aggregator(algos)
+  } else {
+    stop('invalid aggregator type')
+  }
+}
+
 error.accuracy = function (act, pred) {
   mean(act != pred)
 }
@@ -67,6 +100,23 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F) {
   XKerr
 }
 
+
+my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F) {
+  minE = 1e10
+  for (i in 1:nrow(XLL)) {
+    params = grid[i, ]
+    print(params)
+    e = mean(validation.tqfold(XLL, teach(params), folds=folds, iters=iters, verbose=verbose))
+    print(e)
+    if (e < minE) {
+      minE = e
+      selParams = params
+    }
+  }
+  print('-------------------')
+  print(selParams)
+  print(minE)
+}
 
 meanAggregator = function (baseAlgos, w=NULL) {
   l = length(baseAlgos)
