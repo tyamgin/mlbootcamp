@@ -1,3 +1,12 @@
+my.set.seed = function(seed) {
+  my.tmp.nextSeed <<- sample(1:10^5, 1)
+  set.seed(seed)
+}
+
+my.restore.seed = function() {
+  set.seed(my.tmp.nextSeed) 
+}
+
 my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F, nthread=1) {
   n = nrow(XLL)
   
@@ -105,17 +114,21 @@ my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F) {
   minE = 1e10
   for (i in 1:nrow(grid)) {
     params = grid[i, ]
-    print(params)
+    
+    my.set.seed(777)
     e = mean(validation.tqfold(XLL, teach(params), folds=folds, iters=iters, verbose=verbose))
-    print(e)
+    my.restore.seed()
+    params$ACCURACY = e
+    
+    print(params)
+    
     if (e < minE) {
       minE = e
       selParams = params
     }
   }
-  print('-------------------')
+  print('-------------------------------')
   print(selParams)
-  print(minE)
 }
 
 meanAggregator = function (baseAlgos, w=NULL) {

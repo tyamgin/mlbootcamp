@@ -24,8 +24,7 @@ my.train.et = function (XL, params) {
   }
 }
 
-"
-my.train.nnet = function (XL, XK=NULL) {
+my.train.nnet = function (XL, params) {
   X = XL[, -ncol(XL)]
   colnames(X) <- paste0('X', 1:ncol(X))
   Y = factor(XL[, ncol(XL)], labels=c('a', 'b', 'c', 'd', 'e'))
@@ -33,13 +32,13 @@ my.train.nnet = function (XL, XK=NULL) {
   trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary)
   
   tuneGrid = expand.grid(
-    size=25,
-    decay=0.08
+    size=params$size,
+    decay=params$decay
   )
   
   capture.output(
     model <- train(X, Y, method='nnet', metric='Accuracy',
-                   maximize=T, trControl=trControl, MaxNWts=100000, maxit=50,
+                   maximize=T, trControl=trControl, MaxNWts=100000, maxit=params$maxit,
                    tuneGrid=tuneGrid)
   )
   
@@ -48,7 +47,7 @@ my.train.nnet = function (XL, XK=NULL) {
     predict(model, X, type='prob')
   }
 }
-"
+
 "
 my.train.nnet = function (XL, XK=NULL) {
   X = XL[, -ncol(XL)]
@@ -166,6 +165,16 @@ etTrainAlgo = function (XL, params) {
     my.extendedColsTrain(XL, function(XL) {
       my.normalizedTrain(XL, function (XL) {
         my.train.et(XL, params)
+      })
+    }, neee)
+  })
+}
+
+nnetTrainAlgo = function (XL, params) {
+  my.roundedTrain(XL, function (XL) {
+    my.extendedColsTrain(XL, function(XL) {
+      my.normalizedTrain(XL, function (XL) {
+        my.train.nnet(XL, params)
       })
     }, neee)
   })

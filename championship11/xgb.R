@@ -22,7 +22,7 @@ my.train.xgb = function (XLL, params) {
       eval_metric='merror', objective='multi:softprob', num_class=5, verbose=0
     )
     tmp.xgb.model
-  }, params$aggregator, iters=params$iters, rowsFactor=params$rowsFactor, replace=T, nthread=1)
+  }, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=T, nthread=1)
 }
 
 xeee = c(0,1,0,0,0,1,0,1,0,0,1,1,0,1,0,0,0,1,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,1,1,0,0,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,
