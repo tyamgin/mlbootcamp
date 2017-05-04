@@ -1,5 +1,5 @@
 my.train.et = function (XL, params) {
-  #my.boot(XL, function (XL, XK) {
+  my.boot(XL, function (XL, XK) {
     X = XL[, -ncol(XL)]
     colnames(X) <- paste0('X', 1:ncol(X))
     Y = factor(XL[, ncol(XL)], labels=c('a', 'b', 'c', 'd', 'e')[1:length(unique(XL[, ncol(XL)]))])
@@ -31,7 +31,7 @@ my.train.et = function (XL, params) {
       #predict(model, X, probability=TRUE)
       predict(model, X, type='prob')
     }
-  #}, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
+  }, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
 }
 
 my.train.nnet = function (XL, params) {
