@@ -17,9 +17,6 @@ require(extraTrees)
 require(DiagrammeR)
 
 jgc <- function() .jcall("java/lang/System", method = "gc")
-#options(java.parameters = "-Xmx8g")
-options( java.parameters = "-Xmx16000m" )
-#  -Xincgc # http://docs.oracle.com/javase/7/docs/technotes/tools/windows/java.html
 
 debugSource("algos.R")
 debugSource("lgb.R")
@@ -227,7 +224,7 @@ my.gridSearch(XLL, function (params) {
 
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, expand.grid(iters=1,rowsFactor=1,max_depth=6, gamma=0, lambda=0.129457, alpha=0.812294, eta=0.024637, tree_method='exact',colsample_bytree=0.630299, min_child_weight=1, subsample=0.896574, nthread=4, nrounds=1192))
 #set.seed(2707);algb = lgbTrainAlgo(XLL)
-set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=10, rowsFactor=0.9)); print('trained')
+set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aetbin12 = nnetWithBin12TrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, xgbTrainAlgo, folds=7, iters=4, verbose=T))
