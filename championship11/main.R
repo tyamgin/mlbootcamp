@@ -14,7 +14,9 @@ require(rJava)
 require(extraTrees)
 require(DiagrammeR)
 
-options(java.parameters = "-Xmx8g")
+jgc <- function() .jcall("java/lang/System", method = "gc")
+#options(java.parameters = "-Xmx8g")
+options( java.parameters = "-Xmx8000m -Xincgc" )
 
 debugSource("algos.R")
 debugSource("lgb.R")
@@ -27,7 +29,7 @@ my.dopar.exports = c('validation.tqfold', 'validation.tqfold.enumerate', 'my.nor
                      'my.extendedColsTrain', 'my.roundedTrain', 'error.accuracy', 'my.train.nnet',
                      'my.boot', 'meanAggregator', 'extendXYCols', 'extendCols', 'my.train.lgb',
                      'my.dopar.exports', 'my.dopar.packages')
-my.dopar.packages = c('caret', 'lightgbm', 'foreach')
+my.dopar.packages = c('caret', 'lightgbm', 'foreach', 'rJava', 'extraTrees')
 
 XX = read.csv(file="data/x_train.csv", head=F, sep=";", na.strings="?")
 YY = read.csv(file="data/y_train.csv", head=F, sep=";", na.strings="?")
@@ -177,14 +179,17 @@ for(s in imp$Feature[1:88]) {
 print(paste(idxes, collapse=','))
 "
 
-
 "
+#cl <- makeCluster(4)
+#registerDoParallel(cl)
 my.gridSearch(XLL, function (params) {
   function (XL) {
     etTrainAlgo(XL, params)
   }
-}, expand.grid(numRandomCuts=c(1,10,20), mtry=2:4, ntree=c(310, 2000)))
+}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(500), iters=10, rowsFactor=0.95), verbose=T)
+#stopCluster(cl)
 "
+
 
 "
 my.gridSearch(XLL, function (params) {
@@ -203,23 +208,23 @@ my.gridSearch(XLL, function (params) {
   iters=1,
   rowsFactor=1,
   
-  max_depth=3:4, 
-  gamma=5, 
-  lambda=1, 
-  alpha=0.2, 
-  eta=c(0.01, 0.03, 0.06), 
+  max_depth=6, 
+  gamma=0, 
+  lambda=0.129457, 
+  alpha=0.812294, 
+  eta=0.024637, 
   tree_method='exact',
-  colsample_bytree=0.635, 
-  min_child_weight=2, 
-  subsample=1, 
+  colsample_bytree=0.630299, 
+  min_child_weight=3,#2.494886, 
+  subsample=0.896574, 
   nthread=4, 
-  nrounds=c(300,350,400)
+  nrounds=1192
 ), verbose=T)
-"
+"                
 
-#set.seed(2707);axgb = xgbTrainAlgo(XLL)
+set.seed(2707);aXgb = xgbTrainAlgo(XLL, expand.grid(iters=1,rowsFactor=1,max_depth=6, gamma=0, lambda=0.129457, alpha=0.812294, eta=0.024637, tree_method='exact',colsample_bytree=0.630299, min_child_weight=1, subsample=0.896574, nthread=4, nrounds=1192))
 #set.seed(2707);algb = lgbTrainAlgo(XLL)
-set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=3, ntree=2000)); print('trained')
+#set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000)); print('trained')
 #set.seed(2707);aetbin12 = nnetWithBin12TrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, xgbTrainAlgo, folds=7, iters=4, verbose=T))
@@ -228,7 +233,7 @@ set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=3, ntree
 #set.seed(2707);print(validation.tqfold(XLL, etGlmTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, glmTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, etBtTrainAlgo, folds=7, iters=4, verbose=T))
-alg=aEt
+alg=aXgb
 
 
 #XLLbin12 = XLL

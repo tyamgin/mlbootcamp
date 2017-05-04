@@ -1,27 +1,37 @@
 my.train.et = function (XL, params) {
-  X = XL[, -ncol(XL)]
-  colnames(X) <- paste0('X', 1:ncol(X))
-  Y = factor(XL[, ncol(XL)], labels=c('a', 'b', 'c', 'd', 'e')[1:length(unique(XL[, ncol(XL)]))])
-  
-  trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary)
-  
-  tuneGrid = expand.grid(
-    numRandomCuts=params$numRandomCuts,
-    mtry=params$mtry
-  )
-  
-  capture.output(
+  my.boot(XL, function (XL, XK) {
+    X = XL[, -ncol(XL)]
+    colnames(X) <- paste0('X', 1:ncol(X))
+    Y = factor(XL[, ncol(XL)], labels=c('a', 'b', 'c', 'd', 'e')[1:length(unique(XL[, ncol(XL)]))])
+    
+    trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary)
+    
+    tuneGrid = expand.grid(
+      numRandomCuts=params$numRandomCuts,
+      mtry=params$mtry
+    )
+    
+    #options(java.parameters = "-Xmx16g")
+    jgc()
+    
+    print('---')
     model <- train(X, Y, method='extraTrees', metric='Accuracy',
                    maximize=F, trControl=trControl,
                    ntree=params$ntree,
                    numThreads=4,
                    tuneGrid=tuneGrid)
-  )
-  
-  function (X) {
-    colnames(X) <- paste0('X', 1:ncol(X))
-    predict(model, X, type='prob')
-  }
+    
+    #model0 <- (foreach(shit=1, .packages='extraTrees', .export='params') %dopar% extraTrees(X, Y, ntree=params$ntree, numRandomCuts=params$numRandomCuts, mtry=params$mtry, numThreads=4))[[1]]
+    #model <- extraTrees(X, Y, ntree=params$ntree, numRandomCuts=params$numRandomCuts, mtry=params$mtry, numThreads=4)
+    
+    print('++++')
+
+    function (X) {
+      colnames(X) <- paste0('X', 1:ncol(X))
+      #predict(model, X, probability=TRUE)
+      predict(model, X, type='prob')
+    }
+  }, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
 }
 
 my.train.nnet = function (XL, params) {

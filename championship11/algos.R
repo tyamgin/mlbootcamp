@@ -21,7 +21,7 @@ my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F,
     XK = XLL[-sampleIdxes, ]
     XL = XLL[sampleIdxes, ]  
     
-    if (it %% 20 == 0)
+    #if (it %% 20 == 0)
       gc()
     
     train(XL, XK)
@@ -126,6 +126,7 @@ my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F) {
       minE = e
       selParams = params
     }
+    gc()
   }
   print('-------------------------------')
   print(selParams)
