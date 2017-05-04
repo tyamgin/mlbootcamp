@@ -22,12 +22,12 @@ my.data.transformDiscreteFeature = function (arr, gcd, skipCheck=F) {
 }
 
 my.data.transformFeatures = function (XX, skipCheck=F) {
-  "for (i in 1:ncol(XX)) {
+  for (i in 1:ncol(XX)) {
     if (my.data.featurestGcd[i] != -1) {
       print(paste0('transforming ', i, ' feature'))
         XX[, i] = my.data.transformDiscreteFeature(XX[, i], my.data.featurestGcd[i], skipCheck=skipCheck||(i==80))
     }
-  }"
+  }
 
   XX
 }
