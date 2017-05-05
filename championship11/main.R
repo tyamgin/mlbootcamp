@@ -14,7 +14,6 @@ require(xgboost)
 require(e1071)
 require(rJava)
 require(extraTrees)
-require(DiagrammeR)
 
 jgc <- function() .jcall("java/lang/System", method = "gc")
 
@@ -55,10 +54,6 @@ while(ncol(XX2) > 70) {
   XX2 = XX2[,-remCol]
 }
 
-
-png(filename='graph/name2.png', width=2000, height=2000)
-corrgram(XX2, order=NULL, panel=panel.shade, text.panel=panel.txt, main='Correlogram')
-dev.off()
 
 XX = XX2
 "
@@ -205,26 +200,39 @@ my.gridSearch(XLL, function (params) {
     xgbTrainAlgo(XL, params)
   }
 }, expand.grid(
-  iters=1,
-  rowsFactor=1,
+  iters=10,
+  rowsFactor=0.95,
   
-  max_depth=6, 
+  max_depth=7, 
   gamma=0, 
   lambda=0.129457, 
   alpha=0.812294, 
   eta=0.024637, 
   tree_method='exact',
-  colsample_bytree=0.630299, 
-  min_child_weight=3,#2.494886, 
-  subsample=0.896574, 
+  colsample_bytree=0.630299,
+  min_child_weight=3,
+  subsample=0.996574,
   nthread=4, 
   nrounds=1192
 ), verbose=T)
-"                
+ "             
 
-#set.seed(2707);aXgb = xgbTrainAlgo(XLL, expand.grid(iters=1,rowsFactor=1,max_depth=6, gamma=0, lambda=0.129457, alpha=0.812294, eta=0.024637, tree_method='exact',colsample_bytree=0.630299, min_child_weight=1, subsample=0.896574, nthread=4, nrounds=1192))
+set.seed(2707);aXgb = xgbTrainAlgo(XLL, expand.grid(  
+  iters=10,
+  rowsFactor=0.95,
+  max_depth=7, 
+  gamma=0, 
+  lambda=0.129457, 
+  alpha=0.812294, 
+  eta=0.024637, 
+  tree_method='exact',
+  colsample_bytree=0.630299,
+  min_child_weight=3,
+  subsample=0.996574,
+  nthread=4, 
+  nrounds=1192))
 #set.seed(2707);algb = lgbTrainAlgo(XLL)
-set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
+#set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aetbin12 = nnetWithBin12TrainAlgo(XLL)
 #set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, xgbTrainAlgo, folds=7, iters=4, verbose=T))
@@ -233,7 +241,7 @@ set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree
 #set.seed(2707);print(validation.tqfold(XLL, etGlmTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, glmTrainAlgo, folds=7, iters=4, verbose=T))
 #set.seed(2707);print(validation.tqfold(XLL, etBtTrainAlgo, folds=7, iters=4, verbose=T))
-alg=aEt
+alg=aXgb
 
 
 #XLLbin12 = XLL

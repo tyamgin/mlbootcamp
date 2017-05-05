@@ -98,3 +98,5 @@ gg = ggpairs(X_X2[,1:5], aes(alpha=0.4, colour=Y_Y), upper=NULL)
 for(ii in 1:gg$nrow) for(jj in 1:gg$ncol) gg[ii, jj] = gg[ii, jj] + m.fill + m.color
 print(gg)
 
+
+
