@@ -1,5 +1,5 @@
 my.train.et = function (XL, params) {
-  #my.boot(XL, function (XL, XK) {
+  my.boot(XL, function (XL, XK) {
     X = XL[, -ncol(XL)]
     colnames(X) <- paste0('X', 1:ncol(X))
     Y = factor(XL[, ncol(XL)], labels=c('a', 'b', 'c', 'd', 'e')[1:length(unique(XL[, ncol(XL)]))])
@@ -16,12 +16,12 @@ my.train.et = function (XL, params) {
                    ntree=params$ntree,
                    numThreads=4,
                    tuneGrid=tuneGrid)
-
+  print('----')
     function (X) {
       colnames(X) <- paste0('X', 1:ncol(X))
       predict(model, X, type='prob')
     }
-  #}, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
+  }, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
 }
 
 my.train.nnet = function (XL, params) {
@@ -136,6 +136,13 @@ neee=rep(0, 223)
 for (i in c(139,  80,  12, 201, 183,  77, 132, 157,  97, 116,  98)) {
   neee[i] = 1
 }
+neee=c(0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+       0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+       0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,
+       0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
 
 etTrainAlgo = function (XL, params) {
   my.roundedTrain(XL, function (XL) {
@@ -143,7 +150,7 @@ etTrainAlgo = function (XL, params) {
       my.normalizedTrain(XL, function (XL) {
         my.train.et(XL, params)
       })
-    }, neee)
+    }, neee, params$extra)
   })
 }
 

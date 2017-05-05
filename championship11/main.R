@@ -89,22 +89,23 @@ eext = function (X) {
   R
 }
 
-my.extendedColsTrain = function (XL, trainFunc, idxes=NULL) {
+my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F) {
   featuresNumber = ncol(XL) - 1
   
-  #E = eext(XL)
+  if (extra)
+    XL = cbind(XL[,-ncol(XL)], eext(XL), XL[,ncol(XL)])
+  
   XL = extendXYCols(XL, idxes)
-  #XL = cbind(E, XL)
 
   model = trainFunc(XL)
   function (X) {
     if (ncol(X) != featuresNumber)
       stop('invalid number of columns')
     
-    #E = eext(X)
+    if (extra)
+      X = cbind(X, eext(X))
+    
     X = extendCols(X, idxes)
-    #X = cbind(E, X)
-
     model(X)
   }
 }
@@ -180,9 +181,8 @@ my.gridSearch(XLL, function (params) {
     etWithBin12TrainAlgo(XL, params)
     #etTrainAlgo(XL, params)
   }
-}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), iters=1, rowsFactor=1), verbose=T)
+}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), iters=1, rowsFactor=1, extra=T), verbose=T)
 "
-
 
 
 "
@@ -231,7 +231,7 @@ set.seed(2707);aXgb = xgbTrainAlgo(XLL, expand.grid(
   nthread=4, 
   nrounds=1192))"
 
-set.seed(2707);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
+set.seed(2707);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=10, rowsFactor=0.95, extra=T)); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 alg=aEtwb
 
