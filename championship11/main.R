@@ -175,15 +175,14 @@ print(paste(idxes, collapse=','))
 "
 
 "
-#cl <- makeCluster(4)
-#registerDoParallel(cl)
 my.gridSearch(XLL, function (params) {
   function (XL) {
-    etTrainAlgo(XL, params)
+    etWithBin12TrainAlgo(XL, params)
+    #etTrainAlgo(XL, params)
   }
-}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(500), iters=10, rowsFactor=0.95), verbose=T)
-#stopCluster(cl)
+}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), iters=1, rowsFactor=1), verbose=T)
 "
+
 
 
 "
@@ -231,24 +230,17 @@ set.seed(2707);aXgb = xgbTrainAlgo(XLL, expand.grid(
   subsample=0.996574,
   nthread=4, 
   nrounds=1192))"
-#set.seed(2707);algb = lgbTrainAlgo(XLL)
+
+set.seed(2707);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
-#set.seed(2707);aetbin12 = nnetWithBin12TrainAlgo(XLL)
-#set.seed(2707);print(validation.tqfold(XLL, lgbTrainAlgo, folds=7, iters=4, verbose=T))
-#set.seed(2707);print(validation.tqfold(XLL, xgbTrainAlgo, folds=7, iters=4, verbose=T))
-#set.seed(2707);print(validation.tqfold(XLL, nnetTrainAlgo, folds=7, iters=4, verbose=T))
-#set.seed(2707);print(validation.tqfold(XLL, nnetWithBin12TrainAlgo, folds=7, iters=4, verbose=T))
-#set.seed(2707);print(validation.tqfold(XLL, etGlmTrainAlgo, folds=7, iters=4, verbose=T))
-#set.seed(2707);print(validation.tqfold(XLL, glmTrainAlgo, folds=7, iters=4, verbose=T))
-#set.seed(2707);print(validation.tqfold(XLL, etBtTrainAlgo, folds=7, iters=4, verbose=T))
-#alg=aXgb
+alg=aEtwb
 
 
 #XLLbin12 = XLL
 #XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
 #set.seed(2707);print(validation.tqfold(XLLbin12, nnetTrainAlgo, folds=7, iters=4, verbose=T))
 
-
+"
 set.seed(2705)
 addRemoveSelect(iterations=10000, XL=cbind(XLL[, -ncol(XLL)], eext(XLL), XLL[, ncol(XLL)]), teach=function (XL) {
   my.roundedTrain(XL, function (XL) {
@@ -257,7 +249,7 @@ addRemoveSelect(iterations=10000, XL=cbind(XLL[, -ncol(XLL)], eext(XLL), XLL[, n
     })
   })
 }, startVec=neee)
-
+"
 
 
 "
@@ -290,11 +282,10 @@ stopCluster(cl)
 #plot(density((X_X[,77]-mean(X_X[,77])/sd(X_X[,77]))))
 #lines(density((X_X[,103]-mean(X_X[,103])/sd(X_X[,103]))), col='red')
 
-"
+
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 XXX = my.data.transformFeatures(XXX, T)
 results = alg(XXX)
 write(results, file='res/res.txt', sep='\n')
 print('done')
-"
