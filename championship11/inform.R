@@ -33,6 +33,8 @@
 my.simpleInform = function(x, y) {
   x = sort(x)
   y = sort(y)
+  xsz = length(x)
+  ysz = length(y)
   xit = 0
   yit = 0
   z = unique(sort(c(x, y)))
@@ -47,21 +49,21 @@ my.simpleInform = function(x, y) {
     else
       thr = (z[i] + z[i + 1]) / 2
     
-    while (xit < length(x) && x[xit + 1] < thr)
+    while (xit < xsz && x[xit + 1] < thr)
       xit = xit + 1
-    while (yit < length(y) && y[yit + 1] < thr)
+    while (yit < ysz && y[yit + 1] < thr)
       yit = yit + 1
     
-    xx = xit / length(x)
-    yy = yit / length(y)
+    xx = xit / xsz
+    yy = yit / ysz
     
     alpha = 0.03
     
     inform = max(
-      ifelse(yy < alpha, xx - yy, 0),
-      ifelse(xx < alpha, yy - xx, 0),
-      ifelse(1 - yy < alpha, (1 - xx) - (1 - yy), 0),
-      ifelse(1 - xx < alpha, (1 - yy) - (1 - xx), 0)
+      ifelse(yy < alpha, (xit - yit) / (xsz + ysz), 0),
+      ifelse(xx < alpha, (yit - xit) / (xsz + ysz), 0),
+      ifelse(1 - yy < alpha, ((xsz - xit) - (ysz - yit)) / (xsz + ysz), 0),
+      ifelse(1 - xx < alpha, ((ysz - yit) - (xsz - xit)) / (xsz + ysz), 0)
     )
     
     if (inform > maxInform) {
