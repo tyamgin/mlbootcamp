@@ -40,10 +40,6 @@ unnameMatrix = function (XX) {
 XX = unnameMatrix(XX)
 XX = my.data.transformFeatures(XX)
 
-#pc = princomp(XX)
-#XX = XX %*% solve(t(pc$loadings))
-#XX = XX[, 1:30]
-
 "
 XX2 = XX
 while(ncol(XX2) > 70) {
@@ -181,7 +177,7 @@ my.gridSearch(XLL, function (params) {
     etWithBin12TrainAlgo(XL, params)
     #etTrainAlgo(XL, params)
   }
-}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), iters=1, rowsFactor=1, extra=T), verbose=T)
+}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), iters=1, rowsFactor=1, extra=T), verbose=T, iters=10)
 "
 
 
@@ -231,9 +227,9 @@ set.seed(2707);aXgb = xgbTrainAlgo(XLL, expand.grid(
   nthread=4, 
   nrounds=1192))"
 
-set.seed(2707);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=10, rowsFactor=0.95, extra=T)); print('trained')
+#set.seed(2707);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=10, rowsFactor=0.95, extra=T)); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
-alg=aEtwb
+#alg=aEtwb
 
 
 #XLLbin12 = XLL
@@ -241,7 +237,7 @@ alg=aEtwb
 #set.seed(2707);print(validation.tqfold(XLLbin12, nnetTrainAlgo, folds=7, iters=4, verbose=T))
 
 "
-set.seed(2705)
+set.seed(3233)
 addRemoveSelect(iterations=10000, XL=cbind(XLL[, -ncol(XLL)], eext(XLL), XLL[, ncol(XLL)]), teach=function (XL) {
   my.roundedTrain(XL, function (XL) {
     my.normalizedTrain(XL, function (XL) {
@@ -282,10 +278,11 @@ stopCluster(cl)
 #plot(density((X_X[,77]-mean(X_X[,77])/sd(X_X[,77]))))
 #lines(density((X_X[,103]-mean(X_X[,103])/sd(X_X[,103]))), col='red')
 
-
+"
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 XXX = my.data.transformFeatures(XXX, T)
 results = alg(XXX)
 write(results, file='res/res.txt', sep='\n')
 print('done')
+"

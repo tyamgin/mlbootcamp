@@ -162,8 +162,8 @@ addRemoveSelect = function(iterations,  # количество итераций
     
     newEst = estimate(XL, newVec, teach)
     
-    print(i)
-    print(est)
+    #print(i)
+    #print(est)
     
     if (newEst$ext < est$ext) {
       vec = newVec
@@ -177,7 +177,7 @@ addRemoveSelect = function(iterations,  # количество итераций
       
       plot(c(iterPts, iterPts), c(intPts, extPts), col=c(rep("green", length(intPts)), rep("red", length(extPts))), pch=20)
     }
-    print(newEst)
+    #print(newEst)
     
     print(paste0(iterations - it, " iterations remains"))
   }
