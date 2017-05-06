@@ -228,13 +228,13 @@ etWithBin12TrainAlgo = function (XL, params, newdata=NULL) {
     B = bb(X)
     C = cc(X)
     
-    s1 = A[,2] + A[,3]
-    A[,2] = B[,1] * s1
-    A[,3] = B[,2] * s1
-    
     s2 = A[,3] + A[,4]
     A[,3] = C[,1] * s2
     A[,4] = C[,2] * s2
+    
+    s1 = A[,2] + A[,3]
+    A[,2] = B[,1] * s1
+    A[,3] = B[,2] * s1
     
     my.roundAns(X, A)
   }

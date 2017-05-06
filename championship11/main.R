@@ -41,7 +41,7 @@ XX = unnameMatrix(XX)
 XX = my.data.transformFeatures(XX)
 XLL = unnameMatrix(cbind(data.matrix(XX), YY))
 
-extendCols = function (XX, idxes=NULL) {
+extendCols = function (XX, idxes=NULL, pairs=F) {
   if (!is.null(idxes)) {
     if (is.logical(idxes) && idxes) {
       #все
@@ -49,14 +49,24 @@ extendCols = function (XX, idxes=NULL) {
       XX = XX[, which(1 == idxes)]
     }
   }
+  if (pairs) {
+    sz = ncol(XX)
+    for(i in 1:sz) {
+      for(j in 1:sz) {
+        if (i >= j)
+          next
+        XX = cbind(XX, XX[, i] * XX[, j])
+      }
+    }
+  }
   
   XX
 }
 
-extendXYCols = function (XL, idxes) {
+extendXYCols = function (XL, idxes, pairs) {
   X = XL[, -ncol(XL), drop=F]
   Y = XL[, ncol(XL), drop=F]
-  X = extendCols(X, idxes)
+  X = extendCols(X, idxes, pairs)
   cbind(X, Y)
 }
 
@@ -70,13 +80,13 @@ eext = function (X) {
   R
 }
 
-my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F, newdata=NULL) {
+my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F, pairs=F, newdata=NULL) {
   featuresNumber = ncol(XL) - 1
   
   if (extra)
     XL = cbind(XL[,-ncol(XL)], eext(XL), XL[,ncol(XL)])
   
-  XL = extendXYCols(XL, idxes)
+  XL = extendXYCols(XL, idxes, pairs)
 
   proc = function (X) {
     if (is.null(X))
@@ -88,7 +98,8 @@ my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F, newdata=NUL
     if (extra)
       X = cbind(X, eext(X))
     
-    extendCols(X, idxes)
+    X = extendCols(X, idxes, pairs)
+    X
   }
   model = trainFunc(XL, newdata=proc(newdata))
   
@@ -260,7 +271,7 @@ XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 XXX = my.data.transformFeatures(XXX, T)
 
-set.seed(2707);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=100, rowsFactor=0.95, extra=T), newdata=XXX); print('trained')
+set.seed(2707);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=5, rowsFactor=0.95, extra=T), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 alg=aEtwb
 
@@ -279,7 +290,16 @@ addRemoveSelect(iterations=10000, XL=cbind(XLL[, -ncol(XLL)], eext(XLL), XLL[, n
   })
 }, startVec=neee)
 "
-
+"
+set.seed(3233)
+addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, neee, T), teach=function (XL) {
+  my.roundedTrain(XL, function (XL, newdata=NULL) {
+    my.normalizedTrain(XL, function (XL, newdata=NULL) {
+      my.train.et(XL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1))
+    })
+  })
+}, startVec=neee)
+"
 
 "
 cl <- makeCluster(4)
