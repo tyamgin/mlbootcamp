@@ -191,9 +191,9 @@ my.gridSearch(XLL, function (params) {
     etWithBin12TrainAlgo(XL, params, newdata=newdata)
     #etTrainAlgo(XL, params, newdata=newdata)
   }
-}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2500), iters=1, rowsFactor=1, extra=T), verbose=T, iters=6, use.newdata=T)
+}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), iters=1, rowsFactor=1, extra=T), verbose=T, iters=10, use.newdata=T)
+exit()
 "
-
 
 "
 my.gridSearch(XLL, function (params) {
@@ -245,7 +245,7 @@ XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 XXX = my.data.transformFeatures(XXX, T)
 
-set.seed(2707);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=10, rowsFactor=0.95, extra=T), newdata=XXX); print('trained')
+set.seed(2707);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=100, rowsFactor=0.95, extra=T), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 alg=aEtwb
 
