@@ -1,36 +1,4 @@
-
-"my.donskoiInform = function(x, y) {
-  x = sort(x)
-  y = sort(y)
-  xit = 0
-  yit = 0
-  z = unique(sort(c(x, y)))
-  r = 0
-  selThr = 0
-  maxInform = -1
-  for (i in 0:length(z)) {
-    if (i == 0)
-      thr = z[1] - 1e-5
-    else if (i == length(z))
-      thr = z[length(z)] + 1e-5
-    else
-      thr = (z[i] + z[i + 1]) / 2
-    
-    while (xit < length(x) && x[xit + 1] < thr)
-      xit = xit + 1
-    while (yit < length(y) && y[yit + 1] < thr)
-      yit = yit + 1
-    
-    inform = xit * (length(y) - yit) + yit * (length(x) - xit)
-    if (inform > maxInform) {
-      maxInform = inform
-      selThr = thr
-    }
-  }
-  selThr
-}"
-
-my.simpleInform = function(x, y) {
+my.simpleInform = function(x, y, alpha = 0.03) {
   x = sort(x)
   y = sort(y)
   xsz = length(x)
@@ -56,8 +24,6 @@ my.simpleInform = function(x, y) {
     
     xx = xit / xsz
     yy = yit / ysz
-    
-    alpha = 0.03
     
     inform = max(
       ifelse(yy < alpha, (xit - yit) / (xsz + ysz), 0),

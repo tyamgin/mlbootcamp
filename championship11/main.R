@@ -39,21 +39,6 @@ unnameMatrix = function (XX) {
 
 XX = unnameMatrix(XX)
 XX = my.data.transformFeatures(XX)
-
-"
-XX2 = XX
-while(ncol(XX2) > 70) {
-  corMat = cor(XX2)
-  rr = foreach(x=corMat, .combine=c) %do% { sum(x^2) }
-  remCol = which.max(rr)
-  print(paste0('remove column ', remCol, ' (sum=', max(rr), ')'))
-  XX2 = XX2[,-remCol]
-}
-
-
-XX = XX2
-"
-
 XLL = unnameMatrix(cbind(data.matrix(XX), YY))
 
 extendCols = function (XX, idxes=NULL) {
@@ -171,6 +156,26 @@ my.roundedTrain = function (XL, trainFunc, newdata=NULL) {
   }
 }
 
+my.checkedRangeTrain = function (XL, trainFunc, newdata=NULL) {
+  model = trainFunc(XL, newdata=newdata)
+  function (X) {
+    ans = model(X)
+    if (is.vector(ans))
+      stop('unsupported')
+    
+    for(col in 1:ncol(X)) {
+      mn = min(XL[, col])
+      mx = max(XL[, col])
+      len = mx - mn
+      alpha = 0.0
+      mx = mx + len * alpha
+      mn = mn - len * alpha
+      ans[which(X[, col] < mn | X[, col] > mx), col] = 0
+    }
+    ans
+  }
+}
+
 "
 set.seed(2707);algb = my.roundedTrain(XLL, function (XL) {
   my.normalizedTrain(XL, function (XL) {
@@ -190,8 +195,18 @@ my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
     etWithBin12TrainAlgo(XL, params, newdata=newdata)
     #etTrainAlgo(XL, params, newdata=newdata)
+    #etGlmTrainAlgo(XL, params)
   }
-}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), iters=1, rowsFactor=1, extra=T), verbose=T, iters=10, use.newdata=T)
+}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), iters=1, rowsFactor=1, extra=T), verbose=T, iters=6, use.newdata=F)
+exit()
+"
+
+"
+my.gridSearch(XLL, function (params) {
+  function (XL, newdata=NULL) {
+    glmTrainAlgo(XL, params, newdata=newdata)
+  }
+}, expand.grid(), verbose=T, iters=6)
 exit()
 "
 
