@@ -1,4 +1,4 @@
-my.train.et = function (XL, params) {
+my.train.et = function (XL, params, newdata=NULL) {
   my.boot(XL, function (XL, XK) {
     X = XL[, -ncol(XL)]
     colnames(X) <- paste0('X', 1:ncol(X))
@@ -17,10 +17,18 @@ my.train.et = function (XL, params) {
                    numThreads=4,
                    tuneGrid=tuneGrid)
 
-    function (X) {
+    ret = function (X) {
       colnames(X) <- paste0('X', 1:ncol(X))
       predict(model, X, type='prob')
     }
+    
+    if (!is.null(newdata)) {
+      ret = ret(newdata)
+      rm(model)
+      return( function (X) ret )
+    }
+    
+    ret
   }, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
 }
 
@@ -144,14 +152,14 @@ neee=c(0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
 
-etTrainAlgo = function (XL, params) {
-  my.roundedTrain(XL, function (XL) {
-    my.extendedColsTrain(XL, function(XL) {
-      my.normalizedTrain(XL, function (XL) {
-        my.train.et(XL, params)
-      })
-    }, neee, params$extra)
-  })
+etTrainAlgo = function (XL, params, newdata=NULL) {
+  my.roundedTrain(XL, function (XL, newdata=NULL) {
+    my.extendedColsTrain(XL, function(XL, newdata=NULL) {
+      my.normalizedTrain(XL, function (XL, newdata=NULL) {
+        my.train.et(XL, params, newdata=newdata)
+      }, newdata=newdata)
+    }, neee, params$extra, newdata=newdata)
+  }, newdata=newdata)
 }
 
 nnetTrainAlgo = function (XL, params) {
@@ -197,27 +205,42 @@ etGlmTrainAlgo = function (XL) {
   })
 }
 
-etBtTrainAlgo = function (XL) {
-  my.roundedTrain(XL, function (XL) {
-    my.extendedColsTrain(XL, function(XL) {
-      my.normalizedTrain(XL, function (XL) {
-        my.boot(XL, function (XL, XK) {
-          my.train.nnet(XL)
-        }, meanAggregator, iters=5, rowsFactor=1, replace=F, nthread=1)
-      })
-    }, neee)
-  })
-}
 
-etWithBin12TrainAlgo = function (XL, params) {
-  a = etTrainAlgo(XL, params)
+etWithBin12TrainAlgo = function (XL, params, newdata=NULL) {
   XL2 = XL
   XL2[, ncol(XL2)] = ifelse(XL2[, ncol(XL2)] <= 1, 0, 1)
-  b = etTrainAlgo(XL2, params)
+  XL3 = XL
+  XL3[, ncol(XL3)] = ifelse(XL3[, ncol(XL3)] <= 2, 0, 1)
+  
+  f = function (XL) {
+    my.extendedColsTrain(XL, function(XL, newdata=NULL) {
+      my.normalizedTrain(XL, function (XL, newdata=NULL) {
+        my.train.et(XL, params, newdata=newdata)
+      }, newdata=newdata)
+    }, neee, extra=params$extra, newdata=newdata) ########################################## extra !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  }
+  
+  aa = f(XL)
+  bb = f(XL2)
+  #cc = f(XL3)
+  
   function (X) {
-    A = a(X)
-    B = b(X)
-    ifelse(A == 1 | A == 2, B + 1, A)
+    A = aa(X)
+    B = bb(X)
+    #C = cc(X)
+    
+    #a2 = B[,1] * (A[,2]+A[,3]+A[,4])
+    #a3 = (1 - B[,1] - C[,2]) * (A[,2]+A[,3]+A[,4])
+    #a4 = C[,2] * (A[,2]+A[,3]+A[,4])
+    
+    a2 = B[,1] * (A[,2]+A[,3])
+    a3 = B[,2] * (A[,2]+A[,3])
+    
+    A[,2] = a2
+    A[,3] = a3
+    #A[,4] = a4
+    
+    my.roundAns(X, A)
   }
 }
 

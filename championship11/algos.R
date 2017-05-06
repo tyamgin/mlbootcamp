@@ -21,7 +21,7 @@ my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F,
     XK = XLL[-sampleIdxes, ]
     XL = XLL[sampleIdxes, ]  
     
-    #if (it %% 20 == 0)
+    if (it %% 20 == 0)
       gc()
     
     train(XL, XK)
@@ -62,7 +62,7 @@ validation.tqfold.enumerate = function (callback, XLL, folds=5, iters=10) {
   }
 }
 
-validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F) {
+validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F, use.newdata=F) {
   XKerr = c()
   
   nrows = length(unique(XLL[, ncol(XLL)]))
@@ -88,9 +88,15 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F) {
   }
   
   validation.tqfold.enumerate(function (XL, XK, it, fold) {
-    algo = teachFunc(XL)
     act = XK[, ncol(XL)]
-    pred = algo(XK[, -ncol(XL)])
+    if (use.newdata) {
+      algo = teachFunc(XL, newdata=XK[, -ncol(XL)])
+      pred = algo(XK[, -ncol(XL)])
+    } else {
+      algo = teachFunc(XL)
+      pred = algo(XK[, -ncol(XL)])
+    }
+    
     e = error.accuracy(act, pred)
     
     for(i in 1:length(act)) {
@@ -110,13 +116,13 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F) {
 }
 
 
-my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F) {
+my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F, use.newdata=T) {
   minE = 1e10
   for (i in 1:nrow(grid)) {
     params = grid[i, ]
     
     my.set.seed(777)
-    e = mean(validation.tqfold(XLL, teach(params), folds=folds, iters=iters, verbose=verbose))
+    e = mean(validation.tqfold(XLL, teach(params), folds=folds, iters=iters, verbose=verbose, use.newdata=use.newdata))
     my.restore.seed()
     params$ACCURACY = e
     

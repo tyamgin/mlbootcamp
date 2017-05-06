@@ -85,7 +85,7 @@ eext = function (X) {
   R
 }
 
-my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F) {
+my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F, newdata=NULL) {
   featuresNumber = ncol(XL) - 1
   
   if (extra)
@@ -93,20 +93,24 @@ my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F) {
   
   XL = extendXYCols(XL, idxes)
 
-  model = trainFunc(XL)
-  function (X) {
+  proc = function (X) {
+    if (is.null(X))
+      return(X)
+    
     if (ncol(X) != featuresNumber)
       stop('invalid number of columns')
     
     if (extra)
       X = cbind(X, eext(X))
     
-    X = extendCols(X, idxes)
-    model(X)
+    extendCols(X, idxes)
   }
+  model = trainFunc(XL, newdata=proc(newdata))
+  
+  function (X) model(proc(X))
 }
 
-my.normalizedTrain = function (XL, trainFunc) {
+my.normalizedTrain = function (XL, trainFunc, newdata=NULL) {
   m = ncol(XL) - 1
   means = rep(NA, m)
   sds = rep(NA, m)
@@ -115,12 +119,18 @@ my.normalizedTrain = function (XL, trainFunc) {
     sds[j] = sd(XL[, j])
     XL[, j] = (XL[, j] - means[j]) / sds[j]
   }
-  model = trainFunc(XL)
-  function (X) {
+  
+  proc = function (X) {
+    if (is.null(X))
+      return(X)
+    
     for (j in 1:m)
       X[, j] = (X[, j] - means[j]) / sds[j]
-    model(X)
+    X
   }
+  
+  model = trainFunc(XL, newdata=proc(newdata))
+  function (X) model(proc(X))
 }
 
 my.log = function(x, base=exp(1)) {
@@ -133,27 +143,31 @@ my.log = function(x, base=exp(1)) {
   x
 }
 
-my.roundedTrain = function (XL, trainFunc) {
-  model = trainFunc(XL)
+my.roundAns = function (X, ans) {
+  if (is.vector(ans)) {
+    nrows = length(ans) / nrow(X)
+    mat = matrix(ans, nrow=nrows, byrow=F)
+  } else {
+    nrows = ncol(ans)
+    mat = matrix(c(as.matrix(ans)), nrow=nrows, byrow=T)
+  }
+  
+  if (length(ans) == nrow(X)) {
+    print(c(min(ans), max(ans)))
+    ans = pmax(0, pmin(nrows - 1, round(ans)))
+    return( ans )
+  }
+  
+  foreach(x=mat, .combine=c) %do% { 
+    which.max(x) - 1 
+  }
+}
+
+my.roundedTrain = function (XL, trainFunc, newdata=NULL) {
+  model = trainFunc(XL, newdata=newdata)
   function (X) {
     ans = model(X)
-    if (is.vector(ans)) {
-      nrows = length(ans) / nrow(X)
-      mat = matrix(ans, nrow=nrows, byrow=F)
-    } else {
-      nrows = ncol(ans)
-      mat = matrix(c(as.matrix(ans)), nrow=nrows, byrow=T)
-    }
-    
-    if (length(ans) == nrow(X)) {
-      print(c(min(ans), max(ans)))
-      ans = pmax(0, pmin(nrows - 1, round(ans)))
-      return( ans )
-    }
-    
-    foreach(x=mat, .combine=c) %do% { 
-      which.max(x) - 1 
-    }
+    my.roundAns(X, ans)
   }
 }
 
@@ -173,11 +187,11 @@ print(paste(idxes, collapse=','))
 
 "
 my.gridSearch(XLL, function (params) {
-  function (XL) {
-    etWithBin12TrainAlgo(XL, params)
-    #etTrainAlgo(XL, params)
+  function (XL, newdata=NULL) {
+    etWithBin12TrainAlgo(XL, params, newdata=newdata)
+    #etTrainAlgo(XL, params, newdata=newdata)
   }
-}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), iters=1, rowsFactor=1, extra=T), verbose=T, iters=10)
+}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2500), iters=1, rowsFactor=1, extra=T), verbose=T, iters=6, use.newdata=T)
 "
 
 
@@ -227,9 +241,13 @@ set.seed(2707);aXgb = xgbTrainAlgo(XLL, expand.grid(
   nthread=4, 
   nrounds=1192))"
 
-#set.seed(2707);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=10, rowsFactor=0.95, extra=T)); print('trained')
+XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
+XXX = unnameMatrix(XXX)
+XXX = my.data.transformFeatures(XXX, T)
+
+set.seed(2707);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=100, rowsFactor=0.95, extra=T), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
-#alg=aEtwb
+alg=aEtwb
 
 
 #XLLbin12 = XLL
@@ -278,11 +296,7 @@ stopCluster(cl)
 #plot(density((X_X[,77]-mean(X_X[,77])/sd(X_X[,77]))))
 #lines(density((X_X[,103]-mean(X_X[,103])/sd(X_X[,103]))), col='red')
 
-"
-XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
-XXX = unnameMatrix(XXX)
-XXX = my.data.transformFeatures(XXX, T)
+
 results = alg(XXX)
 write(results, file='res/res.txt', sep='\n')
 print('done')
-"
