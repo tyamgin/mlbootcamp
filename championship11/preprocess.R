@@ -12,23 +12,23 @@ my.data.featurestGcd[157] = 0.001661
 my.data.featurestGcd[183] = 0.006024
 my.data.featurestGcd[201] = 0.008846
 
-my.data.transformDiscreteFeature = function (arr, gcd, skipCheck=F) {
+my.data.transformDiscreteFeature = function (arr, gcd) {
   arr = arr - min(arr)
   res = round(arr / gcd)
-  if (!skipCheck && sum(abs(res - arr / gcd) > 0.2) > 0) {
+  if (sum(res != round(arr / gcd, 1)) > 0) {
     stop('bad precision')
   }
   res
 }
 
-my.data.transformFeatures = function (XX, skipCheck=F) {
-  "
+my.data.transformFeatures = function (XX) {
+  
   for (i in 1:ncol(XX)) {
     if (my.data.featurestGcd[i] != -1) {
       print(paste0('transforming ', i, ' feature'))
-        XX[, i] = my.data.transformDiscreteFeature(XX[, i], my.data.featurestGcd[i], skipCheck=skipCheck||(i==80))
+        XX[, i] = my.data.transformDiscreteFeature(XX[, i], my.data.featurestGcd[i])
     }
   }
-"
+
   XX
 }

@@ -1,3 +1,4 @@
+"
 cols = c()
 for(i in 1:223) {
   if ( length( unique(round(diff(sort(XX[,i])), 5)) ) < 60 ) {
@@ -16,19 +17,27 @@ corrgram(X[,cols], order=NULL, panel=panel.shade, upper.panel=panel.pie, text.pa
 #dev.off()
 
 #########################################
-
+"
 my.norm = function (x) {
   (x - mean(x)) / sd(x)
 }
 
 my.checkGcd = function (arr, gcd, eps=1e-3) {
+  arr = arr - min(arr)
+  errStr = ''
+  failedCnt = 0
   for (a in arr) {
     if (abs(round(a / gcd) - a / gcd) > eps) {
-      print(paste0('failed ', a, ' ', gcd))
-      return(F)
+      failedStr = paste0('failed ', a, ' ', gcd)
+      failedCnt = failedCnt + 1
     }
   }
-  return(T)
+  if (failedCnt == 0) {
+    return(T)
+  }
+  print(failedStr)
+  print(paste0(failedCnt, ' / ', length(arr)))
+  return(F)
 }
 
 my.transformDiscreteFeature = function (arr, gcd) {
@@ -52,10 +61,10 @@ my.transformDiscreteFeature = function (arr, gcd) {
 }
 
 
-# 12  - 0.00333333333
+# 12  - 0.0033333333333333
 # 77  - 0.028170
-# 80  - 0.00166666666 # paste(round(sort(unique(round(diff(sort(XX[,80])), 6))) / 0.00166666666), collapse=',')
-# 97  - 0.000767
+# 80  - 0.00166666666            ##########
+# 97  - 0.0007666666666666       # погрешность на больших
 # 98  - 0.062194
 # 116 - 0.004132
 # 132 - 0.067202
@@ -64,11 +73,11 @@ my.transformDiscreteFeature = function (arr, gcd) {
 # 183 - 0.006024
 # 201 - 0.008846
 
-col = 139
+col = 97
 "
 plot(density(my.norm(my.transformDiscreteFeature(XX[,col], 0.013974))))
 lines(density(my.norm(XX[,col])), col='red')
 "
 
-sort(unique(round(diff(sort(XX[,col])), 5)))
-my.checkGcd( sort(unique(round(diff(sort(XX[,col])), 5))), 0.00166666666, eps=1e-2 )
+sort(unique(diff(sort( c(XX[,col], XXX[,col]) ))))
+my.checkGcd( c(XX[,col], XXX[,col]) , 0.0007666666666666, eps=1e-2 )
