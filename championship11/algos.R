@@ -116,7 +116,7 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F, use.
 }
 
 
-my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F, use.newdata=T) {
+my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F, use.newdata=F) {
   minE = 1e10
   for (i in 1:nrow(grid)) {
     params = grid[i, ]

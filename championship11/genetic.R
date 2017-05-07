@@ -29,7 +29,7 @@ tqfoldEstimation = function(XL, G, teach) {
   
   nextSeed = sample(1:10^5, 1)
   set.seed(666)
-  e = mean(validation.tqfold(subXL, teach, folds=5, iters=6, verbose=F))
+  e = mean(validation.tqfold(subXL, teach, folds=7, iters=7, verbose=F))
   set.seed(nextSeed)
   list(int=e, ext=e)
 }
@@ -162,23 +162,23 @@ addRemoveSelect = function(iterations,  # количество итераций
     
     newEst = estimate(XL, newVec, teach)
     
-    #print(i)
-    #print(est)
-    
     if (newEst$ext < est$ext) {
+      print(i)
+      print(est)
+      
       vec = newVec
       est = newEst
+      
+      print(est)
       
       intPts = c(intPts, newEst$int)
       extPts = c(extPts, newEst$ext)
       iterPts = c(iterPts, it)
-      print(paste0("current ", newEst$ext, newEst$int))
+      
       print(vec)
       
       plot(c(iterPts, iterPts), c(intPts, extPts), col=c(rep("green", length(intPts)), rep("red", length(extPts))), pch=20)
     }
-    #print(newEst)
-    
     print(paste0(iterations - it, " iterations remains"))
   }
 }

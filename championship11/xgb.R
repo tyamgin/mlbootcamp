@@ -12,7 +12,7 @@ my.train.xgb = function (XLL, params) {
       lambda=params$lambda,
       alpha=params$alpha,
       eta=params$eta, 
-      tree_method=params$tree_method,
+      tree_method='exact',
       colsample_bytree=params$colsample_bytree,
       min_child_weight=params$min_child_weight,
       subsample=params$subsample,
@@ -25,19 +25,15 @@ my.train.xgb = function (XLL, params) {
   }, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
 }
 
-
 xeee=c(0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
        0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
        0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,
-       0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+       0,0,0,0,0,1)
 
-xgbTrainAlgo = function (XL, params) {
-  my.roundedTrain(XL, function (XL) {
-    my.extendedColsTrain(XL, function(XL) {
-      my.normalizedTrain(XL, function (XL) {
+xgbTrainAlgo = function (XL, params, newdata) {
+  my.roundedTrain(XL, function (XL, newdata) {
+    my.extendedColsTrain(XL, function(XL, newdata) {
+      my.normalizedTrain(XL, function (XL, newdata) {
         my.train.xgb(XL, params)
       })
     }, xeee)
