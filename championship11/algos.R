@@ -127,7 +127,7 @@ my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F, use.new
     params = grid[i, ]
     
     my.set.seed(folds.seed)
-    e = mean(validation.tqfold(XLL, teach(params), folds=folds, iters=iters, verbose=verbose, use.newdata=use.newdata, seed=i))
+    e = mean(validation.tqfold(XLL, teach(params), folds=folds, iters=iters, verbose=verbose, use.newdata=use.newdata, seed=i+1))
     my.restore.seed()
     params$ACCURACY = e
     
