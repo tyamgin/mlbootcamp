@@ -67,10 +67,10 @@ my.gridSearch(XLL, function (params) {
 }, expand.grid(numRandomCuts=c(2), mtry=c(2), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, extra=F), verbose=T, iters=6, use.newdata=F)
 exit()
 "
-"
+
 xgbParams = expand.grid(
-  iters=1,
-  rowsFactor=1,
+  iters=50,
+  rowsFactor=0.95,
   
   max_depth=7, 
   gamma=0, 
@@ -86,7 +86,7 @@ xgbParams = expand.grid(
   num_parallel_tree=1,
   aqsdasd=2
 )
-
+"
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     my.roundedTrain(XL, function (XL, newdata) {
@@ -103,10 +103,10 @@ XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 XXX = my.data.transformFeatures(XXX)
 
-set.seed(2702);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=0.96, extra=F), newdata=XXX); print('trained')
+#set.seed(2702);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=0.96, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
-alg=aEtwb
+alg=aXgb
 
 
 "
@@ -177,6 +177,14 @@ stopCluster(cl)
 
 #plot(density((X_X[,77]-mean(X_X[,77])/sd(X_X[,77]))))
 #lines(density((X_X[,103]-mean(X_X[,103])/sd(X_X[,103]))), col='red')
+
+qwe = function (XL) {
+  meanAggregator(c(
+    aEtwb,
+    aXgb
+  ))
+}
+#alg = qwe(XLL)
 
 
 results1 = alg(XXX)
