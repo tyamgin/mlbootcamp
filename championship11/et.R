@@ -1,4 +1,5 @@
 my.train.et = function (XL, params, newdata=NULL) {
+  XL = unnameMatrix(XL)
   my.boot(XL, function (XL, XK) {
     X = XL[, -ncol(XL)]
     colnames(X) <- paste0('X', 1:ncol(X))
@@ -19,6 +20,7 @@ my.train.et = function (XL, params, newdata=NULL) {
                    tuneGrid=tuneGrid)
     
     ret = function (X) {
+      X = unnameMatrix(X)
       colnames(X) <- paste0('X', 1:ncol(X))
       predict(model, X, type='prob')
     }
@@ -66,21 +68,19 @@ etTrainAlgo = function (XL, params, newdata=NULL) {
 }
 
 etGlmTrainAlgo = function (XL, params) {
-  my.roundedTrain(XL, function (XL, newdata=NULL) {
-    my.extendedColsTrain(XL, function(XL, newdata=NULL) {
-      X = XL[, -ncol(XL)]
-      Y = XL[, ncol(XL)]
-      m = my.normalizedTrain(XL, function (XL, newdata=NULL) my.train.glm(XL, NULL) )
-      Z = m(X)
-      XL = cbind(X, Z, Y)
-      
-      model = my.normalizedTrain(XL, function (XL, newdata=NULL) my.train.et(XL, params))
-      
-      function (X) {
-        model(cbind(X, m(X)))
-      }
-    }, neee)
-  })
+  my.extendedColsTrain(XL, function(XL, newdata=NULL) {
+    X = XL[, -ncol(XL)]
+    Y = XL[, ncol(XL)]
+    m = my.normalizedTrain(XL, function (XL, newdata=NULL) my.train.glm(XL, NULL) )
+    Z = m(X)
+    XL = cbind(X, Z, Y)
+    
+    model = my.normalizedTrain(XL, function (XL, newdata=NULL) my.train.et(XL, params))
+    
+    function (X) {
+      model(cbind(X, m(X)))
+    }
+  }, neee)
 }
 
 
@@ -115,7 +115,7 @@ etWithBin12TrainAlgo = function (XL, params, newdata=NULL) {
     A[,2] = B[,1] * s1
     A[,3] = B[,2] * s1
     
-    my.roundAns(X, A)
+    A
   }
 }
 
