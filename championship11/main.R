@@ -38,6 +38,9 @@ colnames(XX) = paste0('X', 1:ncol(XX))
 #XX = my.data.transformFeatures(XX)
 XLL = cbind(data.matrix(XX), YY)
 
+XLLbin12 = XLL
+XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
+
 "
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
@@ -66,8 +69,8 @@ exit()
 "
 
 xgbParams = expand.grid(
-  iters=1,
-  rowsFactor=1,
+  iters=100,
+  rowsFactor=0.95,
   
   max_depth=7, 
   gamma=0, 
@@ -84,8 +87,7 @@ xgbParams = expand.grid(
   aqsdasd=2
 )
 
-"
-my.gridSearch(XLL, function (params) {
+my.gridSearch(XLLbin12, function (params) {
   function (XL, newdata) {
     my.roundedTrain(XL, function (XL, newdata) {
       xgbTrainAlgo(XL, params)
@@ -93,7 +95,7 @@ my.gridSearch(XLL, function (params) {
   }
 }, xgbParams, verbose=T, iters=10)
 exit()          
-"
+
 
 
 
@@ -103,7 +105,7 @@ XXX = my.data.transformFeatures(XXX)
 
 #set.seed(2708);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=100, rowsFactor=0.75, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
-set.seed(2707);aXgb = my.roundedTrain(XLL, function(XL, newdata) xgbTrainAlgo(XL, xgbParams))
+set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
 alg=aXgb
 
 
@@ -177,6 +179,7 @@ stopCluster(cl)
 #lines(density((X_X[,103]-mean(X_X[,103])/sd(X_X[,103]))), col='red')
 
 
-results = alg(XXX)
+results1 = alg(XXX)
+results = my.roundAns(XXX, results1)
 write(results, file='res/res.txt', sep='\n')
 print('done')

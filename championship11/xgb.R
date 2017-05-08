@@ -1,4 +1,4 @@
-my.train.xgb = function (XLL, params) {
+my.train.xgb = function (XLL, params, newdata=NULL) {
   XLL = unnameMatrix(XLL)
   my.boot(XLL, function (XL, XK) {
     dtrain = xgb.DMatrix(data=XL[, -ncol(XL)], label=XL[, ncol(XL)])
@@ -12,7 +12,9 @@ my.train.xgb = function (XLL, params) {
       early_stopping_rounds = params$early_stopping_rounds
     }
     
-    tmp.xgb.model <<- xgb.train(
+    num_class = length(unique(XL[, ncol(XL)]))
+    
+    model = xgb.train(
       data=dtrain, 
       watchlist=watchlist, 
       early_stopping_rounds=early_stopping_rounds,
@@ -28,12 +30,20 @@ my.train.xgb = function (XLL, params) {
       nthread=params$nthread, 
       nrounds=params$nrounds, 
       num_parallel_tree=params$num_parallel_tree,
-      eval_metric='merror', objective='multi:softprob', num_class=5, verbose=0
+      eval_metric='merror', objective='multi:softprob', num_class=num_class, verbose=0
     )
-    function (X) {
-      r = predict(tmp.xgb.model, unnameMatrix(X))
-      matrix(r, byrow=T, ncol=5)
+    ret = function (X) {
+      r = predict(model, unnameMatrix(X))
+      matrix(r, byrow=T, ncol=num_class)
     }
+    
+    if (!is.null(newdata)) {
+      ret = ret(newdata)
+      rm(model)
+      return( function (X) ret )
+    }
+    
+    ret
   }, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
 }
 
@@ -58,10 +68,10 @@ xppp=c(1,1,1,1,0,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
        1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,
        0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0)
 
-xgbTrainAlgo = function (XL, params, newdata) {
-  my.extendedColsTrain(XL, function(XL, newdata) {
-    my.normalizedTrain(XL, function (XL, newdata) {
-      my.train.xgb(XL, params)
-    })
-  }, idxes=xeee, pairs=xppp)
+xgbTrainAlgo = function (XL, params, newdata=NULL) {
+  my.extendedColsTrain(XL, function(XL, newdata=NULL) {
+    my.normalizedTrain(XL, function (XL, newdata=NULL) {
+      my.train.xgb(XL, params, newdata)
+    }, newdata=newdata)
+  }, idxes=xeee, pairs=xppp, newdata=newdata)
 }
