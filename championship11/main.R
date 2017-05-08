@@ -20,6 +20,7 @@ debugSource("algos.R")
 debugSource("lgb.R")
 debugSource("xgb.R")
 debugSource("nnet.R")
+debugSource("et.R")
 debugSource("genetic.R")
 debugSource("preprocess.R")
 
@@ -31,94 +32,80 @@ my.dopar.packages = c('caret', 'lightgbm', 'foreach', 'rJava', 'extraTrees')
 
 XX = read.csv(file="data/x_train.csv", head=F, sep=";", na.strings="?")
 YY = read.csv(file="data/y_train.csv", head=F, sep=";", na.strings="?")
+colnames(YY) = 'Y'
+colnames(XX) = paste0('X', 1:ncol(XX))
 
-
-
-XX = unnameMatrix(XX)
 #XX = my.data.transformFeatures(XX)
-XLL = unnameMatrix(cbind(data.matrix(XX), YY))
+XLL = cbind(data.matrix(XX), YY)
 
 "
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
-    etWithBin12TrainAlgo(XL, params, newdata=newdata)
-    #etTrainAlgo(XL, params, newdata=newdata)
-    #etGlmTrainAlgo(XL, params)
+    my.roundedTrain(XL, function (XL, newdata=NULL) {
+      etXgbTrainAlgo(XL, params, newdata=newdata)
+    }, newdata=newdata)
   }
-}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), iters=1, rowsFactor=1, extra=F), verbose=T, iters=6, use.newdata=F)
+}, expand.grid(lol=1), verbose=T, iters=10, use.newdata=F)
 exit()
 "
 
 
 "
+#XLLbin12 = XLL
+#XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
-    glmTrainAlgo(XL, params, newdata=newdata)
+    my.roundedTrain(XL, function (XL, newdata=NULL) {
+      #etWithBin12TrainAlgo(XL, params, newdata=newdata)
+      etTrainAlgo(XL, params, newdata=newdata)
+      #etGlmTrainAlgo(XL, params)
+    }, newdata=newdata)
   }
-}, expand.grid(), verbose=T, iters=6)
+}, expand.grid(numRandomCuts=c(2), mtry=c(2), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, extra=F), verbose=T, iters=6, use.newdata=F)
 exit()
 "
 
-"
-my.gridSearch(XLL, function (params) {
-  function (XL) {
-    nnetTrainAlgo(XL, params)
-  }
-}, expand.grid(size=3, maxit=c(100), decay=c(0)))
-"
+xgbParams = expand.grid(
+  iters=1,
+  rowsFactor=1,
+  
+  max_depth=7, 
+  gamma=0, 
+  lambda=0.129457, 
+  alpha=0.812294, 
+  eta=0.024637,#0.03
+  colsample_bytree=0.630299,
+  min_child_weight=3,
+  subsample=0.8,
+  nthread=4, 
+  nrounds=c(800),
+  early_stopping_rounds=0,
+  num_parallel_tree=1,
+  aqsdasd=2
+)
 
 "
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
-    xgbTrainAlgo(XL, params)
+    my.roundedTrain(XL, function (XL, newdata) {
+      xgbTrainAlgo(XL, params)
+    })
   }
-}, expand.grid(
-  iters=1,
-  rowsFactor=1,
-
-  max_depth=7, 
-  gamma=0, 
-  lambda=0.129457, 
-  alpha=0.812294, 
-  eta=c(0.024637), 
-  colsample_bytree=0.630299,
-  min_child_weight=3,
-  subsample=0.996574,
-  nthread=4, 
-  nrounds=c(1192),
-  early_stopping_rounds=0,
-  aqsdasd=2:5
-), verbose=T)
+}, xgbParams, verbose=T, iters=10)
 exit()          
 "
 
-"
-set.seed(2707);aXgb = xgbTrainAlgo(XLL, expand.grid(  
-  iters=10,
-  rowsFactor=0.95,
-  max_depth=7, 
-  gamma=0, 
-  lambda=0.129457, 
-  alpha=0.812294, 
-  eta=0.024637, 
-  colsample_bytree=0.630299,
-  min_child_weight=3,
-  subsample=0.996574,
-  nthread=4, 
-  nrounds=1192))"
+
 
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
-XXX = my.data.transformFeatures(XXX, T)
+XXX = my.data.transformFeatures(XXX)
 
-set.seed(2708);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=100, rowsFactor=0.75, extra=F), newdata=XXX); print('trained')
+#set.seed(2708);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=100, rowsFactor=0.75, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
-alg=aEtwb
+set.seed(2707);aXgb = my.roundedTrain(XLL, function(XL, newdata) xgbTrainAlgo(XL, xgbParams))
+alg=aXgb
 
-
-#XLLbin12 = XLL
-#XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
-#set.seed(2707);print(validation.tqfold(XLLbin12, nnetTrainAlgo, folds=7, iters=4, verbose=T))
 
 "
 set.seed(3233)
@@ -130,18 +117,33 @@ addRemoveSelect(iterations=10000, XL=cbind(XLL[, -ncol(XLL)], eext(XLL), XLL[, n
   })
 }, startVec=neee)
 "
+
 "
-set.seed(3233)
-addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T), teach=function (XL) {
+set.seed(326733)
+XLe = extendXYCols(XLL, idxes=neee, pairs=nppp)
+XLee = foreach (col=intCols, .combine=cbind) %do% {
+  x = c(XX[, col], XXX[, col])
+  u = unique(sort(x))
+  unlist(lapply(XX[, col], function (x) {
+    for (i in 1:length(u)) {
+      if (u[i] == x) {
+        if (i == 1)
+          return(0)
+        return(u[i] - u[i - 1])
+      }
+    }
+    stop('value not found')
+  }))
+}
+
+addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=T), teach=function (XL) {
   my.roundedTrain(XL, function (XL, newdata=NULL) {
     my.normalizedTrain(XL, function (XL, newdata=NULL) {
-      my.train.et(XL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1))
+      #my.train.et(XL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1))
+      my.train.xgb(XL, xgbParams)
     })
   })
-}, startVec=c(1,1,1,1,0,1,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-              0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-              0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-              0,0,0,0,0,0,1,0,0,0,0,0,0,0,0))
+}, startVec=xppp)
 "
 
 "

@@ -10,14 +10,20 @@ extendCols = function (XX, idxes=NULL, pairs=F) {
   }
   
   if (is.logical(pairs) && pairs || length(pairs) > 1) {
+    cnames = colnames(XX)
     sz = ncol(XX)
     for(i in 1:sz) {
       for(j in 1:sz) {
         if (i == j)
           next
-        if (i > j)
-          XX = cbind(XX, XX[, i] * XX[, j])
-        XX = cbind(XX, XX[, i] / (XX[, j] - min(XX[, j] + 1)))
+        if (i > j) {
+          Z = matrix(XX[, i] * XX[, j])
+          colnames(Z) = paste0(cnames[i], '*', cnames[j])
+          XX = cbind(XX, Z)
+        }
+        Z = matrix(XX[, i] / (XX[, j] - min(XX[, j] + 1)))
+        colnames(Z) = paste0(cnames[i], '/', cnames[j])
+        XX = cbind(XX, Z)
       }
     }
     if (length(pairs) > 1) {
