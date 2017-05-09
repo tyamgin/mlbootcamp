@@ -69,8 +69,8 @@ exit()
 "
 
 xgbParams = expand.grid(
-  iters=1,
-  rowsFactor=1,
+  iters=100,
+  rowsFactor=0.96,
   
   max_depth=7, 
   gamma=0, 
@@ -105,8 +105,8 @@ XXX = my.data.transformFeatures(XXX)
 
 #set.seed(2702);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=1, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
-#set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
-alg=aEtwb
+set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
+alg=aXgb
 
 
 "
