@@ -118,12 +118,3 @@ etWithBin12TrainAlgo = function (XL, params, newdata=NULL) {
     A
   }
 }
-
-etXgbTrainAlgo = function (XL, params.unused, newdata) {
-  meanAggregator(c(
-    etTrainAlgo(XL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=1, rowsFactor=1, extra=F)),
-    xgbTrainAlgo(XL, expand.grid(iters=1, rowsFactor=1, max_depth=7,gamma=0,lambda=0.129457, alpha=0.812294, eta=0.024637, 
-                                 colsample_bytree=0.630299, min_child_weight=3, subsample=0.8, nthread=4, nrounds=800,
-                                 early_stopping_rounds=0))
-  ))
-}

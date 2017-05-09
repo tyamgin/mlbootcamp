@@ -21,6 +21,7 @@ debugSource("lgb.R")
 debugSource("xgb.R")
 debugSource("nnet.R")
 debugSource("et.R")
+debugSource("aggregator.R")
 debugSource("genetic.R")
 debugSource("preprocess.R")
 
@@ -182,7 +183,7 @@ qwe = function (XL) {
   meanAggregator(c(
     aEtwb,
     aXgb
-  ), w=c(3/4,1/4))
+  ), w=c(0.7,0.3))
 }
 alg = qwe(XLL)
 
