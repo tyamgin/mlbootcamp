@@ -105,8 +105,8 @@ XXX = my.data.transformFeatures(XXX)
 
 #set.seed(2702);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=1, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
-set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
-alg=aXgb
+#set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
+#alg=aXgb
 
 
 "
@@ -184,7 +184,7 @@ qwe = function (XL) {
     aXgb
   ), w=c(2/3,1/3))
 }
-#alg = qwe(XLL)
+alg = qwe(XLL)
 
 
 results1 = alg(XXX)
