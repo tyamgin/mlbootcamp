@@ -70,8 +70,8 @@ exit()
 "
 
 xgbParams = expand.grid(
-  iters=100,
-  rowsFactor=0.96,
+  iters=1,
+  rowsFactor=1,
   
   max_depth=7, 
   gamma=0, 
@@ -122,7 +122,7 @@ addRemoveSelect(iterations=10000, XL=cbind(XLL[, -ncol(XLL)], eext(XLL), XLL[, n
 "
 
 "
-set.seed(32733)
+set.seed(42733)
 XLe = extendXYCols(XLL, idxes=neee, pairs=nppp)
 XLee = foreach (col=intCols, .combine=cbind) %do% {
   x = c(XX[, col], XXX[, col])
@@ -183,7 +183,7 @@ qwe = function (XL) {
   meanAggregator(c(
     aEtwb,
     aXgb
-  ), w=c(0.7,0.3))
+  ), w=c(4/5,1/5))
 }
 alg = qwe(XLL)
 
