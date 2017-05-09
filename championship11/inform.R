@@ -50,7 +50,7 @@ m.fill = scale_fill_manual(values=1:5)
 m.color = scale_color_manual(values=1:5)
 X_X = data.frame(XLL)
 labels = c('a', 'b', 'c', 'd', 'e')
-Y_Y = factor(X_X$X224, labels=labels)
+Y_Y = factor(X_X$Y, labels=labels)
 
 
 mat = foreach(cl=1:4, .combine=rbind) %do% {

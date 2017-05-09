@@ -69,8 +69,8 @@ exit()
 "
 
 xgbParams = expand.grid(
-  iters=50,
-  rowsFactor=0.95,
+  iters=1,
+  rowsFactor=1,
   
   max_depth=7, 
   gamma=0, 
@@ -103,10 +103,10 @@ XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 XXX = my.data.transformFeatures(XXX)
 
-#set.seed(2702);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=0.96, extra=F), newdata=XXX); print('trained')
+#set.seed(2702);aEtwb = etWithBin12TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=1, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
-alg=aXgb
+alg=aEtwb
 
 
 "
@@ -121,7 +121,7 @@ addRemoveSelect(iterations=10000, XL=cbind(XLL[, -ncol(XLL)], eext(XLL), XLL[, n
 "
 
 "
-set.seed(326733)
+set.seed(32733)
 XLe = extendXYCols(XLL, idxes=neee, pairs=nppp)
 XLee = foreach (col=intCols, .combine=cbind) %do% {
   x = c(XX[, col], XXX[, col])
@@ -184,7 +184,7 @@ qwe = function (XL) {
     aXgb
   ), w=c(2/3,1/3))
 }
-alg = qwe(XLL)
+#alg = qwe(XLL)
 
 
 results1 = alg(XXX)
