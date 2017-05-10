@@ -182,10 +182,10 @@ stopCluster(cl)
 qwe = function (XL) {
   meanAggregator(c(
     aEtwb,
-    aXgb
-  ), w=c(4/5,1/5))
+    aXgbwb
+  ), w=c(2/3,1/3))
 }
-#alg = qwe(XLL)
+alg = qwe(XLL)
 
 
 results1 = alg(XXX)
