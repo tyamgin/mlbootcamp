@@ -45,8 +45,8 @@ logitAggregator = function (XL, models) {
 
 etXgbTrainAlgo = function (XL, params.unused, newdata) {
   meanAggregator(c(
-    etWithBin12TrainAlgo(XL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=1, rowsFactor=1, extra=F), newdata=newdata),
-    xgbTrainAlgo(XL, expand.grid(  iters=1,
+    etWithBin123TrainAlgo(XL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=1, rowsFactor=1, extra=F), newdata=newdata),
+    xgbWithBin123TrainAlgo(XL, expand.grid(  iters=1,
                                    rowsFactor=1,
                                    
                                    max_depth=7, 
@@ -61,7 +61,7 @@ etXgbTrainAlgo = function (XL, params.unused, newdata) {
                                    nrounds=c(800),
                                    early_stopping_rounds=0,
                                    num_parallel_tree=1), newdata=newdata)
-  ), w=c(4/5,1/5))
+  ), w=c(3/4,1/4))
 }
 "
 etXgbTrainAlgo = function (XL, params.unused, newdata) {

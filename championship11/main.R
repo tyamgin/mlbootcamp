@@ -55,23 +55,22 @@ exit()
 
 
 "
-#XLLbin12 = XLL
-#XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
     my.roundedTrain(XL, function (XL, newdata=NULL) {
-      #etWithBin123TrainAlgo(XL, params, newdata=newdata)
-      etTrainAlgo(XL, params, newdata=newdata)
+      etWithBin123TrainAlgo(XL, params, newdata=newdata)
+      #etTrainAlgo(XL, params, newdata=newdata)
       #etGlmTrainAlgo(XL, params)
     }, newdata=newdata)
   }
-}, expand.grid(numRandomCuts=c(2), mtry=c(2), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, extra=F), verbose=T, iters=6, use.newdata=F)
+}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, extra=F), verbose=T, iters=6, use.newdata=T)
 exit()
 "
 
+
 xgbParams = expand.grid(
-  iters=1,
-  rowsFactor=1,
+  iters=100,
+  rowsFactor=0.96,
   
   max_depth=7, 
   gamma=0, 
@@ -88,6 +87,7 @@ xgbParams = expand.grid(
   aqsdasd=2
 )
 
+"
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     my.roundedTrain(XL, function (XL, newdata) {
@@ -97,16 +97,17 @@ my.gridSearch(XLL, function (params) {
   }
 }, xgbParams, verbose=T, iters=10)
 exit()          
-
+"
 
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 XXX = my.data.transformFeatures(XXX)
 
-#set.seed(2702);aEtwb = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=1, extra=F), newdata=XXX); print('trained')
+#set.seed(2701);aEtwb = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=0.99, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
-#alg=aXgb
+#set.seed(2707);aXgbwb = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
+alg=aXgbwb
 
 
 "
@@ -184,7 +185,7 @@ qwe = function (XL) {
     aXgb
   ), w=c(4/5,1/5))
 }
-alg = qwe(XLL)
+#alg = qwe(XLL)
 
 
 results1 = alg(XXX)
