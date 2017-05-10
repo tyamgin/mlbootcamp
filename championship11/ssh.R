@@ -4,9 +4,9 @@ primary <- '192.168.0.100'
 
 machineAddresses <- list(
   list(host=primary, user='tyamgin',
-       ncore=1)
-  #list(host='192.168.0.106', user='rdp',
-  #     ncore=1)
+       ncore=4),
+  list(host='192.168.0.106', user='rdp',
+       ncore=4)
 )
 
 spec <- lapply(machineAddresses,
@@ -17,12 +17,14 @@ spec <- lapply(machineAddresses,
                })
 spec <- unlist(spec,recursive=FALSE)
 
-print('starting...')
-system('start G:\\Projects\\mlbootcamp\\championship11\\startNode.bat')
 print('connecting...')
 
 parallelCluster <- parallel::makeCluster(
-  type='PSOCK', master=primary, spec=spec, rshcmd='ssh1 -i "C:\\Program Files\\OpenSSH-Win64\\ssh_host_rsa_key"', manual=T)
+  type='PSOCK', master=primary, spec=spec, rshcmd='ssh1 -i "C:\\Program Files\\OpenSSH-Win64\\ssh_host_rsa_key"', manual=F, homogeneous=T, rscript="lol")
 print('connected')
 
-print(parallelCluster)
+registerDoParallel(parallelCluster)
+
+print(foreach(i=1:8) %dopar% {unname(Sys.info()["nodename"])})
+
+stopCluster(parallelCluster)

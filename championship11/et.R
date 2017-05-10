@@ -83,24 +83,25 @@ etGlmTrainAlgo = function (XL, params) {
   }, neee)
 }
 
-
-etWithBin12TrainAlgo = function (XL, params, newdata=NULL) {
-  XL2 = XL
-  XL2[, ncol(XL2)] = ifelse(XL2[, ncol(XL2)] <= 1, 0, 1)
-  XL3 = XL
-  XL3[, ncol(XL3)] = ifelse(XL3[, ncol(XL3)] <= 2, 0, 1)
-  
-  f = function (XL) {
+etWithBin123TrainAlgo = function (XL, params, newdata=NULL) {
+  bin123TrainAlgo(XL, params, newdata=newdata,   trainAlgo=function (XL, params, newdata=NULL) {
     my.extendedColsTrain(XL, function(XL, newdata=NULL) {
       my.normalizedTrain(XL, function (XL, newdata=NULL) {
         my.train.et(XL, params, newdata=newdata)
       }, newdata=newdata)
     }, idxes=neee, pairs=nppp, extra=params$extra, newdata=newdata)
-  }
+  })
+}
+
+bin123TrainAlgo = function (XL, params, newdata=NULL, trainAlgo=NULL) {
+  XL2 = XL
+  XL2[, ncol(XL2)] = ifelse(XL2[, ncol(XL2)] <= 1, 0, 1)
+  XL3 = XL
+  XL3[, ncol(XL3)] = ifelse(XL3[, ncol(XL3)] <= 2, 0, 1)
   
-  aa = f(XL)
-  bb = f(XL2)
-  cc = f(XL3)
+  aa = trainAlgo(XL, params, newdata=newdata)
+  bb = trainAlgo(XL2, params, newdata=newdata)
+  cc = trainAlgo(XL3, params, newdata=newdata)
   
   function (X) {
     A = aa(X)
