@@ -69,10 +69,10 @@ exit()
 
 
 xgbParams = expand.grid(
-  iters=100,
+  iters=10,
   rowsFactor=0.96,
   
-  max_depth=7, 
+  max_depth=8, 
   gamma=0, 
   lambda=0.129457, 
   alpha=0.812294, 
@@ -107,6 +107,7 @@ XXX = my.data.transformFeatures(XXX)
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
 #set.seed(2707);aXgbwb = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
+#set.seed(2707);aXgbwb2 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
 alg=aXgbwb
 
 
@@ -182,8 +183,8 @@ stopCluster(cl)
 qwe = function (XL) {
   meanAggregator(c(
     aEtwb,
-    aXgbwb
-  ), w=c(3/4,1/4))
+    aXgbwb2
+  ), w=c(2/3,1/3))
 }
 alg = qwe(XLL)
 
