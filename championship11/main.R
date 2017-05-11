@@ -69,7 +69,7 @@ exit()
 
 
 xgbParams = expand.grid(
-  iters=10,
+  iters=100,
   rowsFactor=0.96,
   
   max_depth=8, 
@@ -78,7 +78,7 @@ xgbParams = expand.grid(
   alpha=0.812294, 
   eta=0.03,
   colsample_bytree=0.630299,
-  min_child_weight=3,
+  min_child_weight=1,
   subsample=0.8,
   nthread=4, 
   nrounds=c(800),
@@ -103,12 +103,13 @@ XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 XXX = unnameMatrix(XXX)
 XXX = my.data.transformFeatures(XXX)
 
+print('processing x_test...')
 #set.seed(2701);aEtwb = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=0.99, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
 #set.seed(2707);aXgbwb = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
-#set.seed(2707);aXgbwb2 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
-alg=aXgbwb
+#exit()
+alg=aXgb
 
 
 "
@@ -186,7 +187,7 @@ qwe = function (XL) {
     aXgbwb2
   ), w=c(2/3,1/3))
 }
-alg = qwe(XLL)
+#alg = qwe(XLL)
 
 
 results1 = alg(XXX)
