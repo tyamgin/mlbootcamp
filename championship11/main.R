@@ -69,7 +69,7 @@ exit()
 
 
 xgbParams = expand.grid(
-  iters=100,
+  iters=70,
   rowsFactor=0.96,
   
   max_depth=8, 
@@ -109,7 +109,7 @@ print('processing x_test...')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
 #set.seed(2707);aXgbwb = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
 #exit()
-alg=aXgb
+alg=aXgbwb
 
 
 "
@@ -187,7 +187,7 @@ qwe = function (XL) {
     aXgb
   ), w=c(2/3,1/3))
 }
-alg = qwe(XLL)
+#alg = qwe(XLL)
 
 
 results1 = alg(XXX)
