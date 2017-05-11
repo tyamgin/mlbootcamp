@@ -185,7 +185,7 @@ qwe = function (XL) {
   meanAggregator(c(
     aEtwb,
     aXgbwb
-  ), w=c(2/3,1/3))
+  ), w=c(1/2,1/2))
 }
 alg = qwe(XLL)
 
