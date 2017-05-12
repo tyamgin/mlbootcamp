@@ -15,7 +15,7 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
     
     num_class = length(unique(XL[, ncol(XL)]))
     
-    print(tmp.cnt)
+    #print(tmp.cnt)
     tmp.cnt <<- tmp.cnt + 1
     
     model = xgb.train(

@@ -54,23 +54,23 @@ exit()
 "
 
 
-"
+
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
     my.roundedTrain(XL, function (XL, newdata=NULL) {
-      etWithBin123TrainAlgo(XL, params, newdata=newdata)
-      #etTrainAlgo(XL, params, newdata=newdata)
+      #etWithBin123TrainAlgo(XL, params, newdata=newdata)
+      etTrainAlgo(XL, params, newdata=newdata)
       #etGlmTrainAlgo(XL, params)
     }, newdata=newdata)
   }
 }, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, extra=F), verbose=T, iters=6, use.newdata=T)
 exit()
-"
+
 
 
 xgbParams = expand.grid(
-  iters=70,
-  rowsFactor=0.96,
+  iters=1,
+  rowsFactor=1,
   
   max_depth=8, 
   gamma=0, 
@@ -109,22 +109,22 @@ print('processing x_test...')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
 #set.seed(2707);aXgbwb = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
 #exit()
-alg=aXgbwb
+#alg=aXgbwb
 
 
 "
-set.seed(3233)
-addRemoveSelect(iterations=10000, XL=cbind(XLL[, -ncol(XLL)], eext(XLL), XLL[, ncol(XLL)]), teach=function (XL) {
-  my.roundedTrain(XL, function (XL) {
-    my.normalizedTrain(XL, function (XL) {
-      my.train.et(XL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1))
+set.seed(37233)
+addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T), teach=function (XL) {
+  my.roundedTrain(XL, function (XL, newdata=NULL) {
+    my.normalizedTrain(XL, function (XL, newdata=NULL) {
+      my.train.et(XL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=1, rowsFactor=1))
     })
   })
-}, startVec=neee)
+}, startVec=nppp)
 "
 
-"
-set.seed(42733)
+
+set.seed(427333)
 XLe = extendXYCols(XLL, idxes=neee, pairs=nppp)
 XLee = foreach (col=intCols, .combine=cbind) %do% {
   x = c(XX[, col], XXX[, col])
@@ -149,7 +149,7 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=T), tea
     })
   })
 }, startVec=xppp)
-"
+
 
 "
 cl <- makeCluster(4)
