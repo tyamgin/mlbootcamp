@@ -53,8 +53,7 @@ my.gridSearch(XLL, function (params) {
 exit()
 "
 
-
-
+"
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
     my.roundedTrain(XL, function (XL, newdata=NULL) {
@@ -65,12 +64,12 @@ my.gridSearch(XLL, function (params) {
   }
 }, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, extra=F), verbose=T, iters=6, use.newdata=T)
 exit()
-
+"
 
 
 xgbParams = expand.grid(
-  iters=1,
-  rowsFactor=1,
+  iters=70,
+  rowsFactor=0.96,
   
   max_depth=8, 
   gamma=0, 
@@ -91,25 +90,25 @@ xgbParams = expand.grid(
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     my.roundedTrain(XL, function (XL, newdata) {
-      #xgbTrainAlgo(XL, params)
-      xgbWithBin123TrainAlgo(XL, params)
+      xgbTrainAlgo(XL, params)
+      #xgbWithBin123TrainAlgo(XL, params)
     })
   }
-}, xgbParams, verbose=T, iters=10)
+}, xgbParams, verbose=T, iters=10, use.newdata=T)
 exit()          
 "
 
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
-XXX = unnameMatrix(XXX)
+colnames(XXX) = paste0('X', 1:ncol(XXX))
 XXX = my.data.transformFeatures(XXX)
 
 print('processing x_test...')
 #set.seed(2701);aEtwb = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=0.99, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
-#set.seed(2707);aXgbwb = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
+#set.seed(2708);aXgbwb = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
 #exit()
-#alg=aXgbwb
+alg=aXgbwb
 
 
 "
@@ -123,7 +122,7 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T), tea
 }, startVec=nppp)
 "
 
-
+"
 set.seed(427333)
 XLe = extendXYCols(XLL, idxes=neee, pairs=nppp)
 XLee = foreach (col=intCols, .combine=cbind) %do% {
@@ -149,7 +148,7 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=T), tea
     })
   })
 }, startVec=xppp)
-
+"
 
 "
 cl <- makeCluster(4)
@@ -187,7 +186,7 @@ qwe = function (XL) {
     aXgbwb
   ), w=c(0.7, 0.3))
 }
-alg = qwe(XLL)
+#alg = qwe(XLL)
 
 
 results1 = alg(XXX)

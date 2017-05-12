@@ -51,8 +51,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 m.fill = scale_fill_manual(values=1:5)
 m.color = scale_color_manual(values=1:5)
 
-X_X = data.frame(XLL)
-Y_Y = factor(X_X$X224, labels=c('a', 'b', 'c', 'd', 'e'))
+Y_Y = factor(XLL$Y, labels=c('a', 'b', 'c', 'd', 'e'))
 
 for(i in 1:ncol(XX)) {
   png(filename=paste0('graph/hist/', i, '.png'), width=1200, height=900)
@@ -84,6 +83,12 @@ ggplot(X_X, aes(x=X_X[,3], y=X_X[,2], fill=Y_Y, color=Y_Y)) + geom_point(alpha=.
 
 png(filename=paste0('graph/ggpairs.png'), width=3000, height=3000)
 gg = ggpairs(X_X[,1:25], aes(alpha=0.4, colour=Y_Y), upper=NULL)
+for(ii in 1:gg$nrow) for(jj in 1:gg$ncol) gg[ii, jj] = gg[ii, jj] + m.fill + m.color
+print(gg)
+dev.off()
+
+png(filename=paste0('graph/ggpairs2.png'), width=3000, height=3000)
+gg = ggpairs(XLL[, intCols], aes(alpha=0.4, colour=Y_Y), upper=NULL)
 for(ii in 1:gg$nrow) for(jj in 1:gg$ncol) gg[ii, jj] = gg[ii, jj] + m.fill + m.color
 print(gg)
 dev.off()
