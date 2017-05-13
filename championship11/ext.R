@@ -4,7 +4,22 @@ jgc <- function()
 unnameMatrix = function (XX) 
   as.matrix(unname(data.matrix(XX)))
 
-extendCols = function (XX, idxes=NULL, pairs=F) {
+extendCols = function (XX, idxes=NULL, pairs=F, angles=F) {
+  XXA = matrix(NA, nrow=nrow(XX), ncol=0)
+  if (is.logical(angles) && angles || length(angles) > 1) {
+    for (i in 1:nrow(ang.result)) {
+      r = ang.result[i, ]
+      a = XX[, r$col1] - r$x
+      b = XX[, r$col2] - r$y
+      Z = matrix(atan2(b, a))
+      colnames(Z) = paste0('atan2(', colnames(XX)[r$col2], ', ', colnames(XX)[r$col1], ')')
+      XXA = cbind(XXA, Z)
+    }
+    if (length(angles) > 1) {
+      XXA = XXA[, which(1 == angles)]
+    }
+  }
+  
   if (is.vector(idxes)) {
     XX = XX[, which(1 == idxes)]
   }
@@ -31,14 +46,15 @@ extendCols = function (XX, idxes=NULL, pairs=F) {
     }
     #XX = cbind(XX, atan2(XX$X80 + 1, XX$X97 + 0.05))
   }
-  
+
+  XX = cbind(XX, XXA)
   XX
 }
 
-extendXYCols = function (XL, idxes, pairs) {
+extendXYCols = function (XL, idxes, pairs, angles) {
   X = XL[, -ncol(XL), drop=F]
   Y = XL[, ncol(XL), drop=F]
-  X = extendCols(X, idxes, pairs)
+  X = extendCols(X, idxes, pairs, angles)
   cbind(X, Y)
 }
 
@@ -52,13 +68,13 @@ eext = function (X) {
   R
 }
 
-my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F, pairs=F, newdata=NULL) {
+my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F, pairs=F, angles=F, newdata=NULL) {
   featuresNumber = ncol(XL) - 1
   
   if (extra)
     XL = cbind(XL[,-ncol(XL)], eext(XL), XL[,ncol(XL)])
   
-  XL = extendXYCols(XL, idxes, pairs)
+  XL = extendXYCols(XL, idxes, pairs, angles)
   
   proc = function (X) {
     if (is.null(X))
@@ -70,7 +86,7 @@ my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F, pairs=F, ne
     if (extra)
       X = cbind(X, eext(X))
     
-    X = extendCols(X, idxes, pairs)
+    X = extendCols(X, idxes, pairs, angles)
     X
   }
   model = trainFunc(XL, newdata=proc(newdata))

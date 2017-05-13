@@ -140,10 +140,8 @@ ang.result = foreach(c2=2:length(cols), .combine=rbind, .packages='doParallel') 
 
 stopCluster(cl)
 
-#png(filename=paste0('graph/ggpairs3.png'), width=3000, height=3000)
+
 gg = ggpairs(XLL[, cols], aes(alpha=0.4, colour=Y_Y), upper=NULL, diag=NULL)
-#print(gg)
-#dev.off()
 
 for (idx in 1:nrow(ang.result)) {
   i = ang.result[idx, ]
@@ -153,5 +151,6 @@ for (idx in 1:nrow(ang.result)) {
   )
 }
 
+png(filename=paste0('graph/ggpairs3.png'), width=3000, height=3000)
 print(gg)
-
+dev.off()

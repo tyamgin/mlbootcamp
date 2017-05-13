@@ -42,6 +42,8 @@ XLL = cbind(data.matrix(XX), YY)
 XLLbin12 = XLL
 XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
 
+ang.result = readRDS('ang.result')
+
 "
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
@@ -58,11 +60,13 @@ my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
     my.roundedTrain(XL, function (XL, newdata=NULL) {
       #etWithBin123TrainAlgo(XL, params, newdata=newdata)
-      etTrainAlgo(XL, params, newdata=newdata)
+      #etTrainAlgo(XL, params, newdata=newdata)
+      #knnTrainAlgo(XL, params, newdata=newdata)
+      knnEtTrainAlgo(XL, params, newdata=newdata)
       #etGlmTrainAlgo(XL, params)
     }, newdata=newdata)
   }
-}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, extra=F), verbose=T, iters=6, use.newdata=T)
+}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, extra=F, k=6), verbose=T, iters=12, use.newdata=T)
 exit()
 "
 
@@ -86,7 +90,7 @@ xgbParams = expand.grid(
   aqsdasd=2
 )
 
-
+"
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     my.roundedTrain(XL, function (XL, newdata) {
@@ -96,7 +100,7 @@ my.gridSearch(XLL, function (params) {
   }
 }, xgbParams, verbose=T, iters=10, use.newdata=T)
 exit()          
-
+"
 
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 colnames(XXX) = paste0('X', 1:ncol(XXX))
@@ -111,7 +115,7 @@ print('processing x_test...')
 #alg=aXgbwb
 
 
-
+"
 set.seed(37233)
 addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T), teach=function (XL, newdata=NULL) {
   my.roundedTrain(XL, function (XL, newdata=NULL) {
@@ -120,11 +124,10 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T), tea
     }, newdata=newdata)
   }, newdata=newdata)
 }, startVec=nppp)
-
-
 "
-set.seed(427333)
-XLe = extendXYCols(XLL, idxes=neee, pairs=nppp)
+
+
+"XLe = extendXYCols(XLL, idxes=neee, pairs=nppp)
 XLee = foreach (col=intCols, .combine=cbind) %do% {
   x = c(XX[, col], XXX[, col])
   u = unique(sort(x))
@@ -139,15 +142,18 @@ XLee = foreach (col=intCols, .combine=cbind) %do% {
     stop('value not found')
   }))
 }
+"
 
-addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=T), teach=function (XL) {
+"
+set.seed(427333)
+addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=xppp, angles=T), teach=function (XL) {
   my.roundedTrain(XL, function (XL, newdata=NULL) {
     my.normalizedTrain(XL, function (XL, newdata=NULL) {
       #my.train.et(XL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1))
       my.train.xgb(XL, xgbParams)
     })
   })
-}, startVec=xppp)
+}, startVec=rep(1, ncol(extendXYCols(XLL, idxes=xeee, pairs=xppp, angles=F))-1))
 "
 
 "
@@ -186,10 +192,13 @@ qwe = function (XL) {
     aXgbwb
   ), w=c(2/3, 1/3))
 }
-alg = qwe(XLL)
+#alg = qwe(XLL)
 
+set.seed(2707);arknn = knnTrainRoundAlgo(XLL, expand.grid(k=7, extra=F), newdata=XXX)
 
+"
 results1 = alg(XXX)
 results = my.roundAns(XXX, results1)
 write(results, file='res/res.txt', sep='\n')
 print('done')
+"
