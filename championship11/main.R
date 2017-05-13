@@ -68,12 +68,12 @@ exit()
 
 
 xgbParams = expand.grid(
-  iters=70,
-  rowsFactor=0.96,
+  iters=1,
+  rowsFactor=1,
   
-  max_depth=8, 
+  max_depth=9, 
   gamma=0, 
-  lambda=0.129457, 
+  lambda=0.2,
   alpha=0.812294, 
   eta=0.03,
   colsample_bytree=0.630299,
@@ -86,7 +86,7 @@ xgbParams = expand.grid(
   aqsdasd=2
 )
 
-"
+
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     my.roundedTrain(XL, function (XL, newdata) {
@@ -96,7 +96,7 @@ my.gridSearch(XLL, function (params) {
   }
 }, xgbParams, verbose=T, iters=10, use.newdata=T)
 exit()          
-"
+
 
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 colnames(XXX) = paste0('X', 1:ncol(XXX))
@@ -108,19 +108,19 @@ print('processing x_test...')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
 #set.seed(2708);aXgbwb = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
 #exit()
-alg=aXgbwb
+#alg=aXgbwb
 
 
-"
+
 set.seed(37233)
-addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T), teach=function (XL) {
+addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T), teach=function (XL, newdata=NULL) {
   my.roundedTrain(XL, function (XL, newdata=NULL) {
     my.normalizedTrain(XL, function (XL, newdata=NULL) {
-      my.train.et(XL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=1, rowsFactor=1))
-    })
-  })
+      my.train.et(XL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=1, rowsFactor=1), newdata=newdata)
+    }, newdata=newdata)
+  }, newdata=newdata)
 }, startVec=nppp)
-"
+
 
 "
 set.seed(427333)

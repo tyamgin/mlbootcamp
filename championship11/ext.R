@@ -29,7 +29,7 @@ extendCols = function (XX, idxes=NULL, pairs=F) {
     if (length(pairs) > 1) {
       XX = XX[, which(1 == pairs)]
     }
-    XX = cbind(XX, atan2(XX$X80 + 1, XX$X97 + 0.05))
+    #XX = cbind(XX, atan2(XX$X80 + 1, XX$X97 + 0.05))
   }
   
   XX
