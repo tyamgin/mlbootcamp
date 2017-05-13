@@ -194,7 +194,7 @@ qwe = function (XL) {
 }
 #alg = qwe(XLL)
 
-set.seed(2707);arknn = knnTrainRoundAlgo(XLL, expand.grid(k=7, extra=F), newdata=XXX)
+set.seed(2707);arknn = knnTrainRoundAlgo(XLL, expand.grid(k=8, extra=F), newdata=XXX)
 
 "
 results1 = alg(XXX)
