@@ -72,22 +72,21 @@ exit()
 "
 
 xgbParams = expand.grid(
-  iters=1,
-  rowsFactor=1,
+  iters=100,
+  rowsFactor=0.96,
   
   max_depth=9, 
   gamma=0,
-  lambda=0.4,
+  lambda=0.2,
   alpha=0.812294, 
-  eta=0.02,
-  colsample_bytree=c(0.5, 0.55),
+  eta=0.03,
+  colsample_bytree=c(0.5),
   min_child_weight=1,
-  subsample=c(0.85, 0.9, 0.95),
+  subsample=c(0.8),
   nthread=4, 
-  nrounds=c(500),
+  nrounds=c(600),
   early_stopping_rounds=0,
-  num_parallel_tree=1,
-  aqsdasd=2
+  num_parallel_tree=1
 )
 
 "
@@ -107,12 +106,12 @@ colnames(XXX) = paste0('X', 1:ncol(XXX))
 XXX = my.data.transformFeatures(XXX)
 
 print('processing x_test...')
-#set.seed(2701);aEtwb = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=0.99, extra=F), newdata=XXX); print('trained')
+#set.seed(2701);aEtwb = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=1, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
-#set.seed(2708);aXgbwb = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
+set.seed(2709);aXgbwb = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
 #exit()
-alg=aEtwb
+alg=aXgbwb
 
 
 "

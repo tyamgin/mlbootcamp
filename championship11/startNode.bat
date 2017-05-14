@@ -1,2 +1,0 @@
-timeout /t 1
-"C:/PROGRA~1/R/R-34~1.0/bin/x64/Rscript" --default-packages=datasets,utils,grDevices,graphics,stats,methods -e "parallel:::.slaveRSOCK()" MASTER=192.168.0.100 PORT=11538 OUT=/dev/null TIMEOUT=2592000 XDR=TRUE
