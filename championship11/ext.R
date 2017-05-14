@@ -7,7 +7,7 @@ unnameMatrix = function (XX)
 extendCols = function (XX, idxes=NULL, pairs=F, angles=F) {
   XXA = matrix(NA, nrow=nrow(XX), ncol=0)
   if (is.logical(angles) && angles || length(angles) > 1) {
-    for (i in 1:nrow(ang.result)) {
+    for (i in 1:nrow(ang.result[order(ang.result$cost),][1:7,])) {
       r = ang.result[i, ]
       a = XX[, r$col1] - r$x
       b = XX[, r$col2] - r$y

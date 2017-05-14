@@ -120,14 +120,13 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F, use.
   XKerr
 }
 
-
-my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F, use.newdata=F, folds.seed=777) {
+my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F, use.newdata=F, folds.seed=777, train.seed=2) {
   minE = 1e10
   for (i in 1:nrow(grid)) {
     params = grid[i, ]
     
     my.set.seed(folds.seed)
-    e = mean(validation.tqfold(XLL, teach(params), folds=folds, iters=iters, verbose=verbose, use.newdata=use.newdata, seed=i+1))
+    e = mean(validation.tqfold(XLL, teach(params), folds=folds, iters=iters, verbose=verbose, use.newdata=use.newdata, seed=train.seed))
     my.restore.seed()
     params$ACCURACY = e
     
@@ -142,6 +141,7 @@ my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F, use.new
   print('-------------------------------')
   print(selParams)
 }
+
 
 meanAggregator = function (baseAlgos, w=NULL) {
   l = length(baseAlgos)

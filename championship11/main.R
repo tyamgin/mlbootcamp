@@ -60,31 +60,30 @@ my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
     my.roundedTrain(XL, function (XL, newdata=NULL) {
       #etWithBin123TrainAlgo(XL, params, newdata=newdata)
-      #etTrainAlgo(XL, params, newdata=newdata)
+      etTrainAlgo(XL, params, newdata=newdata)
       #knnTrainAlgo(XL, params, newdata=newdata)
-      knnEtTrainAlgo(XL, params, newdata=newdata)
+      #knnEtTrainAlgo(XL, params, newdata=newdata)
       #etGlmTrainAlgo(XL, params)
     }, newdata=newdata)
   }
-}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, extra=F, k=6), verbose=T, iters=12, use.newdata=T)
+}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, extra=F, k=2), verbose=T, iters=22, use.newdata=T)
 exit()
 "
-
 
 xgbParams = expand.grid(
   iters=1,
   rowsFactor=1,
   
   max_depth=9, 
-  gamma=0, 
-  lambda=0.2,
+  gamma=0,
+  lambda=0.4,
   alpha=0.812294, 
-  eta=0.03,
-  colsample_bytree=0.630299,
+  eta=0.02,
+  colsample_bytree=c(0.5, 0.55),
   min_child_weight=1,
-  subsample=0.8,
+  subsample=c(0.85, 0.9, 0.95),
   nthread=4, 
-  nrounds=c(800),
+  nrounds=c(500),
   early_stopping_rounds=0,
   num_parallel_tree=1,
   aqsdasd=2
@@ -98,7 +97,7 @@ my.gridSearch(XLL, function (params) {
       #xgbWithBin123TrainAlgo(XL, params)
     })
   }
-}, xgbParams, verbose=T, iters=10, use.newdata=T)
+}, xgbParams, verbose=T, iters=15, use.newdata=T)
 exit()          
 "
 
@@ -112,7 +111,7 @@ print('processing x_test...')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
 #set.seed(2708);aXgbwb = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
 #exit()
-#alg=aXgbwb
+alg=aEtwb
 
 
 "
@@ -194,11 +193,10 @@ qwe = function (XL) {
 }
 #alg = qwe(XLL)
 
-set.seed(2707);arknn = knnTrainRoundAlgo(XLL, expand.grid(k=8, extra=F), newdata=XXX)
+#set.seed(2707);arknn = knnTrainRoundAlgo(XLL, expand.grid(k=11, extra=F), newdata=XXX)
 
-"
+
 results1 = alg(XXX)
 results = my.roundAns(XXX, results1)
 write(results, file='res/res.txt', sep='\n')
 print('done')
-"

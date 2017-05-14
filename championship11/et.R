@@ -116,6 +116,23 @@ knnTrainRoundAlgo = function (XL, params, newdata=NULL) {
   }
 }
 
+"knnEtTrainAlgo = function (XL, params, newdata=NULL) {
+  knn = knnTrainAlgo(XL, params, newdata=newdata)
+  et = etTrainAlgo(XL, params, newdata=newdata)
+  
+  function (X) {
+    r = et(X)
+    kr = knn(X)
+    return(r)
+    for (i in 1:nrow(r)) {
+      if (1 %in% kr[i, ]) {
+        r[i, ] = kr[i, ]
+      }
+    }
+    r
+  }
+}"
+
 knnEtTrainAlgo = function (XL, params, newdata=NULL) {
   knn = knnTrainAlgo(XL, params, newdata=newdata)
   et = etTrainAlgo(XL, params, newdata=newdata)
