@@ -188,10 +188,10 @@ stopCluster(cl)
 qwe = function (XL) {
   meanAggregator(c(
     aEtwb,
-    aXgb
+    aXgbwb
   ), w=c(2/3, 1/3))
 }
-#alg = qwe(XLL)
+alg = qwe(XLL)
 
 #set.seed(2707);
 
