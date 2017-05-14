@@ -158,7 +158,7 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=xppp, a
 }, startVec=rep(1, ncol(extendXYCols(XLL, idxes=xeee, pairs=xppp, angles=F))-1))
 "
 
-"
+
 set.seed(427333)
 addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T, angles=T), teach=function (XL) {
   my.roundedTrain(XL, function (XL, newdata=NULL) {
@@ -166,8 +166,11 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T, angl
       my.train.knn(XL, expand.grid(k=5))
     })
   })
-}, startVec=rep(1, sum(neee)))
-"
+}, startVec=c(1,1,1,1,1,1,1,1,1,0,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,
+              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+              0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))
+
 
 
 # https://www.r-bloggers.com/7-visualizations-you-should-learn-in-r/
