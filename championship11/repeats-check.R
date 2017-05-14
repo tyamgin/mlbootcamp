@@ -1,3 +1,5 @@
+print('starting repeats check...')
+
 my.rowHash = function(x) {
   x = x[intCols]
   x = signif(x, 1)
@@ -15,13 +17,10 @@ for(i in 1:nrow(XLL)) {
   tbl[my.rowHash(XLL[i, -ncol(XLL)])] = XLL[i, ncol(XLL)]
 }
 
-#aaa = read.csv(file="res/bestRes.txt", head=F)
-#aaa = aaa[,1]
-
 for(i in 1:nrow(XXX)) {
   v = tbl[my.rowHash(XXX[i,])]
   if (!is.na(v) && results[i] != v) {
-    print(paste0('fixed ', i, ', answer is ', v, ', not ', results[i]))
+    print(paste0('[repeats] fixed ', i, ', answer is ', v, ', not ', results[i]))
     results[i] = v
   }
 }

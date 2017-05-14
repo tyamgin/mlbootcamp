@@ -21,6 +21,7 @@ debugSource("lgb.R")
 debugSource("xgb.R")
 debugSource("nnet.R")
 debugSource("et.R")
+debugSource("knn.R")
 debugSource("aggregator.R")
 debugSource("genetic.R")
 debugSource("preprocess.R")
@@ -193,11 +194,12 @@ qwe = function (XL) {
 }
 #alg = qwe(XLL)
 
-#set.seed(2707);arknn = knnTrainRoundAlgo(XLL, expand.grid(k=11, extra=F), newdata=XXX)
+#set.seed(2707);
 
 
 results1 = alg(XXX)
 results = my.roundAns(XXX, results1)
 source('repeats-check.R')
+source('knn-check.R')
 write(results, file='res/res.txt', sep='\n')
 print('done')
