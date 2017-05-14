@@ -15,15 +15,13 @@ for(i in 1:nrow(XLL)) {
   tbl[my.rowHash(XLL[i, -ncol(XLL)])] = XLL[i, ncol(XLL)]
 }
 
-aaa = read.csv(file="res/bestRes.txt", head=F)
-aaa = aaa[,1]
+#aaa = read.csv(file="res/bestRes.txt", head=F)
+#aaa = aaa[,1]
 
-cnt = 0
 for(i in 1:nrow(XXX)) {
   v = tbl[my.rowHash(XXX[i,])]
-  if (!is.na(v) && aaa[i] != v) {
-    print(paste0('failed ', i, ' answer is ', v, ', not ', aaa[i]))
-    cnt = cnt + 1
+  if (!is.na(v) && results[i] != v) {
+    print(paste0('fixed ', i, ', answer is ', v, ', not ', results[i]))
+    results[i] = v
   }
 }
-print(cnt)

@@ -198,5 +198,6 @@ qwe = function (XL) {
 
 results1 = alg(XXX)
 results = my.roundAns(XXX, results1)
+source('repeats-check.R')
 write(results, file='res/res.txt', sep='\n')
 print('done')
