@@ -147,18 +147,17 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T), tea
 
 
 "
-set.seed(427333)
-addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=xppp, angles=T), teach=function (XL) {
+set.seed(23)
+addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=T, angles=T), teach=function (XL) {
   my.roundedTrain(XL, function (XL, newdata=NULL) {
     my.normalizedTrain(XL, function (XL, newdata=NULL) {
-      #my.train.et(XL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1))
       my.train.xgb(XL, xgbParams)
     })
   })
-}, startVec=rep(1, ncol(extendXYCols(XLL, idxes=xeee, pairs=xppp, angles=F))-1))
+}, startVec=xppp)
 "
 
-
+"
 set.seed(427333)
 addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T, angles=T), teach=function (XL) {
   my.roundedTrain(XL, function (XL, newdata=NULL) {
@@ -170,7 +169,7 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T, angl
               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))
-
+"
 
 
 # https://www.r-bloggers.com/7-visualizations-you-should-learn-in-r/
@@ -193,7 +192,7 @@ qwe = function (XL) {
   meanAggregator(c(
     aEtwb,
     aXgbwb
-  ), w=c(1/2, 1/2))
+  ), w=c(1/3, 2/3))
 }
 alg = qwe(XLL)
 
