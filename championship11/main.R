@@ -72,8 +72,8 @@ exit()
 "
 
 xgbParams = expand.grid(
-  iters=100,
-  rowsFactor=0.96,
+  iters=1,
+  rowsFactor=1,
   
   max_depth=9, 
   gamma=0,
@@ -88,13 +88,33 @@ xgbParams = expand.grid(
   early_stopping_rounds=0,
   num_parallel_tree=1
 )
+"
+xgbParams = expand.grid(
+iters=1,
+rowsFactor=1,
+
+max_depth=9, 
+gamma=0, 
+lambda=0.2,
+alpha=0.812294, 
+eta=0.03,
+colsample_bytree=0.630299,
+min_child_weight=1,
+subsample=0.8,
+nthread=4, 
+nrounds=c(800),
+early_stopping_rounds=0,
+num_parallel_tree=1,
+aqsdasd=2
+)
+"
 
 "
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     my.roundedTrain(XL, function (XL, newdata) {
-      xgbTrainAlgo(XL, params)
-      #xgbWithBin123TrainAlgo(XL, params)
+      #xgbTrainAlgo(XL, params)
+      xgbWithBin123TrainAlgo(XL, params)
     })
   }
 }, xgbParams, verbose=T, iters=15, use.newdata=T)
@@ -111,7 +131,7 @@ print('processing x_test...')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
 #set.seed(2709);aXgbwb = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
 #exit()
-alg=aXgbwb
+#alg=aXgbwb
 
 
 "
@@ -126,23 +146,6 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T), tea
 "
 
 
-"XLe = extendXYCols(XLL, idxes=neee, pairs=nppp)
-XLee = foreach (col=intCols, .combine=cbind) %do% {
-  x = c(XX[, col], XXX[, col])
-  u = unique(sort(x))
-  unlist(lapply(XX[, col], function (x) {
-    for (i in 1:length(u)) {
-      if (u[i] == x) {
-        if (i == 1)
-          return(0)
-        return(u[i] - u[i - 1])
-      }
-    }
-    stop('value not found')
-  }))
-}
-"
-
 "
 set.seed(427333)
 addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=xppp, angles=T), teach=function (XL) {
@@ -156,18 +159,16 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=xppp, a
 "
 
 "
-cl <- makeCluster(4)
-registerDoParallel(cl)
-set.seed(2709);print(geneticSelect(iterations=200, XL=XLL, teach=function (XL) {
-  my.roundedTrain(XL, function (XL) {
-    my.normalizedTrain(XL, function (XL) {
-      #my.train.lgb(XL, rowsFactor=0.9, iters=3, lgb.nthread=1)
-      my.train.nnet(XL)
+set.seed(427333)
+addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T, angles=T), teach=function (XL) {
+  my.roundedTrain(XL, function (XL, newdata=NULL) {
+    my.normalizedTrain(XL, function (XL, newdata=NULL) {
+      my.train.knn(XL, expand.grid(k=5))
     })
   })
-}, config='genetic.config'))
-stopCluster(cl)
+}, startVec=rep(1, sum(neee)))
 "
+
 
 # https://www.r-bloggers.com/7-visualizations-you-should-learn-in-r/
 
@@ -189,7 +190,7 @@ qwe = function (XL) {
   meanAggregator(c(
     aEtwb,
     aXgbwb
-  ), w=c(2/3, 1/3))
+  ), w=c(1/2, 1/2))
 }
 alg = qwe(XLL)
 
