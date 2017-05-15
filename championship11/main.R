@@ -109,7 +109,7 @@ aqsdasd=2
 )
 "
 
-"
+
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     my.roundedTrain(XL, function (XL, newdata) {
@@ -119,7 +119,7 @@ my.gridSearch(XLL, function (params) {
   }
 }, xgbParams, verbose=T, iters=15, use.newdata=T)
 exit()          
-"
+
 
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 colnames(XXX) = paste0('X', 1:ncol(XXX))
@@ -146,7 +146,7 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T), tea
 "
 
 
-"
+
 set.seed(23)
 addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=T, angles=T), teach=function (XL) {
   my.roundedTrain(XL, function (XL, newdata=NULL) {
@@ -155,21 +155,21 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=T, angl
     })
   })
 }, startVec=xppp)
-"
 
-"
+
+
 set.seed(427333)
 addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T, angles=T), teach=function (XL) {
   my.roundedTrain(XL, function (XL, newdata=NULL) {
     my.normalizedTrain(XL, function (XL, newdata=NULL) {
-      my.train.knn(XL, expand.grid(k=5))
+      my.train.knn(XL, expand.grid(k=4))
     })
   })
 }, startVec=c(1,1,1,1,1,1,1,1,1,0,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,
               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))
-"
+
 
 
 # https://www.r-bloggers.com/7-visualizations-you-should-learn-in-r/

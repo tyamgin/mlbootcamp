@@ -6,17 +6,14 @@ unnameMatrix = function (XX)
 
 extendCols = function (XX, idxes=NULL, pairs=F, angles=F) {
   XXA = matrix(NA, nrow=nrow(XX), ncol=0)
-  if (is.logical(angles) && angles || length(angles) > 1) {
-    for (i in 1:nrow(ang.result[order(ang.result$cost),][1:7,])) {
+  if (is.logical(angles) && angles) {
+    for (i in 1:nrow(ang.result[order(ang.result$cost),])) {
       r = ang.result[i, ]
       a = XX[, r$col1] - r$x
       b = XX[, r$col2] - r$y
       Z = matrix(atan2(b, a))
       colnames(Z) = paste0('atan2(', colnames(XX)[r$col2], ', ', colnames(XX)[r$col1], ')')
       XXA = cbind(XXA, Z)
-    }
-    if (length(angles) > 1) {
-      XXA = XXA[, which(1 == angles)]
     }
   }
   
@@ -41,13 +38,15 @@ extendCols = function (XX, idxes=NULL, pairs=F, angles=F) {
         XX = cbind(XX, Z)
       }
     }
-    if (length(pairs) > 1) {
-      XX = XX[, which(1 == pairs)]
-    }
     #XX = cbind(XX, atan2(XX$X80 + 1, XX$X97 + 0.05))
   }
-
+  
   XX = cbind(XX, XXA)
+  
+  if (length(pairs) > 1) {
+    XX = XX[, which(1 == pairs)]
+  }
+
   XX
 }
 
