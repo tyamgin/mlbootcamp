@@ -78,6 +78,11 @@ my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F, pairs=F, an
   proc = function (X) {
     if (is.null(X))
       return(X)
+    if (is.list(X) && !is.matrix(X) && !is.data.frame(X)) {
+      return(foreach(x=X) %do% {
+        proc(x)
+      })
+    }
     
     if (ncol(X) != featuresNumber)
       stop('invalid number of columns')
@@ -106,6 +111,11 @@ my.normalizedTrain = function (XL, trainFunc, newdata=NULL) {
   proc = function (X) {
     if (is.null(X))
       return(X)
+    if (is.list(X) && !is.matrix(X) && !is.data.frame(X)) {
+      return(foreach(x=X) %do% {
+        proc(x)
+      })
+    }
     
     for (j in 1:m)
       X[, j] = (X[, j] - means[j]) / sds[j]

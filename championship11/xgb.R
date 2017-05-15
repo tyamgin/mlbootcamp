@@ -1,7 +1,14 @@
-tmp.cnt = 0
 my.train.xgb = function (XLL, params, newdata=NULL) {
   XLL = unnameMatrix(XLL)
-  my.boot(XLL, function (XL, XK) {
+  hash = my.matrixHash(XLL)
+  
+  cache_filename = paste0('cache2/xgb_', hash)
+  if (my.enableCache && file.exists(cache_filename)) {
+    print('[xgb from cache]')
+    return(readRDS(cache_filename))
+  }
+  
+  ret = my.boot(XLL, function (XL, XK) {
     dtrain = xgb.DMatrix(data=XL[, -ncol(XL)], label=XL[, ncol(XL)])
     
     if (params$early_stopping_rounds <= 0) {
@@ -14,9 +21,6 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
     }
     
     num_class = length(unique(XL[, ncol(XL)]))
-    
-    #print(tmp.cnt)
-    tmp.cnt <<- tmp.cnt + 1
     
     model = xgb.train(
       data=dtrain, 
@@ -42,13 +46,29 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
     }
     
     if (!is.null(newdata)) {
-      ret = ret(newdata)
+      if (!is.list(newdata))
+        newdata = list(newdata)
+      results = list()
+      for (i in 1:length(newdata))
+        results[[i]] = ret(newdata[[i]])
+      
       rm(model)
-      return( function (X) ret )
+      return( function (X) {
+        for (i in 1:length(newdata))
+          if (my.matrixEquals(newdata[[i]], X))
+            return( results[[i]] )
+        stop('newdata is not available')
+      } )
     }
     
     ret
   }, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
+  
+  if (my.enableCache) {
+    saveRDS(ret, cache_filename)
+  }
+  
+  ret
 }
 
 
@@ -112,5 +132,5 @@ xgbWithBin123TrainAlgo = function (XL, params, newdata=NULL) {
         my.train.xgb(XL, params, newdata=newdata)
       }, newdata=newdata)
     }, idxes=xeee, pairs=xppp, angles=T, extra=F, newdata=newdata)
-  })
+  }, use23=F)
 }

@@ -1,6 +1,19 @@
 my.train.et = function (XL, params, newdata=NULL) {
   XL = unnameMatrix(XL)
-  my.boot(XL, function (XL, XK) {
+  
+  hash = my.matrixHash(XL)
+  
+  if (my.enableCache && is.null(newdata)) {
+    stop('cache without newdata is not working')
+  }
+  
+  cache_filename = paste0('cache2/et_', hash)
+  if (my.enableCache && file.exists(cache_filename)) {
+    print('[et from cache]')
+    return(readRDS(cache_filename))
+  }
+  
+  ret = my.boot(XL, function (XL, XK) {
     X = XL[, -ncol(XL)]
     colnames(X) <- paste0('X', 1:ncol(X))
     Y = factor(XL[, ncol(XL)], labels=c('a', 'b', 'c', 'd', 'e')[1:length(unique(XL[, ncol(XL)]))])
@@ -26,13 +39,29 @@ my.train.et = function (XL, params, newdata=NULL) {
     }
     
     if (!is.null(newdata)) {
-      ret = ret(newdata)
+      if (!is.list(newdata))
+        newdata = list(newdata)
+      results = list()
+      for (i in 1:length(newdata))
+        results[[i]] = ret(newdata[[i]])
+
       rm(model)
-      return( function (X) ret )
+      return( function (X) {
+        for (i in 1:length(newdata))
+          if (my.matrixEquals(newdata[[i]], X))
+            return( results[[i]] )
+        stop('newdata is not available')
+      } )
     }
     
     ret
   }, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
+  
+  if (my.enableCache) {
+    saveRDS(ret, cache_filename)
+  }
+  
+  ret
 }
 
 
@@ -93,28 +122,32 @@ etWithBin123TrainAlgo = function (XL, params, newdata=NULL) {
   })
 }
 
-bin123TrainAlgo = function (XL, params, newdata=NULL, trainAlgo=NULL) {
+bin123TrainAlgo = function (XL, params, newdata=NULL, trainAlgo=NULL, use12=T, use23=T) {
   XL2 = XL
   XL2[, ncol(XL2)] = ifelse(XL2[, ncol(XL2)] <= 1, 0, 1)
   XL3 = XL
   XL3[, ncol(XL3)] = ifelse(XL3[, ncol(XL3)] <= 2, 0, 1)
   
   aa = trainAlgo(XL, params, newdata=newdata)
-  bb = trainAlgo(XL2, params, newdata=newdata)
-  #cc = trainAlgo(XL3, params, newdata=newdata)
+  if (use12) bb = trainAlgo(XL2, params, newdata=newdata)
+  if (use23) cc = trainAlgo(XL3, params, newdata=newdata)
   
   function (X) {
     A = aa(X)
-    B = bb(X)
-    #C = cc(X)
     
-    #s2 = A[,3] + A[,4]
-    #A[,3] = C[,1] * s2
-    #A[,4] = C[,2] * s2
+    if (use23) {
+      C = cc(X)
+      s2 = A[,3] + A[,4]
+      A[,3] = C[,1] * s2
+      A[,4] = C[,2] * s2
+    }
     
-    s1 = A[,2] + A[,3]
-    A[,2] = B[,1] * s1
-    A[,3] = B[,2] * s1
+    if (use12) {
+      B = bb(X)
+      s1 = A[,2] + A[,3]
+      A[,2] = B[,1] * s1
+      A[,3] = B[,2] * s1
+    }
     
     A
   }

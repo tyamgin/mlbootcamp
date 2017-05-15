@@ -34,13 +34,14 @@ logitAggregator = function (XL, teachers, newdata=NULL) {
   if (length(teachers) != 2)
     stop('2 teachers required')
   
-  models = list()
+  lst = list()
   
   validation.tqfold.enumerate(function (XL, XK, it, fold) {
     Y = XL[, ncol(XL)]
-    Y2 = unname(foreach(teach=teachers, .combine=cbind) %do% {
-      model = teach(XL, newdata=newdata)
-      r = model(XK[, -ncol(XK)])
+    models = list()
+    Y2 = unname(foreach(i=1:length(teachers), .combine=cbind) %do% {
+      models[[i]] = teachers[[i]](XL, newdata=list(newdata, XK[, -ncol(XK)]))
+      r = models[[i]](XK[, -ncol(XK)])
       colmat(r, Y + 1)
     })
     XL2 = XK
@@ -49,13 +50,13 @@ logitAggregator = function (XL, teachers, newdata=NULL) {
     
     finalModel = glmTrainAlgo(XL2)
     
-    models[it] = function (X) {
+    lst[[it]] <<- function (X) {
       pp = finalModel(X)
-      models[[1]](X) * (1 - pp) + models[[2]](X) * pp
+      models[[1]](X) * pp[, 1] + models[[2]](X) * pp[, 2]
     }
-  }, XL, folds=3, iters=1)
+  }, XL, folds=7, iters=1)
   
-  meanAggregator(models)
+  meanAggregator(lst)
 }
 
 etXgbTrainAlgo = function (XL, params.unused, newdata) {
