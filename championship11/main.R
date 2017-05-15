@@ -45,16 +45,16 @@ XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
 
 ang.result = readRDS('cache/ang.result')
 
-"
+
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
     my.roundedTrain(XL, function (XL, newdata=NULL) {
       etXgbTrainAlgo(XL, params, newdata=newdata)
     }, newdata=newdata)
   }
-}, expand.grid(lol=1), verbose=T, iters=10, use.newdata=F)
+}, expand.grid(lol=1), verbose=T, iters=15, use.newdata=F)
 exit()
-"
+
 
 "
 my.gridSearch(XLL, function (params) {
@@ -129,9 +129,9 @@ print('processing x_test...')
 #set.seed(2701);aEtwb = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=1, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
-set.seed(2709);aXgbwb = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
+set.seed(2709);aXgbwb12 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
 #exit()
-alg=aXgbwb
+alg=aXgbwb12
 
 
 "

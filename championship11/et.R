@@ -101,16 +101,16 @@ bin123TrainAlgo = function (XL, params, newdata=NULL, trainAlgo=NULL) {
   
   aa = trainAlgo(XL, params, newdata=newdata)
   bb = trainAlgo(XL2, params, newdata=newdata)
-  cc = trainAlgo(XL3, params, newdata=newdata)
+  #cc = trainAlgo(XL3, params, newdata=newdata)
   
   function (X) {
     A = aa(X)
     B = bb(X)
-    C = cc(X)
+    #C = cc(X)
     
-    s2 = A[,3] + A[,4]
-    A[,3] = C[,1] * s2
-    A[,4] = C[,2] * s2
+    #s2 = A[,3] + A[,4]
+    #A[,3] = C[,1] * s2
+    #A[,4] = C[,2] * s2
     
     s1 = A[,2] + A[,3]
     A[,2] = B[,1] * s1

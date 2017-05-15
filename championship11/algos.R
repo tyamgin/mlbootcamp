@@ -45,7 +45,11 @@ error.accuracy = function (act, pred) {
 }
 
 validation.tqfold.enumerate = function (callback, XLL, folds=5, iters=10) {
-  resamples = unname(foreach(it=1:iters, .combine=rbind) %do% sample(nrow(XLL)))
+  resamples = matrix(NA, nrow=iters, ncol=nrow(XLL))
+  for (i in 1:iters) {
+    resamples[i, ] = sample(nrow(XLL))
+  }
+  
   for (it in 1:iters) {
     perm = resamples[it, ]
     for (fold in 1:folds) {
