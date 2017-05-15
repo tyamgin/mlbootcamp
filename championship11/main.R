@@ -72,8 +72,8 @@ exit()
 "
 
 xgbParams = expand.grid(
-  iters=1,
-  rowsFactor=1,
+  iters=100,
+  rowsFactor=0.96,
   
   max_depth=9, 
   gamma=0,
@@ -109,7 +109,7 @@ aqsdasd=2
 )
 "
 
-
+"
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     my.roundedTrain(XL, function (XL, newdata) {
@@ -119,7 +119,7 @@ my.gridSearch(XLL, function (params) {
   }
 }, xgbParams, verbose=T, iters=15, use.newdata=T)
 exit()          
-
+"
 
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 colnames(XXX) = paste0('X', 1:ncol(XXX))
@@ -129,9 +129,9 @@ print('processing x_test...')
 #set.seed(2701);aEtwb = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=1, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
-#set.seed(2709);aXgbwb = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
+set.seed(2709);aXgbwb = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
 #exit()
-#alg=aXgbwb
+alg=aXgbwb
 
 
 "
@@ -146,7 +146,7 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T), tea
 "
 
 
-
+"
 set.seed(23)
 addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=T, angles=T), teach=function (XL) {
   my.roundedTrain(XL, function (XL, newdata=NULL) {
@@ -155,9 +155,9 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=T, angl
     })
   })
 }, startVec=xppp)
+"
 
-
-
+"
 set.seed(427333)
 addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T, angles=T), teach=function (XL) {
   my.roundedTrain(XL, function (XL, newdata=NULL) {
@@ -169,7 +169,7 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T, angl
               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))
-
+"
 
 
 # https://www.r-bloggers.com/7-visualizations-you-should-learn-in-r/
@@ -194,7 +194,7 @@ qwe = function (XL) {
     aXgbwb
   ), w=c(3/4, 1/4))
 }
-alg = qwe(XLL)
+#alg = qwe(XLL)
 
 #set.seed(2707);
 
