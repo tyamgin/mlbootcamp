@@ -49,9 +49,9 @@ extendCols = function (XX, idxes=NULL, pairs=F, angles=F, x11=F) {
     XX = XX[, which(1 == pairs)]
   }
   
-  if (x11) {
+  #if (x11) {
     XX = cbind(XX, ifelse(X11 == 0, 0, 1))
-  }
+  #}
 
   XX
 }

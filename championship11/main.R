@@ -63,7 +63,7 @@ xgbParams = expand.grid(
   early_stopping_rounds=0,
   num_parallel_tree=1
 )
-
+"
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
     my.roundedTrain(XL, function (XL, newdata=NULL) {
@@ -76,7 +76,7 @@ my.gridSearch(XLL, function (params) {
                iters=1,
                lol=1), verbose=T, iters=15, use.newdata=T)
 exit()
-
+"
 
 "
 my.gridSearch(XLL, function (params) {
