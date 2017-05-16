@@ -4,9 +4,11 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
   
   cache_filename = paste0('cache2/xgb_', hash)
   if (my.enableCache && file.exists(cache_filename)) {
-    print('[xgb from cache]')
+    #print('[xgb from cache]')
+    my.boot(XLL, function (XL, XK) {}, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
     return(readRDS(cache_filename))
   }
+  if (my.enableCache) stop('STOP1')
   
   ret = my.boot(XLL, function (XL, XK) {
     dtrain = xgb.DMatrix(data=XL[, -ncol(XL)], label=XL[, ncol(XL)])
@@ -46,7 +48,7 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
     }
     
     if (!is.null(newdata)) {
-      if (!is.list(newdata))
+      if (is.matrix(newdata) || is.data.frame(newdata))
         newdata = list(newdata)
       results = list()
       for (i in 1:length(newdata))
@@ -57,7 +59,8 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
         for (i in 1:length(newdata))
           if (my.matrixEquals(newdata[[i]], X))
             return( results[[i]] )
-        stop('newdata is not available')
+        
+        stop('[xgb] newdata is not available')
       } )
     }
     
@@ -116,6 +119,16 @@ xppp=c(1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,1,0,0,0,1,0,0
        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,
        0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
        0,0,0,0,0) #new 
+
+"xppp=c(1,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,1,0,
+       0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+       0,0,0,0,0,0,0,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+       0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+       0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+       1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,
+       0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+       0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,
+       0,0,1,0,0,0,0,0,0) # new2"
 
 xgbTrainAlgo = function (XL, params, newdata=NULL) {
   my.extendedColsTrain(XL, function(XL, newdata=NULL) {

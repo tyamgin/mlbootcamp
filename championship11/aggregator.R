@@ -30,7 +30,11 @@ colmat = function (X, idxes) {
   res
 }
 
-logitAggregator = function (XL, teachers, newdata=NULL) {
+is.sorted = function (x) {
+  !is.unsorted(x)
+}
+
+logitAggregator = function (XL, teachers, params, newdata=NULL) {
   if (length(teachers) != 2)
     stop('2 teachers required')
   
@@ -45,21 +49,27 @@ logitAggregator = function (XL, teachers, newdata=NULL) {
       colmat(r, Y + 1)
     })
     XL2 = XK
-    for (i in 1:nrow(XL2))
+    for (i in 1:nrow(XL2)) {
       XL2[i, ncol(XL2)] = which.max(Y2[i, ]) - 1
+    }
     
-    finalModel = glmTrainAlgo(XL2)
+    idxes = rep(0, ncol(XL))
+    for (i in intCols) idxes[i] = 1
+    finalModel = my.extendedColsTrain(XL2, function (XL, newdata=NULL) { 
+      glmTrainAlgo(XL) 
+    }, idxes=idxes)
+    
     
     lst[[it]] <<- function (X) {
       pp = finalModel(X)
       models[[1]](X) * pp[, 1] + models[[2]](X) * pp[, 2]
     }
-  }, XL, folds=7, iters=1)
+  }, XL, folds=7, iters=params$iters)
   
   meanAggregator(lst)
 }
 
-etXgbTrainAlgo = function (XL, params.unused, newdata) {
+etXgbTrainAlgo = function (XL, params, newdata) {
   logitAggregator(XL, c(
     function (XL, newdata=NULL) {
       etWithBin123TrainAlgo(XL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=1, rowsFactor=1, extra=F), newdata=newdata)
@@ -67,36 +77,24 @@ etXgbTrainAlgo = function (XL, params.unused, newdata) {
     function (XL, newdata=NULL) {
       xgbWithBin123TrainAlgo(XL, xgbParams, newdata=newdata)
     }
-  ), newdata=newdata)
+  ), params, newdata=newdata)
 }
-"
-etXgbTrainAlgo = function (XL, params.unused, newdata) {
-  logitAggregator(XL, c(
-    etTrainAlgo(XL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=1, rowsFactor=1, extra=F), newdata=newdata),
-    xgbTrainAlgo(XL, expand.grid(  iters=1,
-                                   rowsFactor=1,
-                                   
-                                   max_depth=7, 
-                                   gamma=0, 
-                                   lambda=0.129457, 
-                                   alpha=0.812294, 
-                                   eta=0.03,
-                                   colsample_bytree=0.630299,
-                                   min_child_weight=3,
-                                   subsample=0.8,
-                                   nthread=4, 
-                                   nrounds=c(800),
-                                   early_stopping_rounds=0,
-                                   num_parallel_tree=1), newdata=newdata)
-  ))
+
+etXgbMeanTrainAlgo = function (XL, params, newdata) {
+  meanAggregator(c(
+    etWithBin123TrainAlgo(XL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=1, rowsFactor=1, extra=F), newdata=newdata),
+    xgbWithBin123TrainAlgo(XL, xgbParams, newdata=newdata)
+  ), c(params$p1, 1 - params$p1))
 }
-"
+
 
 
 meanAggregator = function (baseAlgos, w=NULL) {
   l = length(baseAlgos)
   if (is.null(w))
     w = rep(1/l, l)
+  else if (sum(w) != 1)
+    stop('sum of weight\'s must be 1')
   function(x) {
     s = 0
     for (i in 1:l) {

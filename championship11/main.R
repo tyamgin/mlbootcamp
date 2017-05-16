@@ -47,8 +47,8 @@ XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
 ang.result = readRDS('cache/ang.result')
 
 xgbParams = expand.grid(
-  iters=1,
-  rowsFactor=1,
+  iters=100,
+  rowsFactor=0.96,
   
   max_depth=9, 
   gamma=0,
@@ -67,10 +67,14 @@ xgbParams = expand.grid(
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
     my.roundedTrain(XL, function (XL, newdata=NULL) {
-      etXgbTrainAlgo(XL, params, newdata=newdata)
-    }, newdata=newdata)
+      etXgbMeanTrainAlgo(XL, params, newdata=newdata)
+      #etXgbTrainAlgo(XL, params, newdata=newdata)
+    },  newdata=newdata)
   }
-}, expand.grid(lol=1), verbose=T, iters=15, use.newdata=T)
+}, expand.grid(
+               p1=seq(from=0.7142857, to=0.9285714, length.out=10), 
+               #iters=1,
+               lol=1), verbose=T, iters=15, use.newdata=T)
 exit()
 "
 
@@ -115,8 +119,8 @@ aqsdasd=2
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     my.roundedTrain(XL, function (XL, newdata) {
-      #xgbTrainAlgo(XL, params)
-      xgbWithBin123TrainAlgo(XL, params)
+      xgbTrainAlgo(XL, params)
+      #xgbWithBin123TrainAlgo(XL, params)
     })
   }
 }, xgbParams, verbose=T, iters=15, use.newdata=T)
@@ -131,9 +135,10 @@ print('processing x_test...')
 #set.seed(2701);aEtwb = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=1, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
-#set.seed(2709);aXgbwb12 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
+#set.seed(2709);aXgbwb12_11 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
+#set.seed(2709);aEtxgb = etXgbTrainAlgo(XLL, expand.grid(iters=15), newdata=XXX)
 #exit()
-alg=aXgbwb12
+#alg=aXgbwb12_11
 
 
 "
@@ -194,7 +199,7 @@ qwe = function (XL) {
   meanAggregator(c(
     aEtwb,
     aXgbwb12
-  ), w=c(2/3, 1/3))
+  ), w=c(0.8333333, 1-0.8333333))
 }
 alg = qwe(XLL)
 

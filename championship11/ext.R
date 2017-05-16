@@ -5,6 +5,8 @@ unnameMatrix = function (XX)
   as.matrix(unname(data.matrix(XX)))
 
 extendCols = function (XX, idxes=NULL, pairs=F, angles=F) {
+  X11 = XX$X11
+  
   XXA = matrix(NA, nrow=nrow(XX), ncol=0)
   if (is.logical(angles) && angles) {
     for (i in 1:nrow(ang.result[order(ang.result$cost),])) {
@@ -45,6 +47,10 @@ extendCols = function (XX, idxes=NULL, pairs=F, angles=F) {
   
   if (length(pairs) > 1) {
     XX = XX[, which(1 == pairs)]
+  }
+  
+  if (is.logical(pairs) && pairs || length(pairs) > 1) {
+    XX = cbind(XX, ifelse(X11 == 0, 0, 1))
   }
 
   XX

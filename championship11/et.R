@@ -9,9 +9,11 @@ my.train.et = function (XL, params, newdata=NULL) {
   
   cache_filename = paste0('cache2/et_', hash)
   if (my.enableCache && file.exists(cache_filename)) {
-    print('[et from cache]')
+    #print('[et from cache]')
+    my.boot(XLL, function (XL, XK) {}, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
     return(readRDS(cache_filename))
   }
+  if (my.enableCache) stop('STOP')
   
   ret = my.boot(XL, function (XL, XK) {
     X = XL[, -ncol(XL)]
@@ -39,7 +41,7 @@ my.train.et = function (XL, params, newdata=NULL) {
     }
     
     if (!is.null(newdata)) {
-      if (!is.list(newdata))
+      if (is.matrix(newdata) || is.data.frame(newdata))
         newdata = list(newdata)
       results = list()
       for (i in 1:length(newdata))
@@ -50,7 +52,8 @@ my.train.et = function (XL, params, newdata=NULL) {
         for (i in 1:length(newdata))
           if (my.matrixEquals(newdata[[i]], X))
             return( results[[i]] )
-        stop('newdata is not available')
+        
+        stop('[et] newdata is not available')
       } )
     }
     
