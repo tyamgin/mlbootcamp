@@ -201,7 +201,7 @@ qwe = function (XL) {
     aXgbwb12_11
   ), w=c(0.8333333, 1-0.8333333))
 }
-#alg = qwe(XLL)
+alg = qwe(XLL)
 
 #set.seed(2707);
 
