@@ -138,7 +138,7 @@ print('processing x_test...')
 #set.seed(2709);aXgbwb12_11 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
 #set.seed(2709);aEtxgb = etXgbTrainAlgo(XLL, expand.grid(iters=15), newdata=XXX)
 #exit()
-#alg=aXgbwb12_11
+alg=aXgbwb12_11
 
 
 "
@@ -198,10 +198,10 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T, angl
 qwe = function (XL) {
   meanAggregator(c(
     aEtwb,
-    aXgbwb12
+    aXgbwb12_11
   ), w=c(0.8333333, 1-0.8333333))
 }
-alg = qwe(XLL)
+#alg = qwe(XLL)
 
 #set.seed(2707);
 
