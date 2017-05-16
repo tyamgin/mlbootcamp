@@ -94,7 +94,7 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F, use.
   validation.tqfold.enumerate(function (XL, XK, it, fold) {
     if (seed > 0) {
       set.seed(seed)
-      seed <<- 0
+      #seed <<- 0
     }
     
     act = XK[, ncol(XL)]

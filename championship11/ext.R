@@ -4,7 +4,7 @@ jgc <- function()
 unnameMatrix = function (XX) 
   as.matrix(unname(data.matrix(XX)))
 
-extendCols = function (XX, idxes=NULL, pairs=F, angles=F) {
+extendCols = function (XX, idxes=NULL, pairs=F, angles=F, x11=F) {
   X11 = XX$X11
   
   XXA = matrix(NA, nrow=nrow(XX), ncol=0)
@@ -49,17 +49,17 @@ extendCols = function (XX, idxes=NULL, pairs=F, angles=F) {
     XX = XX[, which(1 == pairs)]
   }
   
-  if (is.logical(pairs) && pairs || length(pairs) > 1) {
+  if (x11) {
     XX = cbind(XX, ifelse(X11 == 0, 0, 1))
   }
 
   XX
 }
 
-extendXYCols = function (XL, idxes, pairs, angles) {
+extendXYCols = function (XL, idxes, pairs, angles, x11) {
   X = XL[, -ncol(XL), drop=F]
   Y = XL[, ncol(XL), drop=F]
-  X = extendCols(X, idxes, pairs, angles)
+  X = extendCols(X, idxes, pairs, angles, x11)
   cbind(X, Y)
 }
 
@@ -73,13 +73,13 @@ eext = function (X) {
   R
 }
 
-my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F, pairs=F, angles=F, newdata=NULL) {
+my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F, pairs=F, angles=F, x11=F, newdata=NULL) {
   featuresNumber = ncol(XL) - 1
   
   if (extra)
     XL = cbind(XL[,-ncol(XL)], eext(XL), XL[,ncol(XL)])
   
-  XL = extendXYCols(XL, idxes, pairs, angles)
+  XL = extendXYCols(XL, idxes, pairs, angles, x11)
   
   proc = function (X) {
     if (is.null(X))
@@ -96,7 +96,7 @@ my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F, pairs=F, an
     if (extra)
       X = cbind(X, eext(X))
     
-    X = extendCols(X, idxes, pairs, angles)
+    X = extendCols(X, idxes, pairs, angles, x11)
     X
   }
   model = trainFunc(XL, newdata=proc(newdata))

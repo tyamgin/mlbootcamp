@@ -3,12 +3,12 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
   hash = my.matrixHash(XLL)
   
   cache_filename = paste0('cache2/xgb_', hash)
-  if (my.enableCache && file.exists(cache_filename)) {
+  if (F && my.enableCache && file.exists(cache_filename)) {
     #print('[xgb from cache]')
     my.boot(XLL, function (XL, XK) {}, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
     return(readRDS(cache_filename))
   }
-  if (my.enableCache) stop('STOP1')
+  #if (my.enableCache) stop('STOP1')
   
   ret = my.boot(XLL, function (XL, XK) {
     dtrain = xgb.DMatrix(data=XL[, -ncol(XL)], label=XL[, ncol(XL)])
@@ -135,7 +135,7 @@ xgbTrainAlgo = function (XL, params, newdata=NULL) {
     my.normalizedTrain(XL, function (XL, newdata=NULL) {
       my.train.xgb(XL, params, newdata)
     }, newdata=newdata)
-  }, idxes=xeee, pairs=xppp, angles=T, newdata=newdata)
+  }, idxes=xeee, pairs=xppp, angles=T, x11=T, newdata=newdata)
 }
 
 xgbWithBin123TrainAlgo = function (XL, params, newdata=NULL) {
@@ -144,6 +144,6 @@ xgbWithBin123TrainAlgo = function (XL, params, newdata=NULL) {
       my.normalizedTrain(XL, function (XL, newdata=NULL) {
         my.train.xgb(XL, params, newdata=newdata)
       }, newdata=newdata)
-    }, idxes=xeee, pairs=xppp, angles=T, extra=F, newdata=newdata)
+    }, idxes=xeee, pairs=xppp, angles=T, extra=F, x11=T, newdata=newdata)
   }, use23=F)
 }

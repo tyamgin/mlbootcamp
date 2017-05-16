@@ -64,7 +64,7 @@ logitAggregator = function (XL, teachers, params, newdata=NULL) {
       pp = finalModel(X)
       models[[1]](X) * pp[, 1] + models[[2]](X) * pp[, 2]
     }
-  }, XL, folds=7, iters=params$iters)
+  }, XL, folds=12, iters=params$iters)
   
   meanAggregator(lst)
 }

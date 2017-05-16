@@ -47,8 +47,8 @@ XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
 ang.result = readRDS('cache/ang.result')
 
 xgbParams = expand.grid(
-  iters=100,
-  rowsFactor=0.96,
+  iters=1,
+  rowsFactor=1,
   
   max_depth=9, 
   gamma=0,
@@ -63,20 +63,20 @@ xgbParams = expand.grid(
   early_stopping_rounds=0,
   num_parallel_tree=1
 )
-"
+
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
     my.roundedTrain(XL, function (XL, newdata=NULL) {
-      etXgbMeanTrainAlgo(XL, params, newdata=newdata)
-      #etXgbTrainAlgo(XL, params, newdata=newdata)
+      #etXgbMeanTrainAlgo(XL, params, newdata=newdata)
+      etXgbTrainAlgo(XL, params, newdata=newdata)
     },  newdata=newdata)
   }
 }, expand.grid(
-               p1=seq(from=0.7142857, to=0.9285714, length.out=10), 
-               #iters=1,
+               #p1=seq(from=0.7142857, to=0.9285714, length.out=10), 
+               iters=1,
                lol=1), verbose=T, iters=15, use.newdata=T)
 exit()
-"
+
 
 "
 my.gridSearch(XLL, function (params) {
@@ -199,7 +199,7 @@ qwe = function (XL) {
   meanAggregator(c(
     aEtwb,
     aXgbwb12_11
-  ), w=c(0.6, 0.4))
+  ), w=c(0.5, 0.5))
 }
 alg = qwe(XLL)
 
