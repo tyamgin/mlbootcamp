@@ -28,7 +28,7 @@ tqfoldEstimation = function(XL, G, teach) {
   subXL = XL[, c(which(G == 1), m + 1)]
   
   my.set.seed(111)
-  e = mean(validation.tqfold(subXL, teach, folds=7, iters=15, verbose=F))
+  e = mean(validation.tqfold(subXL, teach, folds=7, iters=7, verbose=F))
   my.restore.seed()
   list(int=e, ext=e)
 }
@@ -151,7 +151,8 @@ addRemoveSelect = function(iterations,  # количество итераций
   tries = c()
   
   for (it in 1:iterations) {
-    addOrRemove = sample(0:1, 1)
+    #addOrRemove = sample(0:1, 1)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    addOrRemove = 0
     i = -1
     for (k in sample(size)) {
       if (vec[k] != addOrRemove)

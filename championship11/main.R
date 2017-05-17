@@ -48,9 +48,9 @@ ang.result = readRDS('cache/ang.result')
 
 xgbParams = expand.grid(
   iters=1,
-  rowsFactor=1,
+  rowsFactor=0.97,
   
-  max_depth=9, 
+  max_depth=13, 
   gamma=0,
   lambda=0.2,
   alpha=0.812294, 
@@ -59,10 +59,11 @@ xgbParams = expand.grid(
   min_child_weight=1,
   subsample=c(0.8),
   nthread=4, 
-  nrounds=c(600),
+  nrounds=c(500),
   early_stopping_rounds=0,
   num_parallel_tree=1
 )
+
 "
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
@@ -72,9 +73,10 @@ my.gridSearch(XLL, function (params) {
     },  newdata=newdata)
   }
 }, expand.grid(
-               #p1=seq(from=0.7142857, to=0.9285714, length.out=10), 
+               #p1=seq(from=0.6, to=0.9, length.out=8), 
                iters=1,
-               lol=1), verbose=T, iters=15, use.newdata=T)
+                #p1=0.6,
+               lol=1), verbose=F, iters=15, use.newdata=T)
 exit()
 "
 
@@ -91,28 +93,6 @@ my.gridSearch(XLL, function (params) {
   }
 }, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, extra=F, k=2), verbose=T, iters=22, use.newdata=T)
 exit()
-"
-
-
-"
-xgbParams = expand.grid(
-iters=1,
-rowsFactor=1,
-
-max_depth=9, 
-gamma=0, 
-lambda=0.2,
-alpha=0.812294, 
-eta=0.03,
-colsample_bytree=0.630299,
-min_child_weight=1,
-subsample=0.8,
-nthread=4, 
-nrounds=c(800),
-early_stopping_rounds=0,
-num_parallel_tree=1,
-aqsdasd=2
-)
 "
 
 "
@@ -138,7 +118,7 @@ print('processing x_test...')
 #set.seed(2709);aXgbwb12_11 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
 #set.seed(2709);aEtxgb = etXgbTrainAlgo(XLL, expand.grid(iters=15), newdata=XXX)
 #exit()
-#alg=aEtwb_11
+alg=aXgbwb12_11
 
 
 "
@@ -154,14 +134,14 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T), tea
 
 
 "
-set.seed(23)
-addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=T, angles=T), teach=function (XL) {
+set.seed(2563)
+addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=xeee, pairs=xppp, angles=T, x11=T, x11bin=T), teach=function (XL) {
   my.roundedTrain(XL, function (XL, newdata=NULL) {
     my.normalizedTrain(XL, function (XL, newdata=NULL) {
       my.train.xgb(XL, xgbParams)
     })
   })
-}, startVec=xppp)
+}, startVec=rep(1, ncol(extendXYCols(XLL, idxes=xeee, pairs=xppp, angles=T, x11=T, x11bin=F))+1))
 "
 
 "
@@ -201,7 +181,7 @@ qwe = function (XL) {
     aXgbwb12_11
   ), w=c(0.5, 0.5))
 }
-alg = qwe(XLL)
+#alg = qwe(XLL)
 
 #set.seed(2707);
 

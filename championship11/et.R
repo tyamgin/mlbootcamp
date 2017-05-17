@@ -8,12 +8,12 @@ my.train.et = function (XL, params, newdata=NULL) {
   }
   
   cache_filename = paste0('cache2/et_', hash)
-  if (F && my.enableCache && file.exists(cache_filename)) {
+  if (my.enableCache && file.exists(cache_filename)) {
     #print('[et from cache]')
     my.boot(XLL, function (XL, XK) {}, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
     return(readRDS(cache_filename))
   }
-  #if (my.enableCache) stop('STOP')
+  if (my.enableCache) stop('STOP')
   
   ret = my.boot(XL, function (XL, XK) {
     X = XL[, -ncol(XL)]

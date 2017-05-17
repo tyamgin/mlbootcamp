@@ -4,8 +4,22 @@ jgc <- function()
 unnameMatrix = function (XX) 
   as.matrix(unname(data.matrix(XX)))
 
-extendCols = function (XX, idxes=NULL, pairs=F, angles=F, x11=F) {
+extendCols = function (XX, idxes=NULL, pairs=F, angles=F, x11=F, x11bin=F) {
   X11 = XX$X11
+  
+  if (x11bin) {
+    XXB = foreach(col=intCols, .combine=cbind) %do% {
+      x = XX[, col]
+      a = ifelse(X11 == 0, x, NA)
+      b = ifelse(X11 != 0, x, NA)
+      r = matrix(c(a, b), ncol=2)
+      cname = colnames(XX)[col]
+      colnames(r) = c(paste0(cname, '_11_0'), paste0(cname, '_11_1'))
+      r
+    }
+  } else {
+    XXB = matrix(NA, nrow=nrow(XX), ncol=0)  
+  }
   
   XXA = matrix(NA, nrow=nrow(XX), ncol=0)
   if (is.logical(angles) && angles) {
@@ -49,37 +63,26 @@ extendCols = function (XX, idxes=NULL, pairs=F, angles=F, x11=F) {
     XX = XX[, which(1 == pairs)]
   }
   
-  #if (x11) {
+  if (x11) {
     XX = cbind(XX, ifelse(X11 == 0, 0, 1))
-  #}
-
+  }
+  
+  XX = cbind(XX, XXB)
+  
   XX
 }
 
-extendXYCols = function (XL, idxes, pairs, angles, x11) {
+extendXYCols = function (XL, ...) {
   X = XL[, -ncol(XL), drop=F]
   Y = XL[, ncol(XL), drop=F]
-  X = extendCols(X, idxes, pairs, angles, x11)
+  X = extendCols(X, ...)
   cbind(X, Y)
 }
 
-eext = function (X) {
-  R = matrix(NA, nrow=nrow(X), ncol=0)
-  for(i in 1:nrow(gl.mat)) {
-    thr = gl.mat$threshold[i]
-    col = gl.mat$col[i]
-    R = cbind(ifelse(X[, col] < thr, 0, 1), R)
-  }
-  R
-}
-
-my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F, pairs=F, angles=F, x11=F, newdata=NULL) {
+my.extendedColsTrain = function (XL, trainFunc, ..., newdata=NULL) {
   featuresNumber = ncol(XL) - 1
-  
-  if (extra)
-    XL = cbind(XL[,-ncol(XL)], eext(XL), XL[,ncol(XL)])
-  
-  XL = extendXYCols(XL, idxes, pairs, angles, x11)
+
+  XL = extendXYCols(XL, ...)
   
   proc = function (X) {
     if (is.null(X))
@@ -93,10 +96,7 @@ my.extendedColsTrain = function (XL, trainFunc, idxes=NULL, extra=F, pairs=F, an
     if (ncol(X) != featuresNumber)
       stop('invalid number of columns')
     
-    if (extra)
-      X = cbind(X, eext(X))
-    
-    X = extendCols(X, idxes, pairs, angles, x11)
+    X = extendCols(X, ...)
     X
   }
   model = trainFunc(XL, newdata=proc(newdata))
@@ -109,22 +109,22 @@ my.normalizedTrain = function (XL, trainFunc, newdata=NULL) {
   means = rep(NA, m)
   sds = rep(NA, m)
   for (j in 1:m) {
-    means[j] = mean(XL[, j])
-    sds[j] = sd(XL[, j])
-    XL[, j] = (XL[, j] - means[j]) / sds[j]
+    idxes = which(!is.na(XL[, j]))
+    means[j] = mean(XL[idxes, j])
+    sds[j] = sd(XL[idxes, j])
+    XL[idxes, j] = (XL[idxes, j] - means[j]) / sds[j]
   }
   
   proc = function (X) {
     if (is.null(X))
-      return(X)
-    if (is.list(X) && !is.matrix(X) && !is.data.frame(X)) {
-      return(foreach(x=X) %do% {
-        proc(x)
-      })
-    }
+      return( X )
+    if (is.list(X) && !is.matrix(X) && !is.data.frame(X))
+      return( foreach(x=X) %do% proc(x) )
     
-    for (j in 1:m)
-      X[, j] = (X[, j] - means[j]) / sds[j]
+    for (j in 1:m) {
+      idxes = which(!is.na(X[, j]))
+      X[idxes, j] = (X[idxes, j] - means[j]) / sds[j]
+    }
     X
   }
   
