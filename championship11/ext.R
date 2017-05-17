@@ -8,7 +8,8 @@ extendCols = function (XX, idxes=NULL, pairs=F, angles=F, x11=F, x11bin=F) {
   X11 = XX$X11
   
   if (x11bin) {
-    XXB = foreach(col=intCols, .combine=cbind) %do% {
+    #intCols
+    XXB = foreach(col=c(12,77,80,139), .combine=cbind) %do% {
       x = XX[, col]
       a = ifelse(X11 == 0, x, NA)
       b = ifelse(X11 != 0, x, NA)

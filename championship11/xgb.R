@@ -135,7 +135,7 @@ xgbTrainAlgo = function (XL, params, newdata=NULL) {
     my.normalizedTrain(XL, function (XL, newdata=NULL) {
       my.train.xgb(XL, params, newdata)
     }, newdata=newdata)
-  }, idxes=xeee, pairs=xppp, angles=T, x11=T, newdata=newdata)
+  }, idxes=xeee, pairs=xppp, angles=T, x11=T, x11bin=T, newdata=newdata)
 }
 
 xgbWithBin123TrainAlgo = function (XL, params, newdata=NULL) {

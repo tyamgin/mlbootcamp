@@ -47,8 +47,8 @@ XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
 ang.result = readRDS('cache/ang.result')
 
 xgbParams = expand.grid(
-  iters=100,
-  rowsFactor=0.97,
+  iters=1,
+  rowsFactor=1,
   
   max_depth=13, 
   gamma=0,
@@ -95,7 +95,6 @@ my.gridSearch(XLL, function (params) {
 exit()
 "
 
-"
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     my.roundedTrain(XL, function (XL, newdata) {
@@ -105,7 +104,7 @@ my.gridSearch(XLL, function (params) {
   }
 }, xgbParams, verbose=T, iters=15, use.newdata=T)
 exit()          
-"
+
 
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 colnames(XXX) = paste0('X', 1:ncol(XXX))
@@ -118,7 +117,7 @@ print('processing x_test...')
 #set.seed(2709);aXgbwb12_11 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
 #set.seed(2709);aEtxgb = etXgbTrainAlgo(XLL, expand.grid(iters=15), newdata=XXX)
 #exit()
-alg=aXgbwb12_11
+alg=aXgb
 
 
 "
@@ -181,7 +180,7 @@ qwe = function (XL) {
     aXgbwb12_11
   ), w=c(0.6, 0.4))
 }
-alg = qwe(XLL)
+#alg = qwe(XLL)
 
 #set.seed(2707);
 
