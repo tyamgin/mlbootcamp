@@ -94,7 +94,7 @@ my.gridSearch(XLL, function (params) {
 }, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, extra=F, k=2), verbose=T, iters=22, use.newdata=T)
 exit()
 "
-
+"
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     my.roundedTrain(XL, function (XL, newdata) {
@@ -104,7 +104,7 @@ my.gridSearch(XLL, function (params) {
   }
 }, xgbParams, verbose=T, iters=15, use.newdata=T)
 exit()          
-
+"
 
 XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
 colnames(XXX) = paste0('X', 1:ncol(XXX))
@@ -177,10 +177,10 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T, angl
 qwe = function (XL) {
   meanAggregator(c(
     aEtwb,
-    aXgbwb12_11
+    aXgb
   ), w=c(0.6, 0.4))
 }
-#alg = qwe(XLL)
+alg = qwe(XLL)
 
 #set.seed(2707);
 
