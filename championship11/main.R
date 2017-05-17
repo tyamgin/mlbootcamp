@@ -47,7 +47,7 @@ XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
 ang.result = readRDS('cache/ang.result')
 
 xgbParams = expand.grid(
-  iters=1,
+  iters=100,
   rowsFactor=0.97,
   
   max_depth=13, 
@@ -179,7 +179,7 @@ qwe = function (XL) {
   meanAggregator(c(
     aEtwb,
     aXgbwb12_11
-  ), w=c(0.5, 0.5))
+  ), w=c(0.6, 0.4))
 }
 #alg = qwe(XLL)
 
