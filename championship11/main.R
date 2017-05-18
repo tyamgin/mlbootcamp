@@ -41,6 +41,10 @@ colnames(XX) = paste0('X', 1:ncol(XX))
 #XX = my.data.transformFeatures(XX)
 XLL = cbind(data.matrix(XX), YY)
 
+XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
+colnames(XXX) = paste0('X', 1:ncol(XXX))
+XXX = my.data.transformFeatures(XXX)
+
 XLLbin12 = XLL
 XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
 
@@ -58,7 +62,7 @@ xgbParams = expand.grid(
   colsample_bytree=c(0.5),
   min_child_weight=1,
   subsample=c(0.8),
-  nthread=4, 
+  nthread=1, 
   nrounds=c(500),
   early_stopping_rounds=0,
   num_parallel_tree=1
@@ -84,17 +88,18 @@ exit()
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
     my.roundedTrain(XL, function (XL, newdata=NULL) {
-      #etWithBin123TrainAlgo(XL, params, newdata=newdata)
-      etTrainAlgo(XL, params, newdata=newdata)
+      etWithBin123TrainAlgo(XL, params, newdata=newdata)
+      #etTrainAlgo(XL, params, newdata=newdata)
       #knnTrainAlgo(XL, params, newdata=newdata)
       #knnEtTrainAlgo(XL, params, newdata=newdata)
       #etGlmTrainAlgo(XL, params)
     }, newdata=newdata)
   }
-}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, extra=F, k=2), verbose=T, iters=22, use.newdata=T)
+}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, k=2), verbose=T, iters=22, use.newdata=T)
 exit()
 "
-"
+
+
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     my.roundedTrain(XL, function (XL, newdata) {
@@ -104,11 +109,8 @@ my.gridSearch(XLL, function (params) {
   }
 }, xgbParams, verbose=T, iters=15, use.newdata=T)
 exit()          
-"
 
-XXX = read.csv(file='data/x_test.csv', head=F, sep=';', na.strings='?')
-colnames(XXX) = paste0('X', 1:ncol(XXX))
-XXX = my.data.transformFeatures(XXX)
+
 
 print('processing x_test...')
 #set.seed(2701);aEtwb_11 = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=1, extra=F), newdata=XXX); print('trained')
@@ -117,7 +119,7 @@ print('processing x_test...')
 #set.seed(2709);aXgbwb12_11 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
 #set.seed(2709);aEtxgb = etXgbTrainAlgo(XLL, expand.grid(iters=15), newdata=XXX)
 #exit()
-alg=aXgb
+#alg=aXgb
 
 
 "
@@ -131,6 +133,25 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T), tea
 }, startVec=nppp)
 "
 
+set.seed(2563)
+binRemoveSelect(XL=extendXYCols(XLL, idxes=xeee, pairs=xppp, angles=T, x11=T), binX=XLL$X11, teach=function (XL, newdata=NULL) {
+  params = expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=1, rowsFactor=1)
+  my.roundedTrain(XL, function (XL, newdata=NULL) {
+    my.normalizedTrain(XL, function (XL, newdata=NULL) {
+      my.train.xgb(XL, xgbParams, newdata=newdata)
+    }, newdata=newdata)
+    
+    #my.normalizedTrain(XL, function (XL, newdata=NULL) {
+    #  my.train.et(XL, params, newdata=newdata)
+    #}, newdata=newdata)
+    
+    #bin123TrainAlgo(XL, params, newdata=newdata, trainAlgo=function (XL, params, newdata=NULL) {
+    #  my.normalizedTrain(XL, function (XL, newdata=NULL) {
+    #    my.train.et(XL, params, newdata=newdata)
+    #  }, newdata=newdata)
+    #})
+  }, newdata=newdata)
+})
 
 "
 set.seed(2563)

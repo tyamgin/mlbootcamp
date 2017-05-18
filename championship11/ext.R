@@ -7,21 +7,6 @@ unnameMatrix = function (XX)
 extendCols = function (XX, idxes=NULL, pairs=F, angles=F, x11=F, x11bin=F) {
   X11 = XX$X11
   
-  if (x11bin) {
-    #intCols
-    XXB = foreach(col=c(12,77,80,139), .combine=cbind) %do% {
-      x = XX[, col]
-      a = ifelse(X11 == 0, x, NA)
-      b = ifelse(X11 != 0, x, NA)
-      r = matrix(c(a, b), ncol=2)
-      cname = colnames(XX)[col]
-      colnames(r) = c(paste0(cname, '_11_0'), paste0(cname, '_11_1'))
-      r
-    }
-  } else {
-    XXB = matrix(NA, nrow=nrow(XX), ncol=0)  
-  }
-  
   XXA = matrix(NA, nrow=nrow(XX), ncol=0)
   if (is.logical(angles) && angles) {
     for (i in 1:nrow(ang.result[order(ang.result$cost),])) {
@@ -50,7 +35,8 @@ extendCols = function (XX, idxes=NULL, pairs=F, angles=F, x11=F, x11bin=F) {
           colnames(Z) = paste0(cnames[i], '*', cnames[j])
           XX = cbind(XX, Z)
         }
-        Z = matrix(XX[, i] / (XX[, j] - min(XX[, j] + 1)))
+        mn = min(rbind(XLL[cnames[j]], XXX[cnames[j]]))
+        Z = matrix(XX[, i] / (XX[, j] - mn + 1))
         colnames(Z) = paste0(cnames[i], '/', cnames[j])
         XX = cbind(XX, Z)
       }
@@ -68,7 +54,22 @@ extendCols = function (XX, idxes=NULL, pairs=F, angles=F, x11=F, x11bin=F) {
     XX = cbind(XX, ifelse(X11 == 0, 0, 1))
   }
   
-  XX = cbind(XX, XXB)
+  
+  if (length(x11bin) > 1) {
+    cnames = colnames(XX)
+    XX = foreach(i=1:ncol(XX), .combine=cbind) %do% {
+      if (i %in% x11bin) {
+        x = XX[, i]
+        a = ifelse(X11 == 0, x, NA)
+        b = ifelse(X11 != 0, x, NA)
+        r = matrix(c(a, b), ncol=2)
+        colnames(r) = c(paste0(cnames[i], '_11_0'), paste0(cnames[i], '_11_1'))
+        r
+      } else {
+        XX[, i, drop=F]
+      }
+    }
+  }
   
   XX
 }

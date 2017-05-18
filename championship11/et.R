@@ -32,6 +32,7 @@ my.train.et = function (XL, params, newdata=NULL) {
                    ntree=params$ntree,
                    nodesize=params$nodesize,
                    numThreads=4,
+                   na.action='fuse',
                    tuneGrid=tuneGrid)
     
     ret = function (X) {
@@ -70,10 +71,6 @@ my.train.et = function (XL, params, newdata=NULL) {
 
 intCols = c(139,  80,  12, 201, 183,  77, 132, 157,  97, 116,  98)
 
-neee=rep(0, 223)
-for (i in intCols) {
-  neee[i] = 1
-}
 neee=c(0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
        0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
        0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -96,7 +93,7 @@ etTrainAlgo = function (XL, params, newdata=NULL) {
     my.normalizedTrain(XL, function (XL, newdata=NULL) {
       my.train.et(XL, params, newdata=newdata)
     }, newdata=newdata)
-  }, idxes=neee, pairs=nppp, angles=F, params$extra, newdata=newdata)
+  }, idxes=neee, pairs=nppp, angles=F, newdata=newdata)
 }
 
 etGlmTrainAlgo = function (XL, params) {
@@ -116,12 +113,12 @@ etGlmTrainAlgo = function (XL, params) {
 }
 
 etWithBin123TrainAlgo = function (XL, params, newdata=NULL) {
-  bin123TrainAlgo(XL, params, newdata=newdata,   trainAlgo=function (XL, params, newdata=NULL) {
+  bin123TrainAlgo(XL, params, newdata=newdata, trainAlgo=function (XL, params, newdata=NULL) {
     my.extendedColsTrain(XL, function(XL, newdata=NULL) {
       my.normalizedTrain(XL, function (XL, newdata=NULL) {
         my.train.et(XL, params, newdata=newdata)
       }, newdata=newdata)
-    }, idxes=neee, pairs=nppp, extra=params$extra, newdata=newdata)
+    }, idxes=neee, pairs=nppp, newdata=newdata)
   })
 }
 

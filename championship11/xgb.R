@@ -23,7 +23,7 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
     }
     
     num_class = length(unique(XL[, ncol(XL)]))
-    
+
     model = xgb.train(
       data=dtrain, 
       watchlist=watchlist, 
@@ -135,7 +135,7 @@ xgbTrainAlgo = function (XL, params, newdata=NULL) {
     my.normalizedTrain(XL, function (XL, newdata=NULL) {
       my.train.xgb(XL, params, newdata)
     }, newdata=newdata)
-  }, idxes=xeee, pairs=xppp, angles=T, x11=T, x11bin=T, newdata=newdata)
+  }, idxes=xeee, pairs=xppp, angles=T, x11=T, x11bin=c(1,2,3,4), newdata=newdata)
 }
 
 xgbWithBin123TrainAlgo = function (XL, params, newdata=NULL) {
@@ -144,6 +144,6 @@ xgbWithBin123TrainAlgo = function (XL, params, newdata=NULL) {
       my.normalizedTrain(XL, function (XL, newdata=NULL) {
         my.train.xgb(XL, params, newdata=newdata)
       }, newdata=newdata)
-    }, idxes=xeee, pairs=xppp, angles=T, x11=T, newdata=newdata)
+    }, idxes=xeee, pairs=xppp, angles=T, x11=T, x11bin=c(1,2,3,4), newdata=newdata)
   }, use23=F)
 }

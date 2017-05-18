@@ -202,35 +202,31 @@ addRemoveSelect = function(iterations,  # количество итераций
   }
 }
 
-binRemoveSelect = function(XL, binX, teach, startVec = c(T)) {
+binRemoveSelect = function(XL, binX, teach) {
   L = nrow(XL)
   size = ncol(XL) - 1
-  
-  vec = startVec
-  if (length(vec) < size) {
-    vec = c(vec, rep(F, size - length(vec)))
-  }
   
   iterPts = c()
   extPts = c()
   
   estimate = function (XL) {
-    my.set.seed(111)
-    e = mean(validation.tqfold(XL, teach, folds=2, iters=1, verbose=F))
+    my.set.seed(123)
+    e = mean(validation.tqfold(XL, teach, folds=7, iters=15, verbose=T, use.newdata=F, seed=232))
     my.restore.seed()
     e
   }
   
-  est = estimate(XL, vec, teach)
+  est = estimate(XL)
   print('started at')
   print(est)
-  
+  stop('13')
   cnames = colnames(XL)
   
   selToSplit = c()
   for (it in 1:size) {
     
     toSplit = c(selToSplit, it)
+    toSplit=c(1,2,3,4)##########
     
     newXL = foreach(i=1:size, .combine=cbind) %do% {
       if (i %in% toSplit) {
@@ -241,10 +237,10 @@ binRemoveSelect = function(XL, binX, teach, startVec = c(T)) {
         colnames(r) = c(paste0(cnames[i], '_11_0'), paste0(cnames[i], '_11_1'))
         r
       } else {
-        XL[, i]
+        XL[, i, drop=F]
       }
     }
-    newXL = cbind(newXL, XL[, ncol(XL)])
+    newXL = cbind(newXL, XL[, ncol(XL), drop=F])
     
     newEst = estimate(newXL)
     
@@ -263,6 +259,6 @@ binRemoveSelect = function(XL, binX, teach, startVec = c(T)) {
       
       plot(iterPts, extPts, col=rep("red", length(extPts)), pch=20)
     }
-    print(paste0('[', i, '] ', newEst, ' ', iterations - it, " iterations remains"))
+    print(paste0('[', it, '] ', newEst))
   }
 }
