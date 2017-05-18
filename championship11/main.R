@@ -51,8 +51,8 @@ XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
 ang.result = readRDS('cache/ang.result')
 
 xgbParams = expand.grid(
-  iters=1,
-  rowsFactor=1,
+  iters=100,
+  rowsFactor=0.97,
   
   max_depth=13, 
   gamma=0,
@@ -62,7 +62,7 @@ xgbParams = expand.grid(
   colsample_bytree=c(0.5),
   min_child_weight=1,
   subsample=c(0.8),
-  nthread=1, 
+  nthread=4, 
   nrounds=c(500),
   early_stopping_rounds=0,
   num_parallel_tree=1
@@ -99,27 +99,27 @@ my.gridSearch(XLL, function (params) {
 exit()
 "
 
-
+"
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     my.roundedTrain(XL, function (XL, newdata) {
-      xgbTrainAlgo(XL, params)
-      #xgbWithBin123TrainAlgo(XL, params)
+      #xgbTrainAlgo(XL, params)
+      xgbWithBin123TrainAlgo(XL, params)
     })
   }
 }, xgbParams, verbose=T, iters=15, use.newdata=T)
 exit()          
-
+"
 
 
 print('processing x_test...')
 #set.seed(2701);aEtwb_11 = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=100, rowsFactor=1, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
-#set.seed(2709);aXgbwb12_11 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX)
+set.seed(2709);aXgbwb12_11_feat1234 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX); print('trained')
 #set.seed(2709);aEtxgb = etXgbTrainAlgo(XLL, expand.grid(iters=15), newdata=XXX)
 #exit()
-#alg=aXgb
+alg=aXgbwb12_11_feat1234
 
 
 "
@@ -133,6 +133,7 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T), tea
 }, startVec=nppp)
 "
 
+"
 set.seed(2563)
 binRemoveSelect(XL=extendXYCols(XLL, idxes=xeee, pairs=xppp, angles=T, x11=T), binX=XLL$X11, teach=function (XL, newdata=NULL) {
   params = expand.grid(numRandomCuts=1, mtry=2, ntree=2000, nodesize=1, iters=1, rowsFactor=1)
@@ -152,6 +153,7 @@ binRemoveSelect(XL=extendXYCols(XLL, idxes=xeee, pairs=xppp, angles=T, x11=T), b
     #})
   }, newdata=newdata)
 })
+"
 
 "
 set.seed(2563)
@@ -201,7 +203,7 @@ qwe = function (XL) {
     aXgb
   ), w=c(0.6, 0.4))
 }
-alg = qwe(XLL)
+#alg = qwe(XLL)
 
 #set.seed(2707);
 

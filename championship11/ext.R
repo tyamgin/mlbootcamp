@@ -36,7 +36,7 @@ extendCols = function (XX, idxes=NULL, pairs=F, angles=F, x11=F, x11bin=F) {
           XX = cbind(XX, Z)
         }
         mn = min(rbind(XLL[cnames[j]], XXX[cnames[j]]))
-        Z = matrix(XX[, i] / (XX[, j] - mn + 1))
+        Z = matrix(XX[, i] / (XX[, j] - mn - 1))
         colnames(Z) = paste0(cnames[i], '/', cnames[j])
         XX = cbind(XX, Z)
       }
