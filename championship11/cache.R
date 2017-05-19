@@ -1,7 +1,7 @@
 my.rowHash = function (x) {
   x[which(is.na(x))] = 0
   x[which(is.infinite(x))] = 0
-  sum(x)+sum(diff(x))
+  mean(x)+sum(x^2)+sum(diff(x))+min(x)+max(x)+sd(x)
 }
 
 my.matrixHash = function (X) {
@@ -15,4 +15,4 @@ my.matrixEquals = function (A, B) {
   my.matrixHash(A) == my.matrixHash(B)
 }
 
-my.enableCache = F
+my.enableCache = T

@@ -13,7 +13,7 @@ my.train.et = function (XL, params, newdata=NULL) {
     my.boot(XLL, function (XL, XK) {}, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
     return(readRDS(cache_filename))
   }
-  if (my.enableCache) stop('STOP')
+  #if (my.enableCache) stop('STOP')
   
   ret = my.boot(XL, function (XL, XK) {
     X = XL[, -ncol(XL)]
