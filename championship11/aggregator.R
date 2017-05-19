@@ -81,7 +81,7 @@ etXgbTrainAlgo = function (XL, params, newdata) {
 }
 
 etXgbMeanTrainAlgo = function (XL, params, newdata) {
-  meanAggregator(c(
+  meanAggregator04(c(
     etWithBin123TrainAlgo(XL, expand.grid(numRandomCuts=1, mtry=3, ntree=2000, nodesize=1, iters=1, rowsFactor=1, extra=F), newdata=newdata),
     xgbWithBin123TrainAlgo(XL, xgbParams, newdata=newdata)
   ), c(params$p1, 1 - params$p1))
@@ -105,6 +105,31 @@ meanAggregator = function (baseAlgos, w=NULL) {
       }
     }
     s
+  }
+}
+
+meanAggregator04 = function (baseAlgos, w=NULL) {
+  l = length(baseAlgos)
+  if (is.null(w))
+    w = rep(1/l, l)
+  else if (sum(w) != 1)
+    stop('sum of weight\'s must be 1')
+  
+  if (length(baseAlgos) != 2)
+    stop('baseAlgos length must be 2')
+  
+  function(X) {
+    A = unnameMatrix(baseAlgos[[1]](X))
+    B = unnameMatrix(baseAlgos[[2]](X))
+    C = matrix(NA, nrow=nrow(A), ncol=ncol(A))
+    for (i in 1:nrow(A)) {
+      if ((which.max(A[i, ]) - 1) %in% c(0, 4)) {
+        C[i, ] = A[i, ]
+      } else {
+        C[i, ] = w[1] * A[i, ] + w[2] * B[i, ]
+      }
+    }
+    C
   }
 }
 

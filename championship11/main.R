@@ -68,6 +68,7 @@ xgbParams = expand.grid(
   num_parallel_tree=1
 )
 
+"
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
     my.roundedTrain(XL, function (XL, newdata=NULL) {
@@ -81,7 +82,7 @@ my.gridSearch(XLL, function (params) {
                 p1=0.6,
                lol=1), verbose=T, iters=15, use.newdata=T)
 exit()
-
+"
 
 "
 my.gridSearch(XLL, function (params) {
@@ -112,13 +113,13 @@ exit()
 
 
 print('processing x_test...')
-set.seed(2701);aEtwb_1_3_11_feat510 = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=3, ntree=2000, nodesize=1, iters=100, rowsFactor=1, extra=F), newdata=XXX); print('trained')
+#set.seed(2701);aEtwb_1_3_11_feat510 = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=3, ntree=2000, nodesize=1, iters=100, rowsFactor=1, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
 #set.seed(2709);aXgbwb12_11_feat1245 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX); print('trained')
 #set.seed(2709);aEtxgb = etXgbTrainAlgo(XLL, expand.grid(iters=15), newdata=XXX)
 #exit()
-alg=aEtwb_1_3_11_feat510
+#alg=aEtwb_1_3_11_feat510
 
 
 "
@@ -204,12 +205,12 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T, angl
 #lines(density((X_X[,103]-mean(X_X[,103])/sd(X_X[,103]))), col='red')
 
 qwe = function (XL) {
-  meanAggregator(c(
-    aEtwb_11_feat510,
+  meanAggregator04(c(
+    aEtwb_1_3_11_feat510,
     aXgbwb12_11_feat1245
   ), w=c(0.6, 0.4))
 }
-#alg = qwe(XLL)
+alg = qwe(XLL)
 
 #set.seed(2707);
 

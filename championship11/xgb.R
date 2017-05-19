@@ -8,7 +8,7 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
     my.boot(XLL, function (XL, XK) {}, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
     return(readRDS(cache_filename))
   }
-  #if (my.enableCache) stop('STOP1')
+  if (my.enableCache) stop('STOP1')
   
   ret = my.boot(XLL, function (XL, XK) {
     dtrain = xgb.DMatrix(data=XL[, -ncol(XL)], label=XL[, ncol(XL)])
