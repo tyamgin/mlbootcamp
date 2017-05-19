@@ -118,7 +118,7 @@ etWithBin123TrainAlgo = function (XL, params, newdata=NULL) {
       my.normalizedTrain(XL, function (XL, newdata=NULL) {
         my.train.et(XL, params, newdata=newdata)
       }, newdata=newdata)
-    }, idxes=neee, pairs=nppp, newdata=newdata)
+    }, idxes=neee, pairs=nppp, x11bin=c(5,10), newdata=newdata)
   })
 }
 

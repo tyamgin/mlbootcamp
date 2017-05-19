@@ -206,12 +206,9 @@ binRemoveSelect = function(XL, binX, teach) {
   L = nrow(XL)
   size = ncol(XL) - 1
   
-  iterPts = c()
-  extPts = c()
-  
   estimate = function (XL) {
-    my.set.seed(123)
-    e = mean(validation.tqfold(XL, teach, folds=7, iters=15, verbose=T, use.newdata=F, seed=232))
+    my.set.seed(124)
+    e = mean(validation.tqfold(XL, teach, folds=7, iters=22, verbose=F, use.newdata=T, seed=242))
     my.restore.seed()
     e
   }
@@ -219,14 +216,15 @@ binRemoveSelect = function(XL, binX, teach) {
   est = estimate(XL)
   print('started at')
   print(est)
-  stop('13')
   cnames = colnames(XL)
+  
+  iterPts = c(0)
+  extPts = c(est)
   
   selToSplit = c()
   for (it in 1:size) {
     
     toSplit = c(selToSplit, it)
-    toSplit=c(1,2,3,4)##########
     
     newXL = foreach(i=1:size, .combine=cbind) %do% {
       if (i %in% toSplit) {
