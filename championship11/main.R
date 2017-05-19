@@ -119,7 +119,7 @@ print('processing x_test...')
 #set.seed(2709);aXgbwb12_11_feat1245 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX); print('trained')
 #set.seed(2709);aEtxgb = etXgbTrainAlgo(XLL, expand.grid(iters=15), newdata=XXX)
 #exit()
-#alg=aEtwb_11_feat510
+alg=aEtwb_11_feat510
 
 
 "
