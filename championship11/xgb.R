@@ -3,12 +3,12 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
   hash = my.matrixHash(XLL)
   
   cache_filename = paste0('cache2/xgb_', hash)
-  if (my.enableCache && file.exists(cache_filename)) {
+  if ((my.enableCache == T || my.enableCache == 'readOnly') && file.exists(cache_filename)) {
     #print('[xgb from cache]')
     my.boot(XLL, function (XL, XK) {}, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
     return(readRDS(cache_filename))
   }
-  if (my.enableCache) stop('STOP1')
+  if (my.enableCache == 'readOnly') stop('my.train.xgb cache is read only')
   
   ret = my.boot(XLL, function (XL, XK) {
     dtrain = xgb.DMatrix(data=XL[, -ncol(XL)], label=XL[, ncol(XL)])
@@ -67,7 +67,7 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
     ret
   }, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
   
-  if (my.enableCache) {
+  if (my.enableCache == T) {
     saveRDS(ret, cache_filename)
   }
   
@@ -145,5 +145,5 @@ xgbWithBin123TrainAlgo = function (XL, params, newdata=NULL) {
         my.train.xgb(XL, params, newdata=newdata)
       }, newdata=newdata)
     }, idxes=xeee, pairs=xppp, angles=T, x11=T, x11bin=c(1,2,4,5), newdata=newdata)
-  }, use23=F)
+  }, use12=T, use23=F)
 }

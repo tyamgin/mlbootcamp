@@ -3,17 +3,17 @@ my.train.et = function (XL, params, newdata=NULL) {
   
   hash = my.matrixHash(XL)
   
-  if (my.enableCache && is.null(newdata)) {
+  if (my.enableCache == T && is.null(newdata)) {
     stop('cache without newdata is not working')
   }
   
   cache_filename = paste0('cache2/et_', hash)
-  if (my.enableCache && file.exists(cache_filename)) {
+  if ((my.enableCache == T || my.enableCache == 'readOnly') && file.exists(cache_filename)) {
     #print('[et from cache]')
     my.boot(XLL, function (XL, XK) {}, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
     return(readRDS(cache_filename))
   }
-  if (my.enableCache) stop('STOP')
+  if (my.enableCache == 'readOnly') stop('my.train.et cache is read only')
   
   ret = my.boot(XL, function (XL, XK) {
     X = XL[, -ncol(XL)]
@@ -61,7 +61,7 @@ my.train.et = function (XL, params, newdata=NULL) {
     ret
   }, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
   
-  if (my.enableCache) {
+  if (my.enableCache == T) {
     saveRDS(ret, cache_filename)
   }
   

@@ -85,6 +85,7 @@ etXgbMeanTrainAlgo = function (XL, params, newdata) {
     aggr = meanAggregator04
   else
     aggr = meanAggregator
+  #aggr = gmeanAggregator
   
   aggr(c(
     etWithBin123TrainAlgo(XL, expand.grid(numRandomCuts=1, mtry=3, ntree=2000, nodesize=1, iters=1, rowsFactor=1, extra=F), newdata=newdata),
@@ -113,6 +114,7 @@ meanAggregator = function (baseAlgos, w=NULL) {
   }
 }
 
+
 meanAggregator04 = function (baseAlgos, w=NULL) {
   l = length(baseAlgos)
   if (is.null(w))
@@ -123,22 +125,55 @@ meanAggregator04 = function (baseAlgos, w=NULL) {
   if (length(baseAlgos) != 2)
     stop('baseAlgos length must be 2')
   
+  readMat = function (name) {
+    m = readRDS(paste0('cache/errorMat', name))
+    m = t(m)
+    for (i in 1:nrow(m))
+      m[i, ] = m[i, ] / sum(m[i, ])
+    m
+  }
+  
+  fn = function(p, q, m1, m2) {
+    r = rep(NA, 5)
+    for (i in 1:5) {
+      r[i] = p[i] * m1[i, i]
+      for (j in 1:5) {
+        if (i != j)
+          r[i] = r[i] + p[j] * m1[i, j] * (1 - q[j])
+      }
+    }
+    r
+  }
+  
+  m = readMat('Et')
+  u = readMat('Xgb')
+  
   function(X) {
     A = unnameMatrix(baseAlgos[[1]](X))
     B = unnameMatrix(baseAlgos[[2]](X))
     C = matrix(NA, nrow=nrow(A), ncol=ncol(A))
     for (i in 1:nrow(A)) {
-      if ((which.max(A[i, ]) - 1) %in% c(0, 4)) {
-        C[i, ] = A[i, ]
-      } else {
-        C[i, ] = w[1] * A[i, ] + w[2] * B[i, ]
+      C[i, ] = w[1] * fn(A[i, ], B[i, ], m, u) + w[2] * fn(B[i, ], A[i, ], u, m)
+      #C[i, ] = A[i, ] * w[1] + B[i, ] * w[2]
+      
+      if ((which.max(C[i, ]) - 1) %in% c(4)) {
+        if ((which.max(A[i, ]) - 1) %in% c(0, 1, 2, 3)) {  
+          #C[i, 1] = 0
+          C[i, 5] = 0
+        }
       }
+      
+      #if ((which.max(A[i, ]) - 1) %in% c(0, 4)) {
+      #  C[i, ] = A[i, ]
+      #} else {
+      #  C[i, ] = w[1] * A[i, ] + w[2] * B[i, ]
+      #}
     }
     C
   }
 }
 
-gmeanAggregator = function (baseAlgos) {
+gmeanAggregator = function (baseAlgos, w=NULL) {
   l = length(baseAlgos)
   function(x) {
     s = 1
