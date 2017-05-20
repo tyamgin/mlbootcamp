@@ -48,11 +48,14 @@ XXX = my.data.transformFeatures(XXX)
 XLLbin12 = XLL
 XLLbin12[, ncol(XLLbin12)] = ifelse(XLLbin12[, ncol(XLLbin12)] <= 1, 0, 1)
 
+XLLbin23 = XLL
+XLLbin23[, ncol(XLLbin23)] = ifelse(XLLbin23[, ncol(XLLbin23)] <= 2, 0, 1)
+
 ang.result = readRDS('cache/ang.result')
 
 xgbParams = expand.grid(
-  iters=1,
-  rowsFactor=1,
+  iters=250,
+  rowsFactor=0.99,
   
   max_depth=c(13), 
   gamma=0,
@@ -102,11 +105,11 @@ exit()
 "
 
 "
-my.gridSearch(XLL, function (params) {
+my.gridSearch(XLLbin12, function (params) {
   function (XL, newdata) {
     my.roundedTrain(XL, function (XL, newdata) {
-      #xgbTrainAlgo(XL, params)
-      xgbWithBin123TrainAlgo(XL, params)
+      xgbTrainAlgo(XL, params)
+      #xgbWithBin123TrainAlgo(XL, params)
     })
   }
 }, xgbParams, verbose=T, iters=15, use.newdata=T)
@@ -118,10 +121,10 @@ print('processing x_test...')
 #set.seed(2701);aEtwb_1_3_11_feat510 = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=3, ntree=2000, nodesize=1, iters=100, rowsFactor=1, extra=F), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
-#set.seed(2709);aXgbwb12_11_feat1245 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX); print('trained')
+set.seed(2709);aXgbwb12_11_feat1245 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX); print('trained')
 #set.seed(2709);aEtxgb = etXgbTrainAlgo(XLL, expand.grid(iters=15), newdata=XXX)
 #exit()
-#alg=aEtwb_1_3_11_feat510
+alg=aXgbwb12_11_feat1245
 
 
 "
@@ -212,7 +215,7 @@ qwe = function (XL) {
     aXgbwb12_11_feat1245
   ), w=c(0.5, 0.5))
 }
-alg = qwe(XLL)
+#alg = qwe(XLL)
 
 #set.seed(2707);
 
