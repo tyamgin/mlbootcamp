@@ -81,7 +81,12 @@ etXgbTrainAlgo = function (XL, params, newdata) {
 }
 
 etXgbMeanTrainAlgo = function (XL, params, newdata) {
-  meanAggregator04(c(
+  if (params$use.04)
+    aggr = meanAggregator04
+  else
+    aggr = meanAggregator
+  
+  aggr(c(
     etWithBin123TrainAlgo(XL, expand.grid(numRandomCuts=1, mtry=3, ntree=2000, nodesize=1, iters=1, rowsFactor=1, extra=F), newdata=newdata),
     xgbWithBin123TrainAlgo(XL, xgbParams, newdata=newdata)
   ), c(params$p1, 1 - params$p1))

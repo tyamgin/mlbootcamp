@@ -54,13 +54,13 @@ xgbParams = expand.grid(
   iters=1,
   rowsFactor=1,
   
-  max_depth=13, 
+  max_depth=c(13), 
   gamma=0,
-  lambda=0.2,
+  lambda=c(0.2),
   alpha=0.812294, 
   eta=0.03,
-  colsample_bytree=c(0.5),
-  min_child_weight=1,
+  colsample_bytree=c(0.4),
+  min_child_weight=c(0.3,0.5,0.8,1,2,3),
   subsample=c(0.8),
   nthread=4, 
   nrounds=c(500),
@@ -77,12 +77,14 @@ my.gridSearch(XLL, function (params) {
     },  newdata=newdata)
   }
 }, expand.grid(
-               #p1=seq(from=0.6, to=0.9, length.out=8), 
+               use.04=c(T),
+               p1=seq(from=0.4, to=0.7, length.out=20), 
                #iters=1,
-                p1=0.6,
-               lol=1), verbose=T, iters=15, use.newdata=T)
+               #p1=0.4,
+               lol=1), verbose=F, iters=15, use.newdata=T)
 exit()
 "
+
 
 "
 my.gridSearch(XLL, function (params) {
@@ -107,7 +109,7 @@ my.gridSearch(XLL, function (params) {
       xgbWithBin123TrainAlgo(XL, params)
     })
   }
-}, xgbParams, verbose=T, iters=15, use.newdata=T)
+}, xgbParams, verbose=F, iters=15, use.newdata=T)
 exit()          
 "
 
@@ -208,7 +210,7 @@ qwe = function (XL) {
   meanAggregator04(c(
     aEtwb_1_3_11_feat510,
     aXgbwb12_11_feat1245
-  ), w=c(0.6, 0.4))
+  ), w=c(0.4947368, 1-0.4947368))
 }
 alg = qwe(XLL)
 

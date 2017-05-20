@@ -15,4 +15,4 @@ my.matrixEquals = function (A, B) {
   my.matrixHash(A) == my.matrixHash(B)
 }
 
-my.enableCache = T
+my.enableCache = F
