@@ -153,8 +153,8 @@ meanAggregator04 = function (baseAlgos, w=NULL) {
     B = unnameMatrix(baseAlgos[[2]](X))
     C = matrix(NA, nrow=nrow(A), ncol=ncol(A))
     for (i in 1:nrow(A)) {
-      C[i, ] = w[1] * fn(A[i, ], B[i, ], m, u) + w[2] * fn(B[i, ], A[i, ], u, m)
-      #C[i, ] = A[i, ] * w[1] + B[i, ] * w[2]
+      #C[i, ] = w[1] * fn(A[i, ], B[i, ], m, u) + w[2] * fn(B[i, ], A[i, ], u, m)
+      C[i, ] = A[i, ] * w[1] + B[i, ] * w[2]
       
       if ((which.max(C[i, ]) - 1) %in% c(4)) {
         if ((which.max(A[i, ]) - 1) %in% c(0, 1, 2, 3)) {  
