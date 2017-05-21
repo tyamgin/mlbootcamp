@@ -17,10 +17,10 @@ my.train.knn = function (XL, params, newdata=NULL) {
   trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary)
   
   tuneGrid = expand.grid(
-    #k=params$k,
-    kmax=params$k,
-    kernel=params$kernel,
-    distance=2
+    k=params$k
+    #kmax=params$k,
+    #kernel=params$kernel,
+    #distance=2
   )
   
   model <- train(X, Y, method=params$km, metric='Accuracy',
