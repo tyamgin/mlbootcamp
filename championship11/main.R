@@ -212,10 +212,11 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(XLL, idxes=neee, pairs=T, angl
 #lines(density((X_X[,103]-mean(X_X[,103])/sd(X_X[,103]))), col='red')
 
 qwe = function (XL) {
-  meanAggregator(c(
-    readRDS('cache/aEtwb_1_2_2000_100_1'),
-    aXgbwb12_11_feat1245
-  ), w=c(0.5, 0.5))
+  meanAggregator04(c(
+    aEtwb_1_3_11_feat510,
+    aXgbwb12_11_feat1245,
+    knnTrainAlgo(XL, expand.grid(k=6, km='knn'), newdata=XXX)
+  ), w=c(0.35, 0.35, 0.3))
 }
 alg = qwe(XLL)
 
