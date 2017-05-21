@@ -89,8 +89,10 @@ etXgbMeanTrainAlgo = function (XL, params, newdata) {
   
   aggr(c(
     etWithBin123TrainAlgo(XL, expand.grid(numRandomCuts=1, mtry=3, ntree=2000, nodesize=1, iters=1, rowsFactor=1, extra=F), newdata=newdata),
-    xgbWithBin123TrainAlgo(XL, xgbParams, newdata=newdata)
-  ), c(params$p1, 1 - params$p1))
+    xgbWithBin123TrainAlgo(XL, xgbParams, newdata=newdata),
+    knnTrainAlgo(XL, expand.grid(k=6, km='knn'), newdata=newdata)
+  #), c(params$p1, 1 - params$p1))
+  ), c(1/3,1/3,1/3))
 }
 
 
@@ -122,9 +124,6 @@ meanAggregator04 = function (baseAlgos, w=NULL) {
   else if (sum(w) != 1)
     stop('sum of weight\'s must be 1')
   
-  if (length(baseAlgos) != 2)
-    stop('baseAlgos length must be 2')
-  
   readMat = function (name) {
     m = readRDS(paste0('cache/errorMat', name))
     m = t(m)
@@ -151,23 +150,25 @@ meanAggregator04 = function (baseAlgos, w=NULL) {
   function(X) {
     A = unnameMatrix(baseAlgos[[1]](X))
     B = unnameMatrix(baseAlgos[[2]](X))
+    if (length(baseAlgos) > 2)
+      K = unnameMatrix(baseAlgos[[3]](X))
+    
     C = matrix(NA, nrow=nrow(A), ncol=ncol(A))
     for (i in 1:nrow(A)) {
       #C[i, ] = w[1] * fn(A[i, ], B[i, ], m, u) + w[2] * fn(B[i, ], A[i, ], u, m)
       C[i, ] = A[i, ] * w[1] + B[i, ] * w[2]
       
+      if (length(baseAlgos) > 2)
+        if (max(K[i, ]) > 0.7)
+          C[i, ] = C[i, ] + K[i, ] * w[3]
+      
       if ((which.max(C[i, ]) - 1) %in% c(4)) {
         if ((which.max(A[i, ]) - 1) %in% c(0, 1, 2, 3)) {  
-          #C[i, 1] = 0
           C[i, 5] = 0
         }
       }
       
-      #if ((which.max(A[i, ]) - 1) %in% c(0, 4)) {
-      #  C[i, ] = A[i, ]
-      #} else {
-      #  C[i, ] = w[1] * A[i, ] + w[2] * B[i, ]
-      #}
+      
     }
     C
   }

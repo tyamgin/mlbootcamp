@@ -71,7 +71,7 @@ xgbParams = expand.grid(
   num_parallel_tree=1
 )
 
-"
+
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
     my.roundedTrain(XL, function (XL, newdata=NULL) {
@@ -81,28 +81,30 @@ my.gridSearch(XLL, function (params) {
   }
 }, expand.grid(
                use.04=c(T),
-               p1=seq(from=0.45, to=0.55, length.out=10), 
+               #p1=seq(from=0.45, to=0.55, length.out=10), 
                #iters=1,
-               #p1=0.4947368,
-               lol=1), verbose=F, iters=15, use.newdata=T)
+               p1=0.4947368,
+               lol=1), verbose=T, iters=15, use.newdata=T)
 exit()
-"
 
 
-"
+
 my.gridSearch(XLL, function (params) {
   function (XL, newdata=NULL) {
     my.roundedTrain(XL, function (XL, newdata=NULL) {
-      etWithBin123TrainAlgo(XL, params, newdata=newdata)
+      #etWithBin123TrainAlgo(XL, params, newdata=newdata)
       #etTrainAlgo(XL, params, newdata=newdata)
-      #knnTrainAlgo(XL, params, newdata=newdata)
+      knnTrainAlgo(XL, params, newdata=newdata)
       #knnEtTrainAlgo(XL, params, newdata=newdata)
       #etGlmTrainAlgo(XL, params)
     }, newdata=newdata)
   }
-}, expand.grid(numRandomCuts=c(1), mtry=c(3), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, k=2), verbose=T, iters=22, use.newdata=T)
+}, expand.grid(numRandomCuts=c(1), mtry=c(2), ntree=c(2000), nodesize=1, iters=1, rowsFactor=1, k=6, km='kknn', kernel=c(
+      "triangular", "inv"
+)), verbose=T, iters=15, use.newdata=T)
 exit()
-"
+
+
 
 "
 my.gridSearch(XLLbin12, function (params) {
@@ -118,13 +120,13 @@ exit()
 
 
 print('processing x_test...')
-#set.seed(2701);aEtwb_1_3_11_feat510 = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=3, ntree=2000, nodesize=1, iters=100, rowsFactor=1, extra=F), newdata=XXX); print('trained')
+set.seed(2701);aEtwb_1_3_11_feat510 = etWithBin123TrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=3, ntree=2000, nodesize=1, iters=250, rowsFactor=1), newdata=XXX); print('trained')
 #set.seed(2707);aEt = etTrainAlgo(XLL, expand.grid(numRandomCuts=1, mtry=2, ntree=2000, iters=1, rowsFactor=1)); print('trained')
 #set.seed(2707);aXgb = xgbTrainAlgo(XLL, xgbParams, newdata=XXX)
 #set.seed(2709);aXgbwb12_11_feat1245 = xgbWithBin123TrainAlgo(XLL, xgbParams, newdata=XXX); print('trained')
 #set.seed(2709);aEtxgb = etXgbTrainAlgo(XLL, expand.grid(iters=15), newdata=XXX)
 #exit()
-#alg=aXgbwb12_11_feat1245
+alg=aEtwb_1_3_11_feat510
 
 
 "
@@ -215,7 +217,7 @@ qwe = function (XL) {
     aXgbwb12_11_feat1245
   ), w=c(0.5, 0.5))
 }
-alg = qwe(XLL)
+#alg = qwe(XLL)
 
 #set.seed(2707);
 

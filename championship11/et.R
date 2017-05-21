@@ -129,6 +129,7 @@ bin123TrainAlgo = function (XL, params, newdata=NULL, trainAlgo=NULL, use12=T, u
   XL3[, ncol(XL3)] = ifelse(XL3[, ncol(XL3)] <= 2, 0, 1)
   
   aa = trainAlgo(XL, params, newdata=newdata)
+  
   if (use12) bb = trainAlgo(XL2, params, newdata=newdata)
   if (use23) cc = trainAlgo(XL3, params, newdata=newdata)
   
