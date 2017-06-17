@@ -24,19 +24,19 @@ XXX = XXX[, -1] #remove id
 #ggplot(XLL, aes(XLL$age/365)) + geom_histogram(binwidth=0.1)
 
 xgbParams = expand.grid(
-  iters=1,
+  iters=100,
   rowsFactor=1,
   
-  max_depth=c(3), 
+  max_depth=c(4), 
   gamma=0,
   lambda=c(0.2),
   alpha=0.812294, 
-  eta=0.3,
-  colsample_bytree=c(0.4),
-  min_child_weight=c(0.3),
-  subsample=c(0.8),
+  eta=c(0.3),
+  colsample_bytree=c(0.7),
+  min_child_weight=c(2),
+  subsample=c(0.9),
   nthread=4, 
-  nrounds=c(50),
+  nrounds=c(40),
   early_stopping_rounds=0,
   num_parallel_tree=1
 )
@@ -46,7 +46,8 @@ my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     xgbTrainAlgo(XL, params)
   }
-}, xgbParams, verbose=T, iters=15, use.newdata=T)
+}, xgbParams, verbose=F, iters=15, use.newdata=T)
+lol()
 "
 
 postProcess = function (X) {
