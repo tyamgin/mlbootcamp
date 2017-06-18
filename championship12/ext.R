@@ -1,77 +1,15 @@
 jgc <- function() 
   .jcall("java/lang/System", method = "gc")
 
-unnameMatrix = function (XX) 
-  as.matrix(unname(data.matrix(XX)))
+unnameMatrix = function (X) 
+  as.matrix(unname(data.matrix(X)))
 
-extendCols = function (XX, idxes=NULL, pairs=F, angles=F, x11=F, x11bin=F) {
-  X11 = XX$X11
-  
-  XXA = matrix(NA, nrow=nrow(XX), ncol=0)
-  if (is.logical(angles) && angles) {
-    for (i in 1:nrow(ang.result[order(ang.result$cost),])) {
-      r = ang.result[i, ]
-      a = XX[, r$col1] - r$x
-      b = XX[, r$col2] - r$y
-      Z = matrix(atan2(b, a))
-      colnames(Z) = paste0('atan2(', colnames(XX)[r$col2], ', ', colnames(XX)[r$col1], ')')
-      XXA = cbind(XXA, Z)
-    }
-  }
-  
-  if (is.vector(idxes)) {
-    XX = XX[, which(1 == idxes)]
-  }
-  
-  if (is.logical(pairs) && pairs || length(pairs) > 1) {
-    cnames = colnames(XX)
-    sz = ncol(XX)
-    for(i in 1:sz) {
-      for(j in 1:sz) {
-        if (i == j)
-          next
-        if (i > j) {
-          Z = matrix(XX[, i] * XX[, j])
-          colnames(Z) = paste0(cnames[i], '*', cnames[j])
-          XX = cbind(XX, Z)
-        }
-        mn = min(rbind(XLL[cnames[j]], XXX[cnames[j]]))
-        Z = matrix(XX[, i] / (XX[, j] - mn - 1))
-        colnames(Z) = paste0(cnames[i], '/', cnames[j])
-        XX = cbind(XX, Z)
-      }
-    }
-    #XX = cbind(XX, atan2(XX$X80 + 1, XX$X97 + 0.05))
-  }
-  
-  XX = cbind(XX, XXA)
-  
-  if (length(pairs) > 1) {
-    XX = XX[, which(1 == pairs)]
-  }
-  
-  if (x11) {
-    XX = cbind(XX, ifelse(X11 == 0, 0, 1))
-  }
-  
-  
-  if (length(x11bin) > 1) {
-    cnames = colnames(XX)
-    XX = foreach(i=1:ncol(XX), .combine=cbind) %do% {
-      if (i %in% x11bin) {
-        x = XX[, i]
-        a = ifelse(X11 == 0, x, NA)
-        b = ifelse(X11 != 0, x, NA)
-        r = matrix(c(a, b), ncol=2)
-        colnames(r) = c(paste0(cnames[i], '_11_0'), paste0(cnames[i], '_11_1'))
-        r
-      } else {
-        XX[, i, drop=F]
-      }
-    }
-  }
-  
-  XX
+extendCols = function (X) {
+  w = X$weight
+  h = X$height / 100 # в метры
+  #X$bmi = w / h^2 # https://ru.wikipedia.org/wiki/%D0%98%D0%BD%D0%B4%D0%B5%D0%BA%D1%81_%D0%BC%D0%B0%D1%81%D1%81%D1%8B_%D1%82%D0%B5%D0%BB%D0%B0
+  #X$al_diff = X$ap_hi - X$ap_lo
+  X
 }
 
 extendXYCols = function (XL, ...) {

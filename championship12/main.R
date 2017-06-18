@@ -5,6 +5,7 @@ require(xgboost)
 
 debugSource('cv.R')
 debugSource('ext.R')
+debugSource('clear.R')
 debugSource('cache.R')
 debugSource('aggregators.R')
 debugSource('xgb.R')
@@ -18,6 +19,9 @@ XXX = read.csv(file="data/test.csv", head=T, sep=";", na.strings="None")
 XLL = XLL[, -1] #remove id
 XXX = XXX[, -1] #remove id
 
+XLL = my.fixData(XLL)
+XXX = my.fixData(XXX)
+
 #ggpairs(XLL[1:1000,], aes(colour='red', alpha=0.4))
 #XLL2 = XLL[which(XLL$ap_lo < 300 & XLL$ap_hi < 300), ]
 #ggplot(XLL2, aes(x=ap_hi, y=ap_lo, colour=as.factor(XLL2$cardio))) + geom_point(alpha=.3) + scale_color_manual(values=1:2)
@@ -29,14 +33,14 @@ xgbParams = expand.grid(
   
   max_depth=c(4), 
   gamma=0,
-  lambda=c(0.2),
+  lambda=c(1),
   alpha=0.812294, 
-  eta=c(0.3),
+  eta=c(0.1),
   colsample_bytree=c(0.7),
   min_child_weight=c(2),
   subsample=c(0.9),
   nthread=4, 
-  nrounds=c(40),
+  nrounds=c(140),
   early_stopping_rounds=0,
   num_parallel_tree=1
 )
