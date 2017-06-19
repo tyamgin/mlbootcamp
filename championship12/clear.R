@@ -1,6 +1,4 @@
 my.fixData = function (XA) {
-  XA = XA[, -1] #remove id
-  
   XA$ap_hi = abs(XA$ap_hi)
   XA$ap_lo = abs(XA$ap_lo)
   
