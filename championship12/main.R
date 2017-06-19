@@ -16,9 +16,6 @@ my.dopar.packages = c()
 XLL = read.csv(file="data/train.csv", head=T, sep=";", na.strings="None")
 XXX = read.csv(file="data/test.csv", head=T, sep=";", na.strings="None")
 
-XLL = XLL[, -1] #remove id
-XXX = XXX[, -1] #remove id
-
 XLL = my.fixData(XLL)
 XXX = my.fixData(XXX)
 
