@@ -52,9 +52,9 @@ lol()
 "
 
 postProcess = function (X) {
-  X$smoke[which(is.na(X$smoke))] = 0
-  X$alco[which(is.na(X$alco))] = 0
-  X$active[which(is.na(X$active))] = 1
+  #X$smoke[which(is.na(X$smoke))] = 0
+  #X$alco[which(is.na(X$alco))] = 0
+  #X$active[which(is.na(X$active))] = 1
   X
 }
 
