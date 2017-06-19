@@ -31,7 +31,7 @@ xgbParams = expand.grid(
   max_depth=c(4), 
   gamma=0,
   lambda=c(1),
-  alpha=c(7), 
+  alpha=c(8), 
   eta=c(0.1),
   colsample_bytree=c(0.7),
   min_child_weight=c(2),
@@ -52,9 +52,9 @@ lol()
 "
 
 postProcess = function (X) {
-  #X$smoke[which(is.na(X$smoke))] = 0
-  #X$alco[which(is.na(X$alco))] = 0
-  #X$active[which(is.na(X$active))] = 1
+  X$smoke[which(is.na(X$smoke))] = 0
+  X$alco[which(is.na(X$alco))] = 0
+  X$active[which(is.na(X$active))] = 1
   X
 }
 
