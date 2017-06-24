@@ -2,6 +2,7 @@ require(ggplot2)
 require(GGally)
 require(foreach)
 require(xgboost)
+require(lightgbm)
 
 debugSource('cv.R')
 debugSource('ext.R')
@@ -9,6 +10,7 @@ debugSource('clear.R')
 debugSource('cache.R')
 debugSource('aggregators.R')
 debugSource('xgb.R')
+debugSource('lgb.R')
 
 my.dopar.exports = c()
 my.dopar.packages = c()
@@ -29,9 +31,9 @@ xgbParams = expand.grid(
   rowsFactor=1,
   
   max_depth=c(4), 
-  gamma=0,
+  gamma=c(0),#0.7
   lambda=c(1),
-  alpha=c(10), 
+  alpha=c(9), #10
   eta=c(0.1),
   colsample_bytree=c(0.7),
   min_child_weight=c(2),
@@ -42,20 +44,41 @@ xgbParams = expand.grid(
   num_parallel_tree=1
 )
 
-"
+lgbParams = expand.grid(
+  iters=5,
+  rowsFactor=1,
+  
+  num_leaves=c(8, 7, 6),#
+  max_depth=c(4), #
+  lambda_l2=0,#
+  learning_rate=c(0.1),#
+  feature_fraction=c(0.7),#
+  min_data_in_leaf=c(20),#
+  bagging_fraction=c(0.9),#
+  nrounds=c(140),#
+  early_stopping_rounds=0,#
+  nthread=4 #
+)
+
+my.gridSearch(XLL, function (params) {
+  function (XL, newdata) {
+    lgbTrainAlgo(XL, params)
+  }
+}, lgbParams, verbose=F, iters=15, use.newdata=T)
+lol()
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     xgbTrainAlgo(XL, params)
   }
 }, xgbParams, verbose=F, iters=15, use.newdata=T)
 lol()
-"
+
 
 
 postProcess = function (X) {
-  X$smoke[which(is.na(X$smoke))] = 0
-  X$alco[which(is.na(X$alco))] = 0
-  X$active[which(is.na(X$active))] = 1
+  X$smoke[which(is.na(X$smoke))] = predict(knn.model.smoke, sel.col(X[which(is.na(X$smoke)),]))
+  X$alco[which(is.na(X$alco))] = predict(knn.model.smoke, sel.col(X[which(is.na(X$alco)),]))
+  X$active[which(is.na(X$active))] = predict(knn.model.smoke, sel.col(X[which(is.na(X$active)),]))
   X
 }
 
