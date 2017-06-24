@@ -19,7 +19,7 @@ my.fixData = function (XA) {
   XA[swap.idxes, ]$ap_lo = XA[swap.idxes, ]$ap_hi
   XA[swap.idxes, ]$ap_hi = tmp
   
-  XA[which(XA$ap_lo < 30), ]$ap_lo = 80
+  XA[which(XA$ap_lo < 40), ]$ap_lo = 80
   
   #weight_height_fix = read.csv('predicts/weight-height-predicts1.csv')
   #XA[which(XA$id %in% weight_height_fix$id), ]$height = weight_height_fix$new_height[which(weight_height_fix$id %in% XA$id)]

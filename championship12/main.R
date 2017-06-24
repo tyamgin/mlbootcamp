@@ -27,7 +27,7 @@ XXX = my.fixData(XXX)
 #ggplot(XLL, aes(XLL$age/365)) + geom_histogram(binwidth=0.1)
 
 xgbParams = expand.grid(
-  iters=200,
+  iters=100,
   rowsFactor=1,
   
   max_depth=c(4), 
@@ -48,18 +48,18 @@ lgbParams = expand.grid(
   iters=5,
   rowsFactor=1,
   
-  num_leaves=c(8, 7, 6),#
+  num_leaves=c(13),#
   max_depth=c(4), #
   lambda_l2=0,#
-  learning_rate=c(0.1),#
+  learning_rate=c(0.09, 0.1, 0.11, 0.03),#
   feature_fraction=c(0.7),#
   min_data_in_leaf=c(20),#
   bagging_fraction=c(0.9),#
-  nrounds=c(140),#
+  nrounds=c(130, 140, 150),#
   early_stopping_rounds=0,#
   nthread=4 #
 )
-"
+
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     lgbTrainAlgo(XL, params)
@@ -72,7 +72,7 @@ my.gridSearch(XLL, function (params) {
   }
 }, xgbParams, verbose=F, iters=15, use.newdata=T)
 lol()
-"
+
 
 
 postProcess = function (X) {
@@ -82,9 +82,27 @@ postProcess = function (X) {
   X
 }
 
-alg = xgbTrainAlgo(XLL, xgbParams)
+result = rep(0, nrow(XXX))
 
-XXX1 = postProcess(XXX)
-results = alg(XXX1)
+my.applyMask = function (X, smoke, alco, active) {
+  if (smoke == 0) X = subset(X, select=-c(smoke))
+  if (alco == 0) X = subset(X, select=-c(alco))
+  if (active == 0) X = subset(X, select=-c(active))
+  X
+}
+
+for (smoke in 0:1) {
+  for (alco in 0:1) {
+    for (active in 0:1) {
+      alg = xgbTrainAlgo(my.applyMask(XLL, smoke, alco, active), xgbParams)
+      
+      idx = which((!is.na(XXX$smoke) == smoke) & (!is.na(XXX$alco) == alco) & (!is.na(XXX$active) == active))
+      result[idx] = alg(my.applyMask(XXX[idx, ], smoke, alco, active))
+    }
+  } 
+}
+
+#XXX1 = postProcess(XXX)
+#results = alg(XXX1)
 write(results, file='res/res.txt', sep='\n')
 print('done')
