@@ -27,13 +27,13 @@ XXX = my.fixData(XXX)
 #ggplot(XLL, aes(XLL$age/365)) + geom_histogram(binwidth=0.1)
 
 xgbParams = expand.grid(
-  iters=100,
+  iters=200,
   rowsFactor=1,
   
   max_depth=c(4), 
-  gamma=c(0),#0.7
+  gamma=c(0.7),
   lambda=c(1),
-  alpha=c(9), #10
+  alpha=c(10),
   eta=c(0.1),
   colsample_bytree=c(0.7),
   min_child_weight=c(2),
@@ -59,7 +59,7 @@ lgbParams = expand.grid(
   early_stopping_rounds=0,#
   nthread=4 #
 )
-
+"
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     lgbTrainAlgo(XL, params)
@@ -72,13 +72,13 @@ my.gridSearch(XLL, function (params) {
   }
 }, xgbParams, verbose=F, iters=15, use.newdata=T)
 lol()
-
+"
 
 
 postProcess = function (X) {
-  X$smoke[which(is.na(X$smoke))] = predict(knn.model.smoke, sel.col(X[which(is.na(X$smoke)),]))
-  X$alco[which(is.na(X$alco))] = predict(knn.model.smoke, sel.col(X[which(is.na(X$alco)),]))
-  X$active[which(is.na(X$active))] = predict(knn.model.smoke, sel.col(X[which(is.na(X$active)),]))
+  X$smoke[which(is.na(X$smoke))] = 0# predict(knn.model.smoke, sel.col(X[which(is.na(X$smoke)),]))
+  X$alco[which(is.na(X$alco))] = 0#predict(knn.model.smoke, sel.col(X[which(is.na(X$alco)),]))
+  X$active[which(is.na(X$active))] = 1#predict(knn.model.smoke, sel.col(X[which(is.na(X$active)),]))
   X
 }
 
