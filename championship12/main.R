@@ -45,21 +45,22 @@ xgbParams = expand.grid(
 )
 
 lgbParams = expand.grid(
-  iters=5,
+  iters=100,
   rowsFactor=1,
   
-  num_leaves=c(13),#
-  max_depth=c(4), #
-  lambda_l2=0,#
-  learning_rate=c(0.09, 0.1, 0.11, 0.03),#
-  feature_fraction=c(0.7),#
-  min_data_in_leaf=c(20),#
-  bagging_fraction=c(0.9),#
-  nrounds=c(130, 140, 150),#
-  early_stopping_rounds=0,#
-  nthread=4 #
+  num_leaves=c(13),
+  max_depth=c(4),
+  lambda_l2=c(0),
+  learning_rate=c(0.1),
+  feature_fraction=c(0.7),
+  min_data_in_leaf=c(55),
+  bagging_fraction=c(0.8),
+  nrounds=c(130),
+  early_stopping_rounds=0,
+  nthread=4 
 )
 
+"
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     lgbTrainAlgo(XL, params)
@@ -72,7 +73,7 @@ my.gridSearch(XLL, function (params) {
   }
 }, xgbParams, verbose=F, iters=15, use.newdata=T)
 lol()
-
+"
 
 
 postProcess = function (X) {
@@ -91,6 +92,7 @@ my.applyMask = function (X, smoke, alco, active) {
   X
 }
 
+"
 for (smoke in 0:1) {
   for (alco in 0:1) {
     for (active in 0:1) {
@@ -101,8 +103,10 @@ for (smoke in 0:1) {
     }
   } 
 }
+"
 
-#XXX1 = postProcess(XXX)
-#results = alg(XXX1)
+alg = lgbTrainAlgo(XLL, lgbParams)
+XXX1 = postProcess(XXX)
+results = alg(XXX1)
 write(results, file='res/res.txt', sep='\n')
 print('done')
