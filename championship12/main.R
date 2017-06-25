@@ -36,11 +36,11 @@ xgbParams = expand.grid(
   lambda=c(1),
   alpha=c(10),
   eta=c(0.1),
+  subsample=c(0.9),
   colsample_bytree=c(0.7),
   min_child_weight=c(2),
-  subsample=c(0.9),
   nthread=4, 
-  nrounds=c(140),
+  nrounds=c(132),
   early_stopping_rounds=0,
   num_parallel_tree=1
 )
@@ -53,7 +53,7 @@ lgbParams = expand.grid(
   max_depth=c(4),
   lambda_l2=c(0),
   learning_rate=c(0.1),
-  feature_fraction=c(0.7),
+  feature_fraction=c(0.75),
   min_data_in_leaf=c(55),
   bagging_fraction=c(0.8),
   nrounds=c(130),
@@ -66,7 +66,7 @@ my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     lgbTrainAlgo(XL, params)
   }
-}, lgbParams, verbose=F, iters=15, use.newdata=T)
+}, lgbParams, verbose=T, iters=15, use.newdata=T)
 lol()
 
 my.gridSearch(XLL, function (params) {
