@@ -1,3 +1,4 @@
+set.seed(2707)
 require(ggplot2)
 require(GGally)
 require(foreach)
@@ -45,7 +46,7 @@ xgbParams = expand.grid(
 )
 
 lgbParams = expand.grid(
-  iters=100,
+  iters=5,
   rowsFactor=1,
   
   num_leaves=c(13),
@@ -67,11 +68,12 @@ my.gridSearch(XLL, function (params) {
   }
 }, lgbParams, verbose=F, iters=15, use.newdata=T)
 lol()
+
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     xgbTrainAlgo(XL, params)
   }
-}, xgbParams, verbose=F, iters=15, use.newdata=T)
+}, xgbParams, verbose=T, iters=15, use.newdata=T)
 lol()
 "
 
@@ -105,7 +107,8 @@ for (smoke in 0:1) {
 }
 "
 
-alg = lgbTrainAlgo(XLL, lgbParams)
+#alg = lgbTrainAlgo(XLL, lgbParams)
+alg = xgbTrainAlgo(XLL, xgbParams)
 XXX1 = postProcess(XXX)
 results = alg(XXX1)
 write(results, file='res/res.txt', sep='\n')

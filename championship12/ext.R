@@ -11,6 +11,9 @@ extendCols = function (X) {
   #X$bmi4 = w / h^4
   #X$al_diff = X$ap_hi - X$ap_lo
   
+  X$lol1 = ifelse(X$cholesterol == 1 & X$gluc == 1, 1, 0)
+  X$fat = (1.39 * w / h^2) + (0.16 * X$age / 365) - (10.34 * X$gender) - 9 # http://halls.md/race-body-fat-percentage/
+  
   X = subset(X, select=-c(id))
   
   X
