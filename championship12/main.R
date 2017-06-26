@@ -35,7 +35,7 @@ xgbParams = expand.grid(
   gamma=c(0.7),
   lambda=c(1),
   alpha=c(10),
-  eta=c(0.1),
+  eta=c(0.095),
   subsample=c(0.9),
   colsample_bytree=c(0.7),
   min_child_weight=c(2),
@@ -76,7 +76,6 @@ my.gridSearch(XLL, function (params) {
 }, xgbParams, verbose=T, iters=15, use.newdata=T)
 lol()
 "
-
 
 postProcess = function (X) {
   X$smoke[which(is.na(X$smoke))] = 0# predict(knn.model.smoke, sel.col(X[which(is.na(X$smoke)),]))
