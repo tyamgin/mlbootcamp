@@ -77,6 +77,7 @@ my.gridSearch(XLL, function (params) {
 lol()
 "
 
+
 postProcess = function (X) {
   X$smoke[which(is.na(X$smoke))] = 0# predict(knn.model.smoke, sel.col(X[which(is.na(X$smoke)),]))
   X$alco[which(is.na(X$alco))] = 0#predict(knn.model.smoke, sel.col(X[which(is.na(X$alco)),]))
