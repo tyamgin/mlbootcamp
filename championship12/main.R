@@ -28,7 +28,7 @@ XXX = my.fixData(XXX)
 #ggplot(XLL, aes(XLL$age/365)) + geom_histogram(binwidth=0.1)
 
 xgbParams = expand.grid(
-  iters=100,
+  iters=200,
   rowsFactor=1,
   
   max_depth=c(4), 

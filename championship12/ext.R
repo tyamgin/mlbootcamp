@@ -13,7 +13,7 @@ extendCols = function (X) {
   
   X$lol1 = ifelse(X$cholesterol == 1 & X$gluc == 1, 1, 0)
   X$lol2 = X$cholesterol - X$gluc
-  #X$lol3 = 1/X$cholesterol - 1/X$gluc
+  #X$lol3 = X$cholesterol + X$gluc + X$smoke + X$alco - X$active
   X$fat = (1.39 * w / h^2) + (0.16 * X$age / 365) - (10.34 * X$gender) - 9 # http://halls.md/race-body-fat-percentage/
   
   age = round(X$age / 365)
@@ -134,7 +134,7 @@ extendCols = function (X) {
   
   #X$score = women.score
   
-  #X = subset(X, select=-c(id))
+  X = subset(X, select=-c(id))
   
   X
 }
