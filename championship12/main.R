@@ -19,7 +19,7 @@ my.dopar.packages = c()
 XLL = read.csv(file="data/train.csv", head=T, sep=";", na.strings="None")
 XXX = read.csv(file="data/test.csv", head=T, sep=";", na.strings="None")
 
-XLL = my.fixData(XLL)
+XLL = my.fixData(XLL, T)
 XXX = my.fixData(XXX)
 
 #ggpairs(XLL[1:1000,], aes(colour='red', alpha=0.4))
@@ -28,7 +28,7 @@ XXX = my.fixData(XXX)
 #ggplot(XLL, aes(XLL$age/365)) + geom_histogram(binwidth=0.1)
 
 xgbParams = expand.grid(
-  iters=100,
+  iters=5,
   rowsFactor=1,
   
   max_depth=c(4), 
@@ -68,6 +68,7 @@ my.gridSearch(XLL, function (params) {
   }
 }, lgbParams, verbose=T, iters=15, use.newdata=T)
 lol()
+
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     xgbTrainAlgo(XL, params)
