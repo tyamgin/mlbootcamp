@@ -19,7 +19,7 @@ my.dopar.packages = c()
 XLL = read.csv(file="data/train.csv", head=T, sep=";", na.strings="None")
 XXX = read.csv(file="data/test.csv", head=T, sep=";", na.strings="None")
 
-XLL = my.fixData(XLL, T)
+#XLL = my.fixData(XLL, T)
 XXX = my.fixData(XXX)
 
 #ggpairs(XLL[1:1000,], aes(colour='red', alpha=0.4))
