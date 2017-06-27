@@ -28,7 +28,7 @@ XXX = my.fixData(XXX)
 #ggplot(XLL, aes(XLL$age/365)) + geom_histogram(binwidth=0.1)
 
 xgbParams = expand.grid(
-  iters=200,
+  iters=100,
   rowsFactor=1,
   
   max_depth=c(4), 
@@ -68,7 +68,6 @@ my.gridSearch(XLL, function (params) {
   }
 }, lgbParams, verbose=T, iters=15, use.newdata=T)
 lol()
-
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     xgbTrainAlgo(XL, params)
