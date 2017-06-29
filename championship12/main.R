@@ -25,9 +25,6 @@ my.dopar.packages = c()
 XLL = read.csv(file="data/train.csv", head=T, sep=";", na.strings="None")
 XXX = read.csv(file="data/test.csv", head=T, sep=";", na.strings="None")
 
-#XLL = my.fixData(XLL, F)
-XXX = my.fixData(XXX)
-
 #ggpairs(XLL[1:1000,], aes(colour='red', alpha=0.4))
 #XLL2 = XLL[which(XLL$ap_lo < 300 & XLL$ap_hi < 300), ]
 #ggplot(XLL2, aes(x=ap_hi, y=ap_lo, colour=as.factor(XLL2$cardio))) + geom_point(alpha=.3) + scale_color_manual(values=1:2)

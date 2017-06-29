@@ -85,3 +85,10 @@ my.normalizedTrain = function (XL, trainFunc, newdata=NULL) {
   model = trainFunc(XL, newdata=proc(newdata))
   function (X) model(proc(X))
 }
+
+my.fixedDataTrain = function (XL, trainFunc, newdata=NULL) {
+  if (!is.null(newdata))
+    newdata = my.fixData(newdata)
+  model = trainFunc(XL, newdata)
+  function (X) model(my.fixData(X))
+}

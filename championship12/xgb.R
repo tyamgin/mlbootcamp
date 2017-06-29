@@ -72,9 +72,11 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
 }
 
 xgbTrainAlgo = function (XL, params, newdata=NULL) {
-  my.extendedColsTrain(XL, function (XL, newdata=NULL) {
-    my.normalizedTrain(XL, function (XL, newdata=NULL) {
-      my.train.xgb(XL, params, newdata)
+  my.fixedDataTrain(XL, function (XL, newdata=NULL) {
+    my.extendedColsTrain(XL, function (XL, newdata=NULL) {
+      my.normalizedTrain(XL, function (XL, newdata=NULL) {
+        my.train.xgb(XL, params, newdata)
+      }, newdata=newdata)
     }, newdata=newdata)
   }, newdata=newdata)
 }
