@@ -1,9 +1,12 @@
+options( java.parameters = "-Xmx16000m" )
+
 set.seed(2707)
 require(ggplot2)
 require(GGally)
 require(foreach)
 require(xgboost)
 require(lightgbm)
+require(caret)
 
 debugSource('cv.R')
 debugSource('ext.R')
@@ -12,6 +15,9 @@ debugSource('cache.R')
 debugSource('aggregators.R')
 debugSource('xgb.R')
 debugSource('lgb.R')
+debugSource('nnet.R')
+debugSource('score.R')
+debugSource('FRS.R')
 
 my.dopar.exports = c()
 my.dopar.packages = c()
@@ -19,7 +25,7 @@ my.dopar.packages = c()
 XLL = read.csv(file="data/train.csv", head=T, sep=";", na.strings="None")
 XXX = read.csv(file="data/test.csv", head=T, sep=";", na.strings="None")
 
-#XLL = my.fixData(XLL, T)
+#XLL = my.fixData(XLL, F)
 XXX = my.fixData(XXX)
 
 #ggpairs(XLL[1:1000,], aes(colour='red', alpha=0.4))
@@ -27,7 +33,7 @@ XXX = my.fixData(XXX)
 #ggplot(XLL2, aes(x=ap_hi, y=ap_lo, colour=as.factor(XLL2$cardio))) + geom_point(alpha=.3) + scale_color_manual(values=1:2)
 #ggplot(XLL, aes(XLL$age/365)) + geom_histogram(binwidth=0.1)
 
-xgbParams = expand.grid(
+nnetXgbParams = expand.grid(
   iters=100,
   rowsFactor=1,
   
@@ -38,11 +44,13 @@ xgbParams = expand.grid(
   eta=c(0.095),
   subsample=c(0.9),
   colsample_bytree=c(0.7),
-  min_child_weight=c(2),
+  min_child_weight=c(10),
   nthread=4, 
   nrounds=c(132),
   early_stopping_rounds=0,
   num_parallel_tree=1
+  
+ # decay=c(0.8), size=c(5), maxit=c(200)
 )
 
 lgbParams = expand.grid(
@@ -68,15 +76,31 @@ my.gridSearch(XLL, function (params) {
   }
 }, lgbParams, verbose=T, iters=15, use.newdata=T)
 lol()
-
+"
+"
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     xgbTrainAlgo(XL, params)
+    #nnetXgbTrainAlgo(XL, params)
   }
-}, xgbParams, verbose=T, iters=15, use.newdata=T)
+}, nnetXgbParams, verbose=T, iters=15, use.newdata=T)
 lol()
 "
+"
+my.gridSearch(XLL, function (params) {
+  function (XL, newdata) {
+    etTrainAlgo(XL, params)
+  }
+}, expand.grid(ntree=c(1000), mtry=c(4), numRandomCuts=c(1), nodesize=c(1)), verbose=T, iters=3, use.newdata=F)
+lol()
 
+my.gridSearch(XLL, function (params) {
+  function (XL, newdata) {
+    nnetTrainAlgo(XL, params)
+  }
+}, expand.grid(decay=c(0.8), size=c(5), maxit=c(200)), verbose=F, iters=3, use.newdata=F)
+lol()
+"
 
 postProcess = function (X) {
   X$smoke[which(is.na(X$smoke))] = 0# predict(knn.model.smoke, sel.col(X[which(is.na(X$smoke)),]))
@@ -108,7 +132,7 @@ for (smoke in 0:1) {
 "
 
 #alg = lgbTrainAlgo(XLL, lgbParams)
-alg = xgbTrainAlgo(XLL, xgbParams)
+alg = xgbTrainAlgo(XLL, nnetXgbParams)
 XXX1 = postProcess(XXX)
 results = alg(XXX1)
 write(results, file='res/res.txt', sep='\n')
