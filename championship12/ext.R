@@ -89,6 +89,7 @@ my.normalizedTrain = function (XL, trainFunc, newdata=NULL) {
 my.fixedDataTrain = function (XL, trainFunc, newdata=NULL) {
   if (!is.null(newdata))
     newdata = my.fixData(newdata)
+  XL = my.fixData(XL)
   model = trainFunc(XL, newdata)
   function (X) model(my.fixData(X))
 }

@@ -1,36 +1,25 @@
 my.fixData = function (XA, remove=F) {
-  XA_prev = XA
-  XA$ap_hi = abs(XA$ap_hi)
-  XA$ap_lo = abs(XA$ap_lo)
-  
-  for (. in 1:2) {
-    XA[which(XA$ap_lo > 200), ]$ap_lo = XA[which(XA$ap_lo > 200), ]$ap_lo / 10
+  m = function (a, b, A, B) {
+    which.replace = which(XA$ap_hi == a & XA$ap_lo == b)
+    if (length(which.replace) > 0) {
+      XA[which.replace, ]$ap_hi <<- A
+      XA[which.replace, ]$ap_lo <<- B
+    }
   }
-  
-  for (. in 1:2) {
-    XA[which(XA$ap_hi > 300), ]$ap_hi = XA[which(XA$ap_hi > 300), ]$ap_hi / 10
-  }
-  
-  XA[which(XA$ap_hi < 25), ]$ap_hi = XA[which(XA$ap_hi < 25), ]$ap_hi * 10
-  
-  XA[which(XA$ap_lo <= 12), ]$ap_lo = XA[which(XA$ap_lo <= 12), ]$ap_lo * 10 # TODO: остались ещё 20-ки
-  
-  swap.idxes = which(XA$ap_lo > XA$ap_hi)
-  tmp = XA[swap.idxes, ]$ap_lo
-  XA[swap.idxes, ]$ap_lo = XA[swap.idxes, ]$ap_hi
-  XA[swap.idxes, ]$ap_hi = tmp
-  
-  XA[which(XA$ap_lo < 50), ]$ap_lo = 80
+  source('fix.txt', local=T)
   
   #weight_height_fix = read.csv('predicts/weight-height-predicts1.csv')
   #XA[which(XA$id %in% weight_height_fix$id), ]$height = weight_height_fix$new_height[which(weight_height_fix$id %in% XA$id)]
   #XA[which(XA$id %in% weight_height_fix$id), ]$weight = weight_height_fix$new_weight[which(weight_height_fix$id %in% XA$id)]
   
   if (remove) {
-    r = rep(NA, nrow(XA))
-    for (i in 1:nrow(XA))
-      r[i] = any(XA[i, ] != XA_prev[i, ])
-    return( XA[which(!r), ] )
+    which.remove = which(XA$ap_hi == 0 | XA$ap_lo == 0)
+    XA = XA[-which.remove, ]
+  } else {
+    if (any(XA$ap_hi == 0))
+      XA[XA$ap_hi == 0, ]$ap_hi = 130
+    if (any(XA$ap_lo == 0))
+      XA[XA$ap_lo == 0, ]$ap_lo = 80
   }
   
   XA
@@ -38,3 +27,4 @@ my.fixData = function (XA, remove=F) {
 
 #XA = rbind(XLL[,-ncol(XLL)], XXX)
 #XA = my.fixData(XA)
+#my.fixData(XLL)

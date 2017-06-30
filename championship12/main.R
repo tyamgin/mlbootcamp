@@ -43,7 +43,7 @@ nnetXgbParams = expand.grid(
   colsample_bytree=c(0.7),
   min_child_weight=c(10),
   nthread=4, 
-  nrounds=c(132),
+  nrounds=c(150),
   early_stopping_rounds=0,
   num_parallel_tree=1
   
