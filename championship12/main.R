@@ -18,6 +18,7 @@ debugSource('lgb.R')
 debugSource('nnet.R')
 debugSource('score.R')
 debugSource('FRS.R')
+debugSource('feat-select.R')
 
 my.dopar.exports = c()
 my.dopar.packages = c()
@@ -38,12 +39,12 @@ nnetXgbParams = expand.grid(
   gamma=c(0.7),
   lambda=c(1),
   alpha=c(10),
-  eta=c(0.095),
+  eta=c(0.075),
   subsample=c(0.9),
   colsample_bytree=c(0.7),
   min_child_weight=c(10),
   nthread=4, 
-  nrounds=c(150),
+  nrounds=c(175),
   early_stopping_rounds=0,
   num_parallel_tree=1
   
@@ -80,7 +81,7 @@ my.gridSearch(XLL, function (params) {
     xgbTrainAlgo(XL, params)
     #nnetXgbTrainAlgo(XL, params)
   }
-}, nnetXgbParams, verbose=T, iters=15, use.newdata=T)
+}, nnetXgbParams, verbose=F, iters=15, use.newdata=T)
 lol()
 "
 "

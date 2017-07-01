@@ -21,7 +21,7 @@ extendCols = function (X) {
   #X$score = gmean(apply(X, 1, getScore), apply(X, 1, getFRS))
   #X$FRS = apply(X, 1, getFRS)
   
-  X = subset(X, select=-c(id))
+  X = subset(X, select=-c(id, height))
   
   X
 }
