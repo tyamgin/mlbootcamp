@@ -18,17 +18,13 @@ mutation = function(a, p = 0.1) {
   a
 }
 
-tqfoldEstimation = function(XL, G, teach) {
-  p = sum(G)
+tqfoldEstimation = function(XL, teach) {
+  p = ncol(XL) - 1
   if (p <= 1)
     return( list(int=1e10+p, ext=1e10+p) )
   
-  L = nrow(XL)
-  m = ncol(XL) - 1
-  subXL = XL[, c(which(G == 1), m + 1)]
-  
   my.set.seed(111)
-  e = mean(validation.tqfold(subXL, teach, folds=7, iters=7, verbose=F))
+  e = mean(validation.tqfold(XL, teach, folds=5, iters=8, verbose=F))
   my.restore.seed()
   list(int=e, ext=e)
 }
@@ -130,44 +126,44 @@ addRemoveSelect = function(iterations,  # количество итераций
                            XL, # выборка
                            teach, # teach(XL) - обучение
                            estimate = tqfoldEstimation, # оценка
-                           startVec = c(T)
+                           startFeatures = c()
 ) {
   L = nrow(XL)
   size = ncol(XL) - 1
   
-  vec = startVec
-  if (length(vec) < size) {
-    vec = c(vec, rep(F, size - length(vec)))
-  }
+  features = startFeatures
   
   iterPts = c()
   intPts = c()
   extPts = c()
   
-  est = estimate(XL, vec, teach)
+  est = estimate(extendXYCols(XL, features=features), teach)
   print('started at')
   print(est)
   
   tries = c()
   
   for (it in 1:iterations) {
-    #addOrRemove = sample(0:1, 1)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    addOrRemove = 1
+    addOrRemove = sample(0:1, 1)
+    #addOrRemove = 1
     # 0 - add
     # 1 - remove
     i = -1
     for (k in sample(size)) {
-      if (vec[k] != addOrRemove)
+      if (addOrRemove == 1 && !(colnames(XL)[k] %in% features)) # фичи и так нету
         next
       
-      if (k %in% tries) #remove
+      if (addOrRemove == 0 && (colnames(XL)[k] %in% features)) # фича и так есть
+        next
+      
+      if (k %in% tries) # уже пробовали
         next
       
       i = k
       break
     }
     if (i == -1) {
-      if (length(tries) == length(vec)) {
+      if (length(tries) == length(features)) {
         print('stopped')
         break
       } else {
@@ -177,17 +173,20 @@ addRemoveSelect = function(iterations,  # количество итераций
     }
     tries = c(tries, i)
     
-    newVec = vec
-    newVec[i] = !newVec[i]
+    newFeatures = features
+    if (colnames(XL)[i] %in% features)
+      newFeatures = newFeatures[newFeatures != colnames(XL)[i]]
+    else
+      newFeatures = c(newFeatures, colnames(XL)[i])
     
-    newEst = estimate(XL, newVec, teach)
+    newEst = estimate(extendXYCols(XL, features=newFeatures), teach)
     
     if (newEst$ext < est$ext) {
       tries = c()
       print(i)
       print(est)
       
-      vec = newVec
+      features = newFeatures
       est = newEst
       
       print(est)
@@ -196,7 +195,7 @@ addRemoveSelect = function(iterations,  # количество итераций
       extPts = c(extPts, newEst$ext)
       iterPts = c(iterPts, it)
       
-      print(vec)
+      print(features)
       
       plot(c(iterPts, iterPts), c(intPts, extPts), col=c(rep("green", length(intPts)), rep("red", length(extPts))), pch=20)
     }
