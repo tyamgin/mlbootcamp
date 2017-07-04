@@ -63,14 +63,14 @@ lgbParams = expand.grid(
   iters=5,
   rowsFactor=1,
   
-  num_leaves=c(13),
+  num_leaves=c(13),#13,14
   max_depth=c(4),
-  lambda_l2=c(0),
+  lambda_l2=c(0),#c(0, 0.01, 0.05, 0.1)
   learning_rate=c(0.09),
   feature_fraction=c(0.65),
-  min_data_in_leaf=c(55),
+  min_data_in_leaf=c(55),#c(5, 25, 40, 55, 70)
   bagging_fraction=c(0.8),
-  nrounds=c(130),
+  nrounds=c(175),
   early_stopping_rounds=0,
   nthread=4 
 )
@@ -156,10 +156,10 @@ for (smoke in 0:1) {
 lgbParams$iters = 100
 xgbParams$iters = 100
 
-#lgbAlg = lgbTrainAlgo(XLL, lgbParams)
+lgbAlg = lgbTrainAlgo(XLL, lgbParams)
 #xgbAlg = xgbTrainAlgo(XLL, xgbParams)
 
-alg = gmeanAggregator(c(lgbAlg, xgbAlg))
+alg = lgbAlg
 results = alg(XXX)
 write(results, file='res/res.txt', sep='\n')
 print('done')
