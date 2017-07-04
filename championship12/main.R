@@ -156,10 +156,10 @@ for (smoke in 0:1) {
 lgbParams$iters = 100
 xgbParams$iters = 100
 
-lgbAlg = lgbTrainAlgo(XLL, lgbParams)
-xgbAlg = xgbTrainAlgo(XLL, xgbParams)
+#lgbAlg = lgbTrainAlgo(XLL, lgbParams)
+#xgbAlg = xgbTrainAlgo(XLL, xgbParams)
 
-alg = lgbAlg
+alg = xgbAlg
 results = alg(XXX1)
 write(results, file='res/res.txt', sep='\n')
 print('done')
