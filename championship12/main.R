@@ -7,6 +7,16 @@ require(foreach)
 require(xgboost)
 require(lightgbm)
 require(caret)
+require(mxnet)
+require(nnet)
+
+if (!exists('prev.set.seed')) {
+  prev.set.seed = set.seed
+  set.seed = function (x) {
+    prev.set.seed(x)
+    mx.set.seed(x)
+  }
+}
 
 debugSource('cv.R')
 debugSource('ext.R')
@@ -31,8 +41,8 @@ XXX = read.csv(file="data/test.csv", head=T, sep=";", na.strings="None")
 #ggplot(XLL2, aes(x=ap_hi, y=ap_lo, colour=as.factor(XLL2$cardio))) + geom_point(alpha=.3) + scale_color_manual(values=1:2)
 #ggplot(XLL, aes(XLL$age/365)) + geom_histogram(binwidth=0.1)
 
-nnetXgbParams = expand.grid(
-  iters=100,
+xgbParams = expand.grid(
+  iters=5,
   rowsFactor=1,
   
   max_depth=c(4), 
@@ -47,8 +57,6 @@ nnetXgbParams = expand.grid(
   nrounds=c(175),
   early_stopping_rounds=0,
   num_parallel_tree=1
-  
- # decay=c(0.8), size=c(5), maxit=c(200)
 )
 
 lgbParams = expand.grid(
@@ -58,8 +66,8 @@ lgbParams = expand.grid(
   num_leaves=c(13),
   max_depth=c(4),
   lambda_l2=c(0),
-  learning_rate=c(0.1),
-  feature_fraction=c(0.75),
+  learning_rate=c(0.09),
+  feature_fraction=c(0.65),
   min_data_in_leaf=c(55),
   bagging_fraction=c(0.8),
   nrounds=c(130),
@@ -67,10 +75,29 @@ lgbParams = expand.grid(
   nthread=4 
 )
 
+mxnetParams = expand.grid(
+  hidden_node=5, 
+  out_activation='logistic',
+  activation='tanh',
+  num.round=c(100), 
+  array.batch.size=c(100),  
+  learning.rate=c(0.1), 
+  momentum=c(0.1), 
+  dropout=c(0)
+)
+
+lgbXgbTrainAlgo = function (XL, params, newdata=NULL) {
+  gmeanAggregator(c(
+    xgbTrainAlgo(XL, xgbParams, newdata),
+    lgbTrainAlgo(XL, lgbParams, newdata)
+  ))
+}
+
 "
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
-    lgbTrainAlgo(XL, params)
+    #lgbTrainAlgo(XL, params)
+    lgbXgbTrainAlgo(XL, NULL)
   }
 }, lgbParams, verbose=T, iters=15, use.newdata=T)
 lol()
@@ -89,7 +116,7 @@ my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     nnetTrainAlgo(XL, params)
   }
-}, expand.grid(decay=c(0.8), size=c(5), maxit=c(200)), verbose=F, iters=3, use.newdata=F)
+}, mxnetParams, verbose=T, iters=1, folds=4, use.newdata=F)
 lol()
 "
 
@@ -104,13 +131,6 @@ addRemoveSelect(iterations=10000, XL=extendXYCols(my.fixData(XLL), features=fff)
   }, newdata=newdata)
 }, startFeatures=xgb.features)
 '
-
-postProcess = function (X) {
-  X$smoke[which(is.na(X$smoke))] = 0# predict(knn.model.smoke, sel.col(X[which(is.na(X$smoke)),]))
-  X$alco[which(is.na(X$alco))] = 0#predict(knn.model.smoke, sel.col(X[which(is.na(X$alco)),]))
-  X$active[which(is.na(X$active))] = 1#predict(knn.model.smoke, sel.col(X[which(is.na(X$active)),]))
-  X
-}
 
 result = rep(0, nrow(XXX))
 
@@ -133,10 +153,13 @@ for (smoke in 0:1) {
   } 
 }
 "
+lgbParams$iters = 100
+xgbParams$iters = 100
 
-#alg = lgbTrainAlgo(XLL, lgbParams)
-alg = xgbTrainAlgo(XLL, nnetXgbParams)
-XXX1 = postProcess(XXX)
+lgbAlg = lgbTrainAlgo(XLL, lgbParams)
+xgbAlg = xgbTrainAlgo(XLL, xgbParams)
+
+alg = lgbAlg
 results = alg(XXX1)
 write(results, file='res/res.txt', sep='\n')
 print('done')

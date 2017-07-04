@@ -76,12 +76,23 @@ validation.tqfold.enumerate = function (callback, XLL, folds=5, iters=10) {
   }
 }
 
+makeHoles = function (X) {
+  if ('smoke' %in% colnames(X))
+    X$smoke[sample(1:nrow(X), nrow(X) * 0.101)] = NA
+  if ('alco' %in% colnames(X))
+    X$alco[sample(1:nrow(X), nrow(X) * 0.1010333)] = NA
+  if ('active' %in% colnames(X))
+    X$active[sample(1:nrow(X), nrow(X) * 0.09656667)] = NA
+  X
+}
+
 validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F, use.newdata=F, seed=0) {
   XKerr = c()
   
   nrows = length(unique(XLL[, ncol(XLL)]))
 
   validation.tqfold.enumerate(function (XL, XK, it, fold) {
+    #XK = makeHoles(XK)
     if (seed > 0) {
       set.seed(seed)
       #seed <<- 0

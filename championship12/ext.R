@@ -89,6 +89,9 @@ extendCols = function (X, features=T) {
   }
   
   X = subset(X, select=intersect(colnames(X), features))
+  
+  #X$a120_80 = X$ap_hi <= 120 | X$ap_lo <= 80
+  #X$weight = X$weight * ifelse(X$gender == 1, 1.066385, 1)
   X
 }
 
@@ -122,6 +125,20 @@ my.extendedColsTrain = function (XL, trainFunc, ..., newdata=NULL) {
   model = trainFunc(XL, newdata=proc(newdata))
   
   function (X) model(proc(X))
+}
+
+postProcess = function (X) {
+  X$smoke[which(is.na(X$smoke))] = 0# predict(knn.model.smoke, sel.col(X[which(is.na(X$smoke)),]))
+  X$alco[which(is.na(X$alco))] = 0#predict(knn.model.smoke, sel.col(X[which(is.na(X$alco)),]))
+  X$active[which(is.na(X$active))] = 1#predict(knn.model.smoke, sel.col(X[which(is.na(X$active)),]))
+  X
+}
+
+my.filledHolesTrain = function (XL, trainFunc, newdata=NULL) {
+  if (!is.null(newdata))
+    newdata = postProcess(newdata)
+  model = trainFunc(XL, newdata=newdata)
+  function (X) model(postProcess(X))
 }
 
 my.normalizedTrain = function (XL, trainFunc, newdata=NULL) {

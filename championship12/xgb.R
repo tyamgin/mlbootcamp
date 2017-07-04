@@ -73,15 +73,18 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
 
 xgb.features = c('age', 'gender', 'weight', 'ap_hi', 'ap_lo', 'cholesterol', 'gluc', 'smoke', 'alco', 'active', 
                  'cholesterol_le1_and_gluc_le1', 'lol2', 'lol3', 'fat',
-                 "smoke_le0_and_alco_le0", "gender_le1_and_cholesterol_le2", 'log_height_div_log_weight')
+                 "smoke_le0_and_alco_le0", "gender_le1_and_cholesterol_le2", 'log_height_div_log_weight', 
+                 'log_age_mul_pow2_height')
 #"cholesterol_le1_and_active_le0"
 
 xgbTrainAlgo = function (XL, params, newdata=NULL) {
   my.fixedDataTrain(XL, function (XL, newdata=NULL) {
-    my.extendedColsTrain(XL, function (XL, newdata=NULL) {
-      my.normalizedTrain(XL, function (XL, newdata=NULL) {
-        my.train.xgb(XL, params, newdata)
-      }, newdata=newdata)
-    }, features=xgb.features, newdata=newdata)
+    my.filledHolesTrain(XL, function (XL, newdata=NULL) {
+      my.extendedColsTrain(XL, function (XL, newdata=NULL) {
+        my.normalizedTrain(XL, function (XL, newdata=NULL) {
+          my.train.xgb(XL, params, newdata)
+        }, newdata=newdata)
+      }, features=xgb.features, newdata=newdata)
+    }, newdata=newdata)
   }, newdata=newdata)
 }
