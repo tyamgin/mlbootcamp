@@ -92,6 +92,9 @@ extendCols = function (X, features=T) {
   
   #X$a120_80 = X$ap_hi <= 120 | X$ap_lo <= 80
   #X$weight = X$weight * ifelse(X$gender == 1, 1.066385, 1)
+  
+  #X$sq_diff = abs(X$ap_hi^2 - X$ap_lo^2)
+  
   X
 }
 
@@ -172,7 +175,7 @@ my.normalizedTrain = function (XL, trainFunc, newdata=NULL) {
 my.fixedDataTrain = function (XL, trainFunc, newdata=NULL) {
   if (!is.null(newdata))
     newdata = my.fixData(newdata)
-  XL = my.fixData(XL)
+  XL = my.fixData(XL, T)
   model = trainFunc(XL, newdata)
   function (X) model(my.fixData(X))
 }

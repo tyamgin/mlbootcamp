@@ -22,7 +22,7 @@ my.train.lgb = function (XLL, params, newdata=NULL) {
       early_stopping_rounds = params$early_stopping_rounds
     }
     
-    model = lgb.train(
+    model = lgb.train( 
       data=dtrain, 
       num_leaves=params$num_leaves, 
       max_depth=params$max_depth, 
