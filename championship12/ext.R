@@ -15,7 +15,7 @@ extendCols = function (X, features=T) {
   X$map = X$ap_lo * 2 + X$ap_hi
   
   X$lol2 = X$cholesterol - X$gluc
-  X$lol3 = X$cholesterol + X$gluc + 3*X$smoke + X$alco - 4*X$active
+  X$lol3 = X$cholesterol + X$gluc + ifelse(is.na(X$smoke), 0, 3*X$smoke) + X$alco - 4*X$active
   X$fat = (1.39 * w / h^2) + (0.16 * X$age / 365) - (10.34 * X$gender) - 9 # http://halls.md/race-body-fat-percentage/
   #X$score = gmean(apply(X, 1, getScore), apply(X, 1, getFRS))
   
@@ -88,7 +88,10 @@ extendCols = function (X, features=T) {
     }
   }
   
-  X = subset(X, select=intersect(colnames(X), features))
+  if (!allFeatures) {
+    X = subset(X, select=intersect(colnames(X), features))
+  }
+  #X = subset(X, select=-c(id))
   
   #X$a120_80 = X$ap_hi <= 120 | X$ap_lo <= 80
   #X$weight = X$weight * ifelse(X$gender == 1, 1.066385, 1)
@@ -131,10 +134,26 @@ my.extendedColsTrain = function (XL, trainFunc, ..., newdata=NULL) {
 }
 
 postProcess = function (X) {
-  X$smoke[which(is.na(X$smoke))] = 0# predict(knn.model.smoke, sel.col(X[which(is.na(X$smoke)),]))
-  X$alco[which(is.na(X$alco))] = 0#predict(knn.model.smoke, sel.col(X[which(is.na(X$alco)),]))
-  X$active[which(is.na(X$active))] = 1#predict(knn.model.smoke, sel.col(X[which(is.na(X$active)),]))
+  if ('smoke' %in% colnames(X))
+    X$smoke[which(is.na(X$smoke))] = 0# predict(knn.model.smoke, sel.col(X[which(is.na(X$smoke)),]))
+  if ('alco' %in% colnames(X))
+    X$alco[which(is.na(X$alco))] = 0#predict(knn.model.smoke, sel.col(X[which(is.na(X$alco)),]))
+  if ('active' %in% colnames(X))
+    X$active[which(is.na(X$active))] = 1#predict(knn.model.smoke, sel.col(X[which(is.na(X$active)),]))
   X
+}
+
+my.removedNasColumnsTrain = function (XL, trainFunc, newdata=NULL) {
+  good = c()
+  for (j in 1:(ncol(XL)-1)) {
+    if (!all(is.na(XL[, j])))
+      good = c(good, colnames(XL)[j])
+  }
+  XL = XL[, c(good, colnames(XL)[ncol(XL)])]
+  if (!is.null(newdata))
+    newdata = newdata[, good]
+  model = trainFunc(XL, newdata=newdata)
+  function (X) model(X[, good])  
 }
 
 my.filledHolesTrain = function (XL, trainFunc, newdata=NULL) {
