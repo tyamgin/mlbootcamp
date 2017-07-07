@@ -12,6 +12,8 @@ my.fixData = function (XA, remove=F) {
   #XA[which(XA$id %in% weight_height_fix$id), ]$height = weight_height_fix$new_height[which(weight_height_fix$id %in% XA$id)]
   #XA[which(XA$id %in% weight_height_fix$id), ]$weight = weight_height_fix$new_weight[which(weight_height_fix$id %in% XA$id)]
   
+  #XA[XA$weight < 50, ]$weight = 50
+  
   if (remove) {
     which.remove = which(XA$ap_hi == 0 | XA$ap_lo == 0)
     XA = XA[-which.remove, ]
@@ -25,6 +27,7 @@ my.fixData = function (XA, remove=F) {
   XA
 }
 
-#XA = rbind(XLL[,-ncol(XLL)], XXX)
+XA = rbind(XLL[,-ncol(XLL)], XXX)
+XA1 = my.fixData(XA)
 #XA = my.fixData(XA)
 #my.fixData(XLL)

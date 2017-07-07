@@ -93,6 +93,7 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F, use.
 
   validation.tqfold.enumerate(function (XL, XK, it, fold) {
     #XK = makeHoles(XK)
+    #XK$smoke = NA
     if (seed > 0) {
       set.seed(seed)
       #seed <<- 0

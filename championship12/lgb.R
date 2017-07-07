@@ -1,5 +1,5 @@
 my.train.lgb = function (XLL, params, newdata=NULL) {
-  XLL = unnameMatrix(XLL)
+  XLL = unnameMatrix(XLL)  
   hash = my.matrixHash(XLL)
   
   cache_filename = paste0('cache2/lgb_', hash)

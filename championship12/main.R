@@ -63,14 +63,14 @@ lgbParams = expand.grid(
   iters=5,
   rowsFactor=1,
   
-  num_leaves=c(13),
+  num_leaves=18,#c(13),
   max_depth=c(4),
-  lambda_l2=c(0),
-  learning_rate=c(0.09),
-  feature_fraction=c(0.65),
-  min_data_in_leaf=c(55),
-  bagging_fraction=c(0.8),
-  nrounds=c(175),
+  lambda_l2=13.369908,#c(0),
+  learning_rate=0.223558,#c(0.09),
+  feature_fraction=0.746088,#c(0.65),
+  min_data_in_leaf=382,#c(55),
+  bagging_fraction=0.910187,#c(0.8),
+  nrounds=61,#c(175),
   early_stopping_rounds=0,
   nthread=4 
 )
@@ -93,7 +93,9 @@ lgbXgbTrainAlgo = function (XL, params, newdata=NULL) {
   ))
 }
 
-"
+#debugSource('diffevol.R')
+
+#"
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
     lgbTrainAlgo(XL, params)
@@ -101,18 +103,21 @@ my.gridSearch(XLL, function (params) {
   }
 }, lgbParams, verbose=T, iters=15, use.newdata=T)
 lol()
-"
-"
+#"
+#"
 XLL_sm = XLL
 XLL_sm$smoke = NA
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
-    xgbTrainAlgo(XL, params)
+    #xgbTrainAlgo(XL, params)
+    etTrainAlgo(XL, params)
     #nnetXgbTrainAlgo(XL, params)
   }
-}, xgbParams, verbose=T, iters=15, use.newdata=T)
+}, expand.grid(
+  
+), verbose=T, iters=1, use.newdata=T)
 lol()
-"
+#"
 "
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {

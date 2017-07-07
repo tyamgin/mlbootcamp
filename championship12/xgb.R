@@ -81,11 +81,11 @@ xgbTrainAlgo = function (XL, params, newdata=NULL) {
   my.fixedDataTrain(XL, function (XL, newdata=NULL) {
     my.filledHolesTrain(XL, function (XL, newdata=NULL) {
       my.extendedColsTrain(XL, function (XL, newdata=NULL) {
-        my.removedNasColumnsTrain(XL, function (XL, newdata=NULL) {
+        #my.removedNasColumnsTrain(XL, function (XL, newdata=NULL) {
           my.normalizedTrain(XL, function (XL, newdata=NULL) {
             my.train.xgb(XL, params, newdata)
           }, newdata=newdata)
-        }, newdata=newdata)
+        #}, newdata=newdata)
       }, features=xgb.features, newdata=newdata)
     }, newdata=newdata)
   }, newdata=newdata)

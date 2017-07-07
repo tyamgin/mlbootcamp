@@ -31,14 +31,13 @@ extendCols = function (X, features=T) {
     sz = ncol(X)
     
     categorial = c('gender', 'cholesterol', 'gluc', 'smoke', 'alco', 'active')
+    categorial_values = list(0:1, 1:3, 1:3, 0:1, 0:1, 0:1)
     for (j in 2:length(categorial)) {
       b = X[, categorial[j]]
-      jp = unique(sort(b))
-      jp = jp[-length(jp)]
+      jp = categorial_values[[j]]
       for (i in 1:(j-1)) {
         a = X[, categorial[i]]
-        ip = unique(sort(a))
-        ip = ip[-length(ip)]
+        ip = categorial_values[[i]]
         
         for (aa in ip) {
           for (bb in jp) {
@@ -130,7 +129,10 @@ my.extendedColsTrain = function (XL, trainFunc, ..., newdata=NULL) {
   }
   model = trainFunc(XL, newdata=proc(newdata))
   
-  function (X) model(proc(X))
+  function (X) {
+    X = proc(X)
+    model(X)
+  }
 }
 
 postProcess = function (X) {
@@ -188,7 +190,10 @@ my.normalizedTrain = function (XL, trainFunc, newdata=NULL) {
   }
   
   model = trainFunc(XL, newdata=proc(newdata))
-  function (X) model(proc(X))
+  function (X) {
+    X = proc(X)
+    model(X)#norm
+  }
 }
 
 my.fixedDataTrain = function (XL, trainFunc, newdata=NULL) {
