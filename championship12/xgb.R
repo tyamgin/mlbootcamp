@@ -41,7 +41,11 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
       eval_metric='logloss', objective='binary:logistic', verbose=0
     )
     ret = function (X) {
-      predict(model, unnameMatrix(X))
+      r = predict(model, unnameMatrix(X))
+      d = 0.03
+      #r = ifelse(r < 0.2, 0.2, r)
+      #r = ifelse(r > 0.8, 0.8, r)
+      r
     }
     
     if (!is.null(newdata)) {

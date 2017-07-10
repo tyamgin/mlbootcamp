@@ -142,4 +142,5 @@ my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F, use.new
   }
   print('-------------------------------')
   print(selParams)
+  list(e=minE, params=selParams)
 }

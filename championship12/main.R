@@ -29,6 +29,7 @@ debugSource('nnet.R')
 debugSource('score.R')
 debugSource('FRS.R')
 debugSource('feat-select.R')
+debugSource('tune.R')
 
 my.dopar.exports = c()
 my.dopar.packages = c()
@@ -41,6 +42,23 @@ XXX = read.csv(file="data/test.csv", head=T, sep=";", na.strings="None")
 #ggplot(XLL2, aes(x=ap_hi, y=ap_lo, colour=as.factor(XLL2$cardio))) + geom_point(alpha=.3) + scale_color_manual(values=1:2)
 #ggplot(XLL, aes(XLL$age/365)) + geom_histogram(binwidth=0.1)
 
+xgbParams = expand.grid(
+  iters=5,
+  rowsFactor=1,
+  
+  max_depth=c(4), 
+  gamma=7.99583567306399,#c(0.7),
+  lambda=7.87930519785732,#c(1),
+  alpha=8.40669463388622,#c(10),
+  eta=0.369333719557617,#c(0.075),
+  subsample=0.85628359192051,#c(0.9),
+  colsample_bytree=0.691344426204916,#c(0.7),
+  min_child_weight=97.8118330226557,#c(10),
+  nthread=4, 
+  nrounds=374,#c(175),
+  early_stopping_rounds=0,
+  num_parallel_tree=1
+)
 xgbParams = expand.grid(
   iters=5,
   rowsFactor=1,
@@ -59,18 +77,19 @@ xgbParams = expand.grid(
   num_parallel_tree=1
 )
 
-lgbParams = expand.grid(
+lgbParams = list(
   iters=5,
   rowsFactor=1,
   
-  num_leaves=18,#c(13),
+  num_leaves=c(10),#c(13),
+  nrounds=c(65),#c(175),
+  learning_rate=c(0.223558),#c(0.09),
+  
   max_depth=c(4),
   lambda_l2=13.369908,#c(0),
-  learning_rate=0.223558,#c(0.09),
   feature_fraction=0.746088,#c(0.65),
   min_data_in_leaf=382,#c(55),
   bagging_fraction=0.910187,#c(0.8),
-  nrounds=61,#c(175),
   early_stopping_rounds=0,
   nthread=4 
 )
@@ -93,29 +112,23 @@ lgbXgbTrainAlgo = function (XL, params, newdata=NULL) {
   ))
 }
 
-#debugSource('diffevol.R')
+#debugSource('diffevol.R'); lol();
 
-#"
-my.gridSearch(XLL, function (params) {
+"
+my.tuneSequential(XLL, function (params) {
   function (XL, newdata) {
     lgbTrainAlgo(XL, params)
     #lgbXgbTrainAlgo(XL, NULL)
   }
-}, lgbParams, verbose=T, iters=15, use.newdata=T)
+}, lgbParams, verbose=T, loops=1, iters=15, use.newdata=T)
 lol()
+"
 #"
-#"
-XLL_sm = XLL
-XLL_sm$smoke = NA
-my.gridSearch(XLL, function (params) {
+my.tuneSequential(XLL, function (params) {
   function (XL, newdata) {
-    #xgbTrainAlgo(XL, params)
-    etTrainAlgo(XL, params)
-    #nnetXgbTrainAlgo(XL, params)
+    xgbTrainAlgo(XL, params)
   }
-}, expand.grid(
-  
-), verbose=T, iters=1, use.newdata=T)
+}, xgbParams, verbose=T, iters=15, folds=7, use.newdata=T)
 lol()
 #"
 "
