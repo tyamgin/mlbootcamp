@@ -81,15 +81,15 @@ lgbParams = list(
   iters=5,
   rowsFactor=1,
   
-  num_leaves=c(10),#c(13),
-  nrounds=c(65),#c(175),
+  num_leaves=c(15),#c(13),
+  nrounds=c(55),#c(175),
   learning_rate=c(0.223558),#c(0.09),
   
   max_depth=c(4),
-  lambda_l2=13.369908,#c(0),
-  feature_fraction=0.746088,#c(0.65),
-  min_data_in_leaf=382,#c(55),
-  bagging_fraction=0.910187,#c(0.8),
+  lambda_l2=c(10),#c(0),
+  feature_fraction=c(0.746088),#c(0.65),
+  min_data_in_leaf=c(382),#c(55),
+  bagging_fraction=c(0.910187),#c(0.8),
   early_stopping_rounds=0,
   nthread=4 
 )
@@ -106,10 +106,10 @@ mxnetParams = expand.grid(
 )
 
 lgbXgbTrainAlgo = function (XL, params, newdata=NULL) {
-  gmeanAggregator(c(
+  meanAggregator(c(
     xgbTrainAlgo(XL, xgbParams, newdata),
     lgbTrainAlgo(XL, lgbParams, newdata)
-  ))
+  ), c(2/3,1/3))
 }
 
 #debugSource('diffevol.R'); lol();
@@ -117,20 +117,20 @@ lgbXgbTrainAlgo = function (XL, params, newdata=NULL) {
 "
 my.tuneSequential(XLL, function (params) {
   function (XL, newdata) {
-    lgbTrainAlgo(XL, params)
-    #lgbXgbTrainAlgo(XL, NULL)
+    #lgbTrainAlgo(XL, params)
+    lgbXgbTrainAlgo(XL, NULL)
   }
 }, lgbParams, verbose=T, loops=1, iters=15, use.newdata=T)
 lol()
 "
-#"
+"
 my.tuneSequential(XLL, function (params) {
   function (XL, newdata) {
     xgbTrainAlgo(XL, params)
   }
 }, xgbParams, verbose=T, iters=15, folds=7, use.newdata=T)
 lol()
-#"
+"
 "
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
@@ -173,13 +173,13 @@ for (smoke in 0:1) {
   } 
 }
 "
-lgbParams$iters = 100
-xgbParams$iters = 100
+lgbParams$iters = 150
+xgbParams$iters = 150
 
-#lgbAlg = lgbTrainAlgo(XLL, lgbParams)
+lgbAlg = lgbTrainAlgo(XLL, lgbParams)
 xgbAlg = xgbTrainAlgo(XLL, xgbParams)
 
-alg = xgbAlg
+alg = meanAggregator(c(xgbAlg, lgbAlg), c(2/3,1/3))
 results = alg(XXX)
 write(results, file='res/res.txt', sep='\n')
 print('done')

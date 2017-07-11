@@ -25,6 +25,10 @@ my.tuneSequential = function (XLL, func, tuneGrid, loops=1, ...) {
       
       print(sprintf('Current best result: %f:', minE))
       print(selParams)
+      
+      if (nrow(expand.grid(tuneGrid)) == 1) {
+        break
+      }
     }
   }
 }

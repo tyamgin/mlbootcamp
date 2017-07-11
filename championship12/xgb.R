@@ -10,7 +10,7 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
   }
   if (my.enableCache == 'readOnly') stop('my.train.xgb cache is read only')
   
-  ret = my.boot(XLL, function (XL, XK) {
+  ret = my.boot(XLL, function (XL, XK) { 
     dtrain = xgb.DMatrix(data=XL[, -ncol(XL)], label=XL[, ncol(XL)])
     
     if (params$early_stopping_rounds <= 0) {
@@ -22,7 +22,7 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
       early_stopping_rounds = params$early_stopping_rounds
     }
 
-    model = xgb.train(
+    model = xgb.train( 
       data=dtrain, 
       watchlist=watchlist, 
       early_stopping_rounds=early_stopping_rounds,
@@ -41,11 +41,7 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
       eval_metric='logloss', objective='binary:logistic', verbose=0
     )
     ret = function (X) {
-      r = predict(model, unnameMatrix(X))
-      d = 0.03
-      #r = ifelse(r < 0.2, 0.2, r)
-      #r = ifelse(r > 0.8, 0.8, r)
-      r
+      predict(model, unnameMatrix(X))
     }
     
     if (!is.null(newdata)) {
@@ -78,7 +74,7 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
 xgb.features = c('age', 'gender', 'weight', 'ap_hi', 'ap_lo', 'cholesterol', 'gluc', 'smoke', 'alco', 'active', 
                  'cholesterol_le1_and_gluc_le1', 'lol2', 'lol3', 'fat',
                  "smoke_le0_and_alco_le0", "gender_le1_and_cholesterol_le2", 'log_height_div_log_weight', 
-                 'log_age_mul_pow2_height')
+                 'log_age_mul_pow2_height', 'rogue')
 #"cholesterol_le1_and_active_le0"
 
 xgbTrainAlgo = function (XL, params, newdata=NULL) {
@@ -86,9 +82,22 @@ xgbTrainAlgo = function (XL, params, newdata=NULL) {
     my.filledHolesTrain(XL, function (XL, newdata=NULL) {
       my.extendedColsTrain(XL, function (XL, newdata=NULL) {
         #my.removedNasColumnsTrain(XL, function (XL, newdata=NULL) {
-          my.normalizedTrain(XL, function (XL, newdata=NULL) {
-            my.train.xgb(XL, params, newdata)
-          }, newdata=newdata)
+          #my.normalizedTrain(XL, function (XL, newdata=NULL) {
+            model = my.train.xgb(subset(XL, select=-c(rogue)), params, newdata)
+            function (X) {
+              r = model(subset(X, select=-c(rogue)))
+              fn = function (x) log(x+1)
+              g = 0.9
+              s = 0.1
+              #r = ifelse(r > g & X$rogue, fn(r - g) + g, r)
+              #r = ifelse(r < s & X$rogue, s - fn(s - r), r)
+              
+              #r = ifelse(r > g & X$rogue, g, r)
+              #r = ifelse(r < s & X$rogue, s, r)
+              
+              r
+            }
+          #}, newdata=newdata)
         #}, newdata=newdata)
       }, features=xgb.features, newdata=newdata)
     }, newdata=newdata)
