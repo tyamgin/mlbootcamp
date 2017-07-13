@@ -74,7 +74,7 @@ my.train.xgb = function (XLL, params, newdata=NULL) {
 xgb.features = c('age', 'gender', 'weight', 'ap_hi', 'ap_lo', 'cholesterol', 'gluc', 'smoke', 'alco', 'active', 
                  'cholesterol_le1_and_gluc_le1', 'lol2', 'lol3', 'fat',
                  "smoke_le0_and_alco_le0", "gender_le1_and_cholesterol_le2", 'log_height_div_log_weight', 
-                 'log_age_mul_pow2_height', 'rogue')
+                 'log_age_mul_pow2_height')
 #"cholesterol_le1_and_active_le0"
 
 xgbTrainAlgo = function (XL, params, newdata=NULL) {
@@ -83,20 +83,7 @@ xgbTrainAlgo = function (XL, params, newdata=NULL) {
       my.extendedColsTrain(XL, function (XL, newdata=NULL) {
         #my.removedNasColumnsTrain(XL, function (XL, newdata=NULL) {
           #my.normalizedTrain(XL, function (XL, newdata=NULL) {
-            model = my.train.xgb(subset(XL, select=-c(rogue)), params, newdata)
-            function (X) {
-              r = model(subset(X, select=-c(rogue)))
-              fn = function (x) log(x+1)
-              g = 0.9
-              s = 0.1
-              #r = ifelse(r > g & X$rogue, fn(r - g) + g, r)
-              #r = ifelse(r < s & X$rogue, s - fn(s - r), r)
-              
-              #r = ifelse(r > g & X$rogue, g, r)
-              #r = ifelse(r < s & X$rogue, s, r)
-              
-              r
-            }
+            my.train.xgb(XL, params, newdata)
           #}, newdata=newdata)
         #}, newdata=newdata)
       }, features=xgb.features, newdata=newdata)

@@ -203,3 +203,19 @@ my.fixedDataTrain = function (XL, trainFunc, newdata=NULL) {
   model = trainFunc(XL, newdata)
   function (X) model(my.fixData(X))
 }
+
+my.trimmedTrain = function (XL, trainFunc, newdata=NULL) {
+  model = trainFunc(XL, newdata)
+  function (X) {
+    r = model(X)
+
+    g = 0.9
+    s = 0.1
+    
+    rogue = X$ap_lo < 40 | abs(X$ap_hi - X$ap_lo) > 80 | X$weight < 30 | X$height < 70 | X$weight > X$height | X$weight > 200 | X$height > 220
+    
+    r = ifelse(r > g & rogue, g, r)
+    r = ifelse(r < s & rogue, s, r)
+    r
+  }
+}

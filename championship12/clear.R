@@ -5,7 +5,7 @@ my.fixData = function (XA, remove=F) {
     XA = subset(XA, select=-c(cardio))
   }
   
-  XA$rogue = XA$ap_lo < 40 | abs(XA$ap_hi - XA$ap_lo) > 80 | XA$weight < 30 | XA$height < 70 | XA$weight > XA$height | XA$weight > 200 | XA$height > 220
+  #XA$rogue = XA$ap_lo < 40 | abs(XA$ap_hi - XA$ap_lo) > 80 | XA$weight < 30 | XA$height < 70 | XA$weight > XA$height | XA$weight > 200 | XA$height > 220
   
   
   m = function (a, b, A, B) {
