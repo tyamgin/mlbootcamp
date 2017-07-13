@@ -125,14 +125,14 @@ my.tuneSequential(XLL, function (params) {
 }, lgbParams, verbose=T, loops=1, iters=15, use.newdata=T)
 lol()
 "
-"
+#"
 my.tuneSequential(XLL, function (params) {
   function (XL, newdata) {
     xgbTrainAlgo(XL, params)
   }
 }, xgbParams, verbose=T, iters=15, folds=7, use.newdata=T)
 lol()
-"
+#"
 "
 my.gridSearch(XLL, function (params) {
   function (XL, newdata) {
