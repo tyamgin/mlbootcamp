@@ -5,27 +5,22 @@ my.fixData = function (XA, remove=F) {
     XA = subset(XA, select=-c(cardio))
   }
   
-  #XA$rogue = XA$ap_lo < 40 | abs(XA$ap_hi - XA$ap_lo) > 80 | XA$weight < 30 | XA$height < 70 | XA$weight > XA$height | XA$weight > 200 | XA$height > 220
-  
-  
   m = function (a, b, A, B) {
     which.replace = which(XA$ap_hi == a & XA$ap_lo == b)
     if (length(which.replace) > 0) {
       XA[which.replace, ]$ap_hi <<- A
       XA[which.replace, ]$ap_lo <<- B
-      #XA[which.replace, ]$rogue <<- T
     }
   }
   source('fix.txt', local=T)
   
   
-  #XA$rogue[XA$weight < 45 | XA$height < 1.2] = T
-  
   #weight_height_fix = read.csv('predicts/weight-height-predicts1.csv')
   #XA[which(XA$id %in% weight_height_fix$id), ]$height = weight_height_fix$new_height[which(weight_height_fix$id %in% XA$id)]
   #XA[which(XA$id %in% weight_height_fix$id), ]$weight = weight_height_fix$new_weight[which(weight_height_fix$id %in% XA$id)]
   
-  #XA[XA$weight < 50, ]$weight = 50
+  if (sum(XA$weight < 20) > 0)
+    XA[XA$weight < 20, ]$weight = 50
   
   if (length(Y) > 1 || !is.null(Y)) {
     XA$cardio = Y
@@ -43,8 +38,8 @@ my.fixData = function (XA, remove=F) {
   
   XA
 }
-
-XA = rbind(XLL[,-ncol(XLL)], XXX)
-XA1 = my.fixData(XA)
+#mean(XLL[XLL$gender == 2, ]$age)
+#XA = rbind(XLL[,-ncol(XLL)], XXX)
+#XA1 = my.fixData(XA)
 #XA = my.fixData(XA)
 #my.fixData(XLL)

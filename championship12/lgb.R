@@ -79,6 +79,7 @@ lgb.features = c("age",                            "gender",                    
                  "gender_le0_and_active_le0",      "gender_le1_or_smoke_le1" )
 
 lgbTrainAlgo = function (XL, params, newdata=NULL) {
+  #rogue = X$ap_lo < 40 | abs(X$ap_hi - X$ap_lo) > 80 | X$weight < 30 | X$height < 70 | X$weight > X$height | X$weight > 200 | X$height > 220
   my.fixedDataTrain(XL, function (XL, newdata=NULL) {
     my.filledHolesTrain(XL, function (XL, newdata=NULL) {
       my.extendedColsTrain(XL, function (XL, newdata=NULL) {
