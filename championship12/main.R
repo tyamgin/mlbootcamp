@@ -156,10 +156,10 @@ for (smoke in 0:1) {
 lgbParams$iters = 200
 xgbParams$iters = 200
 
-lgbAlg = lgbTrainAlgo(XLL, lgbParams)
-xgbAlg = xgbTrainAlgo(XLL, xgbParams)
+#lgbAlg = lgbTrainAlgo(XLL, lgbParams)
+#xgbAlg = xgbTrainAlgo(XLL, xgbParams)
 
-alg = meanAggregator(c(xgbAlg, lgbAlg), c(1/2,1/2))
+alg = meanAggregator(c(xgbAlg, lgbAlg), c(0.4, 0.6))
 results = alg(XXX)
 write(results, file='res/res.txt', sep='\n')
 print('done')
