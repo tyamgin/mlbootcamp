@@ -159,7 +159,7 @@ xgbParams$iters = 200
 #lgbAlg = lgbTrainAlgo(XLL, lgbParams)
 #xgbAlg = xgbTrainAlgo(XLL, xgbParams)
 
-alg = meanAggregator(c(xgbAlg, lgbAlg), c(0.4, 0.6))
+alg = xgbAlg #meanAggregator(c(xgbAlg, lgbAlg), c(0.4, 0.6))
 results = alg(XXX)
 write(results, file='res/res.txt', sep='\n')
 print('done')
