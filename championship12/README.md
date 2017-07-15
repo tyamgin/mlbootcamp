@@ -63,7 +63,7 @@ alco
 
 active
 
-cholesterol ? 1 & gluc ? 1
+cholesterol ≤ 1 & gluc ≤ 1
 
 lol2 = cholesterol - gluc
 
@@ -71,19 +71,19 @@ lol3 = cholesterol + gluc + 3*smoke + alco - 4*active
 
 <a href="http://halls.md/race-body-fat-percentage/">fat</a> = 1.39 * weight / (height/100)^2 + 0.16 * age / 365 - 10.34 * gender - 9 
 
-smoke ? 0 & alco ? 0
+smoke ≤ 0 & alco ≤ 0
 
-gender ? 1 & cholesterol ? 2
+gender ≤ 1 & cholesterol ≤ 2
 
 log(height) / log(weight)
 
 log(age) * height^2
 
-gender ? 1 | gluc ? 1
+gender ≤ 1 | gluc ≤ 1
 
-gender ? 0 & cholesterol ? 3
+gender ≤ 0 & cholesterol ≤ 3
 
-smoke ? 0 | active ? 0
+smoke ≤ 0 | active ≤ 0
 
 log(ap_hi) * log(ap_lo)
 
@@ -125,23 +125,23 @@ smoke
 
 alco
 
-cholesterol ? 1 & gluc ? 1
+cholesterol ≤ 1 & gluc ≤ 1
 
 lol2 = cholesterol - gluc
 
 log(age) * height^2
 
-gluc ? 3 & active ? 0
+gluc ≤ 3 & active ≤ 0
 
-cholesterol ? 1 & alco ? 0
+cholesterol ≤ 1 & alco ≤ 0
 
-gender ? 0 & active ? 0
+gender ≤ 0 & active ≤ 0
 
-gender ? 1 | smoke ? 1
+gender ≤ 1 | smoke ≤ 1
 
 sqrt(height) / log(weight)
 
-gender ? 1 | gluc ? 3
+gender ≤ 1 | gluc ≤ 3
 
 
 Фичи получены брутфорсом: рандомное добавление или удаление. Проверка производилась на 5 фолдах * 7 сплитах. Сплиты другие, чтобы не переобучаться.
