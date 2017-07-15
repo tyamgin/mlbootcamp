@@ -23,7 +23,7 @@ tqfoldEstimation = function(XL, teach) {
   if (p <= 1)
     return( list(int=1e10+p, ext=1e10+p) )
   
-  my.set.seed(111)
+  my.set.seed(11341)
   e = mean(validation.tqfold(XL, teach, folds=5, iters=7, verbose=F))
   my.restore.seed()
   list(int=e, ext=e)
