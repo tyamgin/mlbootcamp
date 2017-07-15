@@ -43,14 +43,3 @@ gmeanAggregator = function (baseAlgos, w=NULL) {
     s ^ (1/l)
   }
 }
-
-minAggregator = function (baseAlgos, unused=NULL) {
-  if (length(baseAlgos) != 2)
-    stop('length(baseAlgos) must be equal 2')
-  
-  function(x) {
-    a = baseAlgos[[1]](x)
-    b = baseAlgos[[2]](x)
-    ifelse(a < 0.5 & b > 0.5 | a > 0.5 & b < 0.5, (a + b) / 2, ifelse(abs(a - 0.5) < abs(b - 0.5), b, a))
-  }
-}

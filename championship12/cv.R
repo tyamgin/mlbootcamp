@@ -96,7 +96,6 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F, use.
     #XK$smoke = NA
     if (seed > 0) {
       set.seed(seed)
-      #seed <<- 0
     }
     
     act = XK[, ncol(XL)]
@@ -118,29 +117,4 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F, use.
   }, XLL, folds=folds, iters=iters)
   
   XKerr
-}
-
-my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F, use.newdata=F, folds.seed=777, train.seed=2) {
-  minE = 1e10
-  for (i in 1:nrow(grid)) {
-    params = grid[i, ]
-    
-    my.set.seed(folds.seed)
-    val = validation.tqfold(XLL, teach(params), folds=folds, iters=iters, verbose=verbose, use.newdata=use.newdata, seed=train.seed)
-    my.restore.seed()
-    e = mean(val)
-    params$LOGLOSS = e
-    params$SD = sd(val)
-    
-    print(params)
-    
-    if (e < minE) {
-      minE = e
-      selParams = params
-    }
-    gc()
-  }
-  print('-------------------------------')
-  print(selParams)
-  list(e=minE, params=selParams)
 }

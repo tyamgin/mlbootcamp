@@ -9,8 +9,8 @@ for (i in 1:nrow(XA)) {
   }
   
   if (x$ap_lo < 50 | x$ap_lo > 140 | x$ap_hi < 70 | x$ap_hi > 210) {
-    #print(paste0('m(', x$ap_hi, ', ', x$ap_lo, ', , )'))
-    #prev = x
+    print(paste0('m(', x$ap_hi, ', ', x$ap_lo, ', , )'))
+    prev = x
   } else if (x$ap_lo > x$ap_hi) {
     print(paste0('m(', x$ap_hi, ', ', x$ap_lo, ', , )'))
     prev = x

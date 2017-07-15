@@ -20,10 +20,10 @@ men.spline.points = data.frame(
 )
 
 getFRS = function (x, ...) {
-  asdasd(x[['gender']], x[['age']] / 365, x[['smoke']], x[['cholesterol']], x[['ap_hi']], ...)
+  getFRS1(x[['gender']], x[['age']] / 365, x[['smoke']], x[['cholesterol']], x[['ap_hi']], ...)
 }
 
-asdasd = function (gender, age, smoke, cholesterol, ap_hi, quantity.only=F) {
+getFRS1 = function (gender, age, smoke, cholesterol, ap_hi, quantity.only=F) {
   m = function (a, b) (a + b) / 2
   
   score = 0
@@ -124,5 +124,5 @@ asdasd = function (gender, age, smoke, cholesterol, ap_hi, quantity.only=F) {
 }
 
 
-asdasd(1, (45 + 49)/2, 1, 2, 132)
-asdasd(2, (45 + 49)/2, 1, 2, 132)
+getFRS1(1, (45 + 49)/2, 1, 2, 132)
+getFRS1(2, (45 + 49)/2, 1, 2, 132)

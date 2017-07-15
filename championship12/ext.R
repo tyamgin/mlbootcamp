@@ -14,8 +14,6 @@ extendCols = function (X, features=T) {
   X$al_diff = X$ap_hi - X$ap_lo
   X$map = X$ap_lo * 2 + X$ap_hi
   
-  #X$age = X$age * ifelse(X$gender == 1, 19510.12 /  19392.1, 1)
-  
   X$lol2 = X$cholesterol - X$gluc
   X$lol3 = X$cholesterol + X$gluc + ifelse(is.na(X$smoke), 0, 3*X$smoke) + X$alco - 4*X$active
   X$fat = (1.39 * w / h^2) + (0.16 * X$age / 365) - (10.34 * X$gender) - 9 # http://halls.md/race-body-fat-percentage/
@@ -92,12 +90,6 @@ extendCols = function (X, features=T) {
   if (!allFeatures) {
     X = subset(X, select=intersect(colnames(X), features))
   }
-  #X = subset(X, select=-c(id))
-  
-  #X$a120_80 = X$ap_hi <= 120 | X$ap_lo <= 80
-  #X$weight = X$weight * ifelse(X$gender == 1, 1.066385, 1)
-  
-  #X$sq_diff = abs(X$ap_hi^2 - X$ap_lo^2)
   
   X
 }
@@ -131,19 +123,16 @@ my.extendedColsTrain = function (XL, trainFunc, ..., newdata=NULL) {
   }
   model = trainFunc(XL, newdata=proc(newdata))
   
-  function (X) {
-    X = proc(X)
-    model(X)
-  }
+  function (X) model(proc(X))
 }
 
 postProcess = function (X) {
   if ('smoke' %in% colnames(X))
-    X$smoke[which(is.na(X$smoke))] = 0# predict(knn.model.smoke, sel.col(X[which(is.na(X$smoke)),]))
+    X$smoke[which(is.na(X$smoke))] = 0
   if ('alco' %in% colnames(X))
-    X$alco[which(is.na(X$alco))] = 0#predict(knn.model.smoke, sel.col(X[which(is.na(X$alco)),]))
+    X$alco[which(is.na(X$alco))] = 0
   if ('active' %in% colnames(X))
-    X$active[which(is.na(X$active))] = 1#predict(knn.model.smoke, sel.col(X[which(is.na(X$active)),]))
+    X$active[which(is.na(X$active))] = 1
   X
 }
 
@@ -192,10 +181,7 @@ my.normalizedTrain = function (XL, trainFunc, newdata=NULL) {
   }
   
   model = trainFunc(XL, newdata=proc(newdata))
-  function (X) {
-    X = proc(X)
-    model(X)#norm
-  }
+  function (X) model(proc(X))
 }
 
 my.fixedDataTrain = function (XL, trainFunc, newdata=NULL) {
@@ -204,25 +190,4 @@ my.fixedDataTrain = function (XL, trainFunc, newdata=NULL) {
   XL = my.fixData(XL, T)
   model = trainFunc(XL, newdata)
   function (X) model(my.fixData(X))
-}
-
-my.trimmedTrain = function (XL, trainFunc, newdata=NULL) {
-  model = trainFunc(XL, newdata)
-  function (X) {
-    r = model(X)
-
-    g = 0.85
-    s = 0.15
-    
-    #rogue = X$ap_lo < 40 | abs(X$ap_hi - X$ap_lo) > 80 | X$weight < 30 | X$height < 70 | X$weight > X$height | X$weight > 200 | X$height > 220
-    
-    #rogue = X$ap_lo <= 40 | X$ap_hi <= X$ap_lo | abs(X$ap_hi - X$ap_lo) > 80 | X$ap_hi > 220 | X$weight < 38 | X$height < 130 | X$weight > X$height | X$weight > 200 | X$height > 220
-    
-    rogue = X$ap_lo <= 40 | X$ap_hi <= X$ap_lo | abs(X$ap_hi - X$ap_lo) > 80 | X$ap_hi > 220
-    
-    #r = ifelse(r > g & rogue, (r - g) / 2 + g, r)
-    #r = ifelse(r < s & rogue, s - (s - r) / 2, r)
-    
-    r
-  }
 }
