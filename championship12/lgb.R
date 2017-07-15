@@ -78,6 +78,16 @@ lgb.features = c("age",                            "gender",                    
                  "log_age_mul_pow2_height",        "gluc_le3_and_active_le0",        "gluc_le1_or_alco_le0",           "cholesterol_le1_and_alco_le0",  
                  "gender_le0_and_active_le0",      "gender_le1_or_smoke_le1" )
 
+lgb.features = c( "age",                          "gender"                      ,
+                  "ap_hi" ,                       "ap_lo"                       ,
+                  "cholesterol"  ,                "gluc"                        ,
+                  "smoke"         ,               "alco"                        ,
+                  "cholesterol_le1_and_gluc_le1", "lol2"                        ,
+                  "log_age_mul_pow2_height"  ,    "gluc_le3_and_active_le0"     ,
+                  "cholesterol_le1_and_alco_le0", "gender_le0_and_active_le0"   ,
+                  "gender_le1_or_smoke_le1"  ,    "sqrt_height_div_log_weight"  ,
+                  "gender_le1_or_gluc_le3" )
+
 lgbTrainAlgo = function (XL, params, newdata=NULL) {
   #rogue = X$ap_lo < 40 | abs(X$ap_hi - X$ap_lo) > 80 | X$weight < 30 | X$height < 70 | X$weight > X$height | X$weight > 200 | X$height > 220
   my.fixedDataTrain(XL, function (XL, newdata=NULL) {

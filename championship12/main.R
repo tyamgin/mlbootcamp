@@ -153,8 +153,8 @@ for (smoke in 0:1) {
   } 
 }
 "
-lgbParams$iters = 300
-xgbParams$iters = 300
+lgbParams$iters = 200
+xgbParams$iters = 200
 
 lgbAlg = lgbTrainAlgo(XLL, lgbParams)
 xgbAlg = xgbTrainAlgo(XLL, xgbParams)
