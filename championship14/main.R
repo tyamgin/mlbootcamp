@@ -26,7 +26,7 @@ debugSource("cv.R")
 #saveRDS(XLL, file='data/data_t.rds')
 #}
 print("1111")
-#XLL = readRDS('data/data_t.rds')
+XLL = readRDS('data/data_t.rds')
 print("2222")
 
 create_features = function (XG, remove.cuid=T) {
@@ -55,26 +55,6 @@ create_features = function (XG, remove.cuid=T) {
   XG
 }
 
-create_features0 = function (XG, remove.cuid=T) {
-  target_exists = "target" %in% colnames(XG)
-  if (!target_exists) {
-    XG$target = NA
-  }
-  XG = XG %>% group_by(cuid) %>% summarise(
-    cat_feature=mean(cat_feature),
-    dt_diff=mean(dt_diff),
-    j1c=sum(j1c), j2c=sum(j2c), j3c=sum(j3c),
-    target=max(target)
-  )
-  if (remove.cuid) {
-    XG = select(XG, -cuid)
-  }
-  if (!target_exists) {
-    XG = select(XG, -target)
-  }
-  XG
-}
-
 my.train.lm = function (XL, params) {
   model = lm(target~., XL)
   
@@ -83,9 +63,56 @@ my.train.lm = function (XL, params) {
   }
 }
 
+my.train.glm = function (XL, params, newdata=NULL) {
+  X = XL[, -ncol(XL), drop=F]
+  colnames(X) <- paste0('X', 1:ncol(X))
+  Y = factor(XL[, ncol(XL), drop=T], labels=c('a', 'b'))
+  
+  trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary)
+  
+  tuneGrid = NULL
+  
+  capture.output(
+    model <- train(X, Y, method='glm',
+                   maximize=F, trControl=trControl,
+                   tuneGrid=tuneGrid)
+  )
+  
+  function (X) {
+    colnames(X) <- paste0('X', 1:ncol(X))
+    predict(model, X, type='prob')$b
+  }
+}
+
+my.train.nnet = function (XL, params, newdata=NULL) {
+  X = XL[, -ncol(XL), drop=F]
+  colnames(X) <- paste0('X', 1:ncol(X))
+  Y = factor(XL[, ncol(XL), drop=T], labels=c('a', 'b'))
+  
+  trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary)
+  
+  tuneGrid = expand.grid(
+    size=5,
+    decay=3
+  )
+  
+  
+  capture.output(
+    model <- train(X, Y, method='nnet', metric='ROC',
+                   maximize=F, trControl=trControl,
+                   maxit=500,
+                   tuneGrid=tuneGrid)
+  )
+  
+  function (X) {
+    colnames(X) <- paste0('X', 1:ncol(X))
+    predict(model, X, type='prob')$b
+  }
+}
+
 algo1 = function (XL) {
   
-  model = my.train.lm(XL)
+  model = my.train.nnet(XL)
   function (X) {
   
     model(X)
@@ -103,7 +130,7 @@ XX = subset(XX, select=-c(target))
 XX = create_features(XX, remove.cuid=F)
 
 XL2 = create_features(XL)
-print(validation.tqfold(XL2, algo1, folds=5, iters=2, verbose=T, seed=2707)); asdasd()
+#validation.tqfold(XL2, algo1, folds=5, iters=3, verbose=T, seed=2707); asdasd()
 
 model = algo1(XL2)
 
