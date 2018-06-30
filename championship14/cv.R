@@ -10,6 +10,77 @@ my.restore.seed = function() {
   set.seed(my.tmp.nextSeed) 
 }
 
+is.sorted = function (x) {
+  !is.unsorted(x)
+}
+
+meanAggregator = function (baseAlgos, w=NULL) {
+  l = length(baseAlgos)
+  if (is.null(w))
+    w = rep(1/l, l)
+  else if (sum(w) != 1)
+    stop('sum of weight\'s must be 1')
+  function(x) {
+    s = 0
+    for (i in 1:l) {
+      if (is.function(baseAlgos[[i]])) {
+        s = s + w[i] * baseAlgos[[i]](x)
+      } else {
+        s = s + w[i] * predict(baseAlgos[[i]], x)
+      }
+    }
+    s
+  }
+}
+
+gmeanAggregator = function (baseAlgos, w=NULL) {
+  l = length(baseAlgos)
+  function(x) {
+    s = 1
+    for (algo in baseAlgos) {
+      if (is.function(algo)) {
+        s = s * algo(x);
+      } else {
+        s = s * predict(algo, x);
+      }
+    }
+    s ^ (1/l)
+  }
+}
+
+my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F, nthread=1) {
+  n = nrow(XLL)
+  
+  if (nthread > 1) {
+    cl <- makeCluster(nthread)
+    registerDoParallel(cl)
+  }
+  
+  algos = foreach(it=1:iters) %do% {
+    sampleIdxes = sample(n, rowsFactor*n, replace=replace)
+    
+    XK = XLL[-sampleIdxes, ]
+    XL = XLL[sampleIdxes, ]  
+    
+    if (it %% 20 == 0)
+      gc()
+    
+    train(XL, XK)
+  }
+  
+  if (nthread > 1) {
+    stopCluster(cl)
+  }
+  
+  if (is.character(aggregator) || is.factor(aggregator)) {
+    do.call(as.character(aggregator), list(algos))
+  } else if (is.function(aggregator)) {
+    aggregator(algos)
+  } else {
+    stop('invalid aggregator type')
+  }
+}
+
 validation.tqfold.enumerate = function (callback, XLL, folds=5, iters=10) {
   resamples = matrix(NA, nrow=iters, ncol=nrow(XLL))
   for (i in 1:iters) {
