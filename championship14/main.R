@@ -9,13 +9,16 @@ library(pROC)
 debugSource("cv.R")
 debugSource("tune.R")
 
-#XLL = readRDS('data/data_t.rds')
-#train_answers = read.table(file="data/mlboot_train_answers.tsv", sep='\t', head=T)
-#test_cuids = read.table(file="data/mlboot_test.tsv", sep='\t', head=T)
-#j1_features = readRDS('data/j1_reatures.rds')
-#j3_features = readRDS('data/j3_reatures.rds')
-#XY_all = left_join(XLL, train_answers, by="cuid")
-#XY_all = cbind(XY_all, j1_features, j3_features)
+set.seed(888)
+
+j1_features = readRDS('data/j1_reatures.rds')[, 1:13]
+j2_features = readRDS('data/j2_reatures.rds')[, 1:13]
+j3_features = readRDS('data/j3_reatures.rds')[, 1:13]
+XLL = readRDS('data/data_t.rds')
+train_answers = read.table(file="data/mlboot_train_answers.tsv", sep='\t', head=T)
+test_cuids = read.table(file="data/mlboot_test.tsv", sep='\t', head=T)
+XY_all = left_join(XLL, train_answers, by="cuid")
+XY_all = cbind(XY_all, j1_features, j2_features, j3_features)
 
 create_features = function (XG, remove.cuid=T) {
   XG$cat0 = as.integer(XG$cat_feature == 0)
@@ -152,7 +155,7 @@ my.train.lgb = function (XLL, params) {
 
 algo1 = function (XL) {
   
-  model = my.train.lm(XL)
+  model = my.train.lgb(XL, lgbParams)
   function (X) {
   
     model(X)
@@ -174,27 +177,28 @@ lgbParams = list(
   iters=1,
   rowsFactor=1,
   
-  num_leaves=5:16,
-  nrounds=c(30,50,60,70),
-  learning_rate=c(0.05, 0.1, 0.15, 0.2, 0.25, 0.4),
+  num_leaves=c(10),
+  nrounds=c(320),
+  learning_rate=0.05,#c(0.223558),
   
-  max_depth=c(3,4,5,6),
-  lambda_l2=c(7,10,13),
-  feature_fraction=c(0.5,0.6,0.746088,0.8),
-  min_data_in_leaf=c(50,100,200,382,400),
-  bagging_fraction=c(0.7,0.8,0.910187,0.99),
+  max_depth=c(4),
+  lambda_l2=c(10),
+  feature_fraction=c(0.746088),
+  min_data_in_leaf=c(382),
+  bagging_fraction=c(0.910187),
   early_stopping_rounds=0,
   nthread=4
 )
 
-#my.tuneSequential(XL2, function (params) {
-#  function (XL, newdata) {
-#    my.train.lgb(XL, params)
-#  }
-#}, lgbParams, verbose=T, loops=2, iters=3, folds=5, use.newdata=F)
-#lol()
+my.tuneSequential(XL2, function (params) {
+  function (XL, newdata) {
+    my.train.lgb(XL, params)
+  }
+}, lgbParams, verbose=T, loops=1, iters=3, folds=5, train.seed=2707, folds.seed=888, use.newdata=F)
+lol()
 
-#validation.tqfold(XL2, algo1, folds=5, iters=3, verbose=T, seed=2707); asdasd()
+validation.tqfold(XL2, algo1, folds=5, iters=3, verbose=T, seed=2707); asdasd()
+
 
 model = algo1(XL2)
 
