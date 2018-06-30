@@ -11,14 +11,15 @@ debugSource("tune.R")
 
 set.seed(888)
 
-j1_features = readRDS('data/j1_reatures.rds')[, 1:13]
-j2_features = readRDS('data/j2_reatures.rds')[, 1:13]
-j3_features = readRDS('data/j3_reatures.rds')[, 1:13]
-XLL = readRDS('data/data_t.rds')
-train_answers = read.table(file="data/mlboot_train_answers.tsv", sep='\t', head=T)
-test_cuids = read.table(file="data/mlboot_test.tsv", sep='\t', head=T)
-XY_all = left_join(XLL, train_answers, by="cuid")
-XY_all = cbind(XY_all, j1_features, j2_features, j3_features)
+#j1_features = readRDS('data/j1_reatures.rds')[, 1:15]
+#j2_features = readRDS('data/j2_reatures.rds')[, 1:15]
+#j3_features = readRDS('data/j3_reatures.rds')[, 1:15]
+#XLL = readRDS('data/data_t.rds')
+#train_answers = read.table(file="data/mlboot_train_answers.tsv", sep='\t', head=T)
+#test_cuids = read.table(file="data/mlboot_test.tsv", sep='\t', head=T)
+#XY_all = left_join(XLL, train_answers, by="cuid")
+#XY_all = cbind(XY_all, j1_features, j2_features, j3_features)
+#j1_features = j2_features = j3_features = XLL = NULL
 
 create_features = function (XG, remove.cuid=T) {
   XG$cat0 = as.integer(XG$cat_feature == 0)
@@ -36,7 +37,8 @@ create_features = function (XG, remove.cuid=T) {
       count=n(),
       cat0=sum(cat0), cat1=sum(cat1), cat2=sum(cat2), cat3=sum(cat3), cat4=sum(cat4), cat5=sum(cat5),
       dt_diff=mean(dt_diff),
-      j1c=sum(j1c), j2c=sum(j2c), j3c=sum(j3c)
+      #j1c=sum(j1c), j2c=sum(j2c), j3c=sum(j3c)
+      j1s=sum(j1s), j2s=sum(j2s), j3s=sum(j3s)
     )
   XG2 = grp %>% 
     select(c('cuid', grep('j[1-3]_[0-9]', colnames(.)))) %>%
@@ -162,15 +164,15 @@ algo1 = function (XL) {
   }
 }
 
+XL2 = XX = NULL
+gc()
 
-XL = XY_all[!is.na(XY_all$target),]
+XL2 = XY_all[!is.na(XY_all$target),]
+XL2 = create_features(XL2)
 
 XX = XY_all[is.na(XY_all$target),]
 XX = subset(XX, select=-c(target))
 XX = create_features(XX, remove.cuid=F)
-
-XL2 = create_features(XL)
-
 
 
 lgbParams = list(
@@ -179,7 +181,7 @@ lgbParams = list(
   
   num_leaves=c(10),
   nrounds=c(320),
-  learning_rate=0.05,#c(0.223558),
+  learning_rate=c(0.05),
   
   max_depth=c(4),
   lambda_l2=c(10),
