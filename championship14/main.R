@@ -1,3 +1,4 @@
+options(java.parameters = "-Xmx16000m")
 library(plyr)  
 library(dplyr)  
 library(caret)  
@@ -11,15 +12,13 @@ debugSource("tune.R")
 
 set.seed(888)
 
-#j1_features = readRDS('data/j1_reatures.rds')[, 1:15]
-#j2_features = readRDS('data/j2_reatures.rds')[, 1:15]
-#j3_features = readRDS('data/j3_reatures.rds')[, 1:15]
-#XLL = readRDS('data/data_t.rds')
-#train_answers = read.table(file="data/mlboot_train_answers.tsv", sep='\t', head=T)
-#test_cuids = read.table(file="data/mlboot_test.tsv", sep='\t', head=T)
-#XY_all = left_join(XLL, train_answers, by="cuid")
-#XY_all = cbind(XY_all, j1_features, j2_features, j3_features)
-#j1_features = j2_features = j3_features = XLL = NULL
+j1_features = readRDS('data/j1_features.rds')[, 1:165]
+j2_features = readRDS('data/j2_features.rds')[, 1:165]
+j3_features = readRDS('data/j3_features.rds')[, 1:165]
+XLL = readRDS('data/data_t.rds')
+train_answers = readRDS('data/train_answers.rds')
+test_cuids = readRDS('data/test_cuids.rds')
+XY_all = left_join(XLL, train_answers, by="cuid")
 
 create_features = function (XG, remove.cuid=T) {
   XG$cat0 = as.integer(XG$cat_feature == 0)
@@ -37,15 +36,16 @@ create_features = function (XG, remove.cuid=T) {
       count=n(),
       cat0=sum(cat0), cat1=sum(cat1), cat2=sum(cat2), cat3=sum(cat3), cat4=sum(cat4), cat5=sum(cat5),
       dt_diff=mean(dt_diff),
-      #j1c=sum(j1c), j2c=sum(j2c), j3c=sum(j3c)
       j1s=sum(j1s), j2s=sum(j2s), j3s=sum(j3s)
     )
-  XG2 = grp %>% 
-    select(c('cuid', grep('j[1-3]_[0-9]', colnames(.)))) %>%
-    summarise_all(funs(sum)) %>%
-    select(-cuid)
-    
-  XG = cbind(XG1, XG2, grp %>% summarise(target=max(target)) %>% select(-cuid))
+
+  XG = cbind(
+    XG1, 
+    j1_features[XG1$cuid, ],
+    j2_features[XG1$cuid, ],
+    j3_features[XG1$cuid, ],
+    grp %>% summarise(target=max(target)) %>% select(-cuid)
+  )
   
   if (remove.cuid) {
     XG = select(XG, -cuid)
@@ -111,6 +111,36 @@ my.train.nnet = function (XL, params, newdata=NULL) {
   }
 }
 
+my.train.et = function (XL, params) {
+  ret = my.boot(XL, function (XL, XK) {
+    X = XL[, -ncol(XL), drop=F]
+    colnames(X) <- paste0('X', 1:ncol(X))
+    Y = factor(XL[, ncol(XL), drop=T], labels=c('a', 'b'))
+    
+    trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary)
+    
+    tuneGrid = expand.grid(
+      numRandomCuts=params$numRandomCuts,
+      mtry=params$mtry
+    )
+    
+    model <- train(X, Y, method='extraTrees', metric='ROC',
+                   maximize=T, trControl=trControl,
+                   ntree=params$ntree,
+                   nodesize=params$nodesize,
+                   numThreads=4,
+                   tuneGrid=tuneGrid)
+    
+    function (X) {
+      colnames(X) <- paste0('X', 1:ncol(X))
+      predict(model, X, type='prob')$b
+    }
+  }, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
+  
+  ret
+}
+
+
 my.train.lgb = function (XLL, params) {
   XLL = as.matrix(XLL)
   
@@ -156,31 +186,36 @@ my.train.lgb = function (XLL, params) {
 
 
 algo1 = function (XL) {
-  
-  model = my.train.lgb(XL, lgbParams)
-  function (X) {
-  
-    model(X)
-  }
+  my.train.lgb(XL, lgbParams)
+  #my.train.et(XL, etParams)
 }
 
 XL2 = XX = NULL
 gc()
 
-XL2 = XY_all[!is.na(XY_all$target),]
-XL2 = create_features(XL2)
+XL2 = XY_all[!is.na(XY_all$target),] %>% create_features()
 
-XX = XY_all[is.na(XY_all$target),]
-XX = subset(XX, select=-c(target))
-XX = create_features(XX, remove.cuid=F)
+XX = XY_all[is.na(XY_all$target),] %>%
+  select(-target) %>%
+  create_features(remove.cuid=F)
 
+j1_features = j2_features = j3_features = NULL
+
+etParams = list(
+  numRandomCuts=c(1),
+  mtry=c(2),
+  ntree=c(250),
+  nodesize=1,
+  iters=1,
+  rowsFactor=1
+)
 
 lgbParams = list(
   iters=1,
   rowsFactor=1,
   
   num_leaves=c(10),
-  nrounds=c(320),
+  nrounds=c(400),
   learning_rate=c(0.05),
   
   max_depth=c(4),
