@@ -6,15 +6,35 @@ library(e1071)
 library(lightgbm)
 library(foreach)
 library(pROC)
+library(Matrix)
+library(glmnet)
+#library(irlba)
+library(RSpectra)
 
 debugSource("cv.R")
 debugSource("tune.R")
 
 set.seed(888)
 
-j1_features = readRDS('data/j1_features.rds')[, 1:165]
-j2_features = readRDS('data/j2_features.rds')[, 1:165]
-j3_features = readRDS('data/j3_features.rds')[, 1:165]
+j1_features = readRDS('data/j1_features.rds')[, 1:200]
+j2_features = readRDS('data/j2_features.rds')[, 1:200]
+j3_features = readRDS('data/j3_features.rds')[, 1:200]
+
+#j1_sp = readRDS('data/data_j1_sp.rds')
+#j2_sp = readRDS('data/data_j2_sp.rds')
+#j3_sp = readRDS('data/data_j3_sp.rds')
+
+#j1_sp = j1_sp[, colSums(j1_sp) > 1]
+#j2_sp = j2_sp[, colSums(j2_sp) > 1]
+#j3_sp = j3_sp[, colSums(j3_sp) > 1]
+
+#j1_u = readRDS('data/j1_u.rds')
+#colnames(j1_u) = paste0('j1u_', 1:ncol(j1_u))
+#j2_u = readRDS('data/j2_u.rds')
+#colnames(j2_u) = paste0('j2u_', 1:ncol(j2_u))
+#j3_u = readRDS('data/j3_u.rds')
+#colnames(j3_u) = paste0('j3u_', 1:ncol(j3_u))
+
 XLL = readRDS('data/data_t.rds')
 train_answers = readRDS('data/train_answers.rds')
 test_cuids = readRDS('data/test_cuids.rds')
@@ -32,35 +52,64 @@ create_features = function (XG, remove.cuid=T) {
     XG$target = NA
   }
   grp = XG %>% group_by(cuid) 
+  XG = NULL
   XG1 = grp %>% summarise(
       count=n(),
       cat0=sum(cat0), cat1=sum(cat1), cat2=sum(cat2), cat3=sum(cat3), cat4=sum(cat4), cat5=sum(cat5),
       dt_diff=mean(dt_diff),
       j1s=sum(j1s), j2s=sum(j2s), j3s=sum(j3s)
     )
-
+  tar = grp %>% summarise(target=max(target)) %>% select(-cuid) %>% as.matrix()
+  grp = NULL
+  
+  cuid = XG1$cuid
+  XG1 = as.matrix(XG1)
+  
   XG = cbind(
     XG1, 
-    j1_features[XG1$cuid, ],
-    j2_features[XG1$cuid, ],
-    j3_features[XG1$cuid, ],
-    grp %>% summarise(target=max(target)) %>% select(-cuid)
+    #j1_sp[cuid, ],
+    #j2_sp[cuid, ],
+    #j3_sp[cuid, ],
+    #j1_u[cuid, ],
+    #j2_u[cuid, ],
+    #j3_u[cuid, ],
+    j1_features[cuid, ] %>% as.matrix(),
+    j2_features[cuid, ] %>% as.matrix(),
+    j3_features[cuid, ] %>% as.matrix(),
+    tar
   )
   
   if (remove.cuid) {
-    XG = select(XG, -cuid)
+    #XG = select(XG, -cuid)
+    XG = XG[, colnames(XG) != 'cuid']
   }
   if (!target_exists) {
-    XG = select(XG, -target)
+    #XG = select(XG, -target)
+    XG = XG[, colnames(XG) != 'target']
   }
   XG
 }
 
 my.train.lm = function (XL, params) {
-  model = lm(target~., XL)
+  #model = MatrixModels:::lm.fit.sparse(XL[, -ncol(XL), drop=F], XL[, ncol(XL), drop=T])
+  lambda = 0.04709416
+  model = glmnet(XL[, -ncol(XL), drop=F], XL[, ncol(XL), drop=T],
+                 family='binomial',type.logistic='Newton', type.multinomial='ungrouped', 
+                 lambda=lambda, alpha=0)
   
   function (X) {
-    predict(model, X)
+    #r=predict(model, X, type="response")
+    #bestlam <- model$lambda.max
+    r2=predict(model, X, type="response", s=lambda)
+    r2[,1]
+  }
+}
+
+my.train.lm2 = function (XL, params) {
+  model = lm(target~., as.data.frame(XL))
+  
+  function (X) {
+    predict(model, as.data.frame(X))
   }
 }
 
@@ -170,7 +219,7 @@ my.train.lgb = function (XLL, params) {
       early_stopping_rounds=early_stopping_rounds,
       objective='binary', 
       metric='auc',
-      verbose=0, 
+      verbose=-1, 
       feature_fraction_seed=sample(1:1000, 1),
       bagging_seed=sample(1:1000, 1),
       nthread=params$nthread
@@ -186,6 +235,8 @@ my.train.lgb = function (XLL, params) {
 
 
 algo1 = function (XL) {
+  #my.train.lm(XL)
+  #my.train.nnet(XL)
   my.train.lgb(XL, lgbParams)
   #my.train.et(XL, etParams)
 }
@@ -200,6 +251,10 @@ XX = XY_all[is.na(XY_all$target),] %>%
   create_features(remove.cuid=F)
 
 j1_features = j2_features = j3_features = NULL
+j1_sp = j2_sp = j3_sp = NULL
+j1_u = j2_u = j3_u = NULL
+
+print('preparing complete')
 
 etParams = list(
   numRandomCuts=c(1),
@@ -215,30 +270,38 @@ lgbParams = list(
   rowsFactor=1,
   
   num_leaves=c(10),
-  nrounds=c(400),
+  nrounds=c(420),
   learning_rate=c(0.05),
   
   max_depth=c(4),
   lambda_l2=c(10),
-  feature_fraction=c(0.746088),
-  min_data_in_leaf=c(382),
-  bagging_fraction=c(0.910187),
+  feature_fraction=0.6,
+  min_data_in_leaf=382,
+  bagging_fraction=0.910187,
   early_stopping_rounds=0,
   nthread=4
 )
 
-my.tuneSequential(XL2, function (params) {
-  function (XL, newdata) {
-    my.train.lgb(XL, params)
-  }
-}, lgbParams, verbose=T, loops=1, iters=3, folds=5, train.seed=2707, folds.seed=888, use.newdata=F)
-lol()
+#XY_all = NULL
 
-validation.tqfold(XL2, algo1, folds=5, iters=3, verbose=T, seed=2707); asdasd()
+#rr = cv.glmnet(XL2[, -ncol(XL2), drop=F], XL2[, ncol(XL2), drop=T], 
+#               nfolds=5, type.measure="auc",
+#               family='binomial',type.logistic='Newton', type.multinomial='ungrouped', 
+#               alpha=0)
 
+#my.tuneSequential(XL2, function (params) {
+#  function (XL, newdata) {
+#    my.train.lgb(XL, params)
+#  }
+#}, lgbParams, verbose=T, loops=1, iters=1, folds=5, train.seed=2707, folds.seed=888, use.newdata=F)
+#lol()
+
+#set.seed(888)
+#validation.tqfold(XL2, algo1, folds=5, iters=3, verbose=T, seed=2707); asdasd()
 
 model = algo1(XL2)
 
+XX = as.data.frame(XX)
 XX$target = model(select(XX, -cuid))
 R = left_join(test_cuids, XX, "cuid")
 write(R$target, file="res/result.txt", sep='\n')
