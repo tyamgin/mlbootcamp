@@ -24,6 +24,30 @@ j3_features = readRDS('data/j3_features.rds')[, 1:200]
 #j2_sp = readRDS('data/data_j2_sp.rds')
 #j3_sp = readRDS('data/data_j3_sp.rds')
 
+j1_sp_rest = readRDS('data/j1_svd_rest_50.rds')$u
+j2_sp_rest = readRDS('data/j2_svd_rest_50.rds')$u
+j3_sp_rest = readRDS('data/j3_svd_rest_50.rds')$u
+
+#j1_sp_rest = j1_sp[, -(as.integer(substr(colnames(j1_features), 4, 100)) + 1)]
+#j1_sp_rest = j1_sp_rest[, colSums(j1_sp_rest) > 1]
+#j1_features = j1_sp = NULL
+#j1_svd_rest_50 = svds(j1_sp_rest, 50)
+#saveRDS(j1_svd_rest_50, 'data/j1_svd_rest_50.rds')
+
+#j2_sp_rest = j2_sp[, -(as.integer(substr(colnames(j2_features), 4, 100)) + 1)]
+#j2_sp_rest = j2_sp_rest[, colSums(j2_sp_rest) > 1]
+#j2_features = j2_sp = NULL
+#j2_svd_rest_50 = irlba::svdr(j2_sp_rest, 50)
+#saveRDS(j2_svd_rest_50, 'data/j2_svd_rest_50.rds')
+
+#j3_sp_rest = j3_sp[, -(as.integer(substr(colnames(j3_features), 4, 100)) + 1)]
+#j3_sp_rest = j3_sp_rest[, colSums(j3_sp_rest) > 1]
+#j3_features = j3_sp = NULL
+#j3_svd_rest_50 = svds(j3_sp_rest, 50)
+#saveRDS(j3_svd_rest_50, 'data/j3_svd_rest_50.rds')
+
+
+
 #j1_sp = j1_sp[, colSums(j1_sp) > 1]
 #j2_sp = j2_sp[, colSums(j2_sp) > 1]
 #j3_sp = j3_sp[, colSums(j3_sp) > 1]
@@ -56,7 +80,9 @@ create_features = function (XG, remove.cuid=T) {
   XG1 = grp %>% summarise(
       count=n(),
       cat0=sum(cat0), cat1=sum(cat1), cat2=sum(cat2), cat3=sum(cat3), cat4=sum(cat4), cat5=sum(cat5),
-      dt_diff=mean(dt_diff),
+      dt_diff_mean=mean(dt_diff),
+      dt_diff_min=min(dt_diff),
+      dt_diff_max=max(dt_diff),
       j1s=sum(j1s), j2s=sum(j2s), j3s=sum(j3s)
     )
   tar = grp %>% summarise(target=max(target)) %>% select(-cuid) %>% as.matrix()
@@ -64,6 +90,8 @@ create_features = function (XG, remove.cuid=T) {
   
   cuid = XG1$cuid
   XG1 = as.matrix(XG1)
+  
+  print('before cbind')
   
   XG = cbind(
     XG1, 
@@ -73,11 +101,16 @@ create_features = function (XG, remove.cuid=T) {
     #j1_u[cuid, ],
     #j2_u[cuid, ],
     #j3_u[cuid, ],
-    j1_features[cuid, ] %>% as.matrix(),
-    j2_features[cuid, ] %>% as.matrix(),
-    j3_features[cuid, ] %>% as.matrix(),
+    j1_features[cuid, ],
+    j2_features[cuid, ],
+    j3_features[cuid, ],
+    j1_sp_rest[cuid, ],
+    j2_sp_rest[cuid, ],
+    j3_sp_rest[cuid, ],
     tar
   )
+  
+  print('after cbind')
   
   if (remove.cuid) {
     #XG = select(XG, -cuid)
@@ -244,7 +277,9 @@ algo1 = function (XL) {
 XL2 = XX = NULL
 gc()
 
+print('before create features')
 XL2 = XY_all[!is.na(XY_all$target),] %>% create_features()
+print('after create features')
 
 XX = XY_all[is.na(XY_all$target),] %>%
   select(-target) %>%
@@ -253,6 +288,7 @@ XX = XY_all[is.na(XY_all$target),] %>%
 j1_features = j2_features = j3_features = NULL
 j1_sp = j2_sp = j3_sp = NULL
 j1_u = j2_u = j3_u = NULL
+j1_sp_rest = j2_sp_rest = j3_sp_rest = NULL
 
 print('preparing complete')
 
@@ -273,7 +309,7 @@ lgbParams = list(
   nrounds=c(420),
   learning_rate=c(0.05),
   
-  max_depth=c(4),
+  max_depth=c(6),
   lambda_l2=c(10),
   feature_fraction=0.6,
   min_data_in_leaf=382,
