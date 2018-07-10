@@ -16,17 +16,21 @@ debugSource("tune.R")
 
 set.seed(888)
 
-j1_features = readRDS('data/j1_features.rds')[, 1:200]
-j2_features = readRDS('data/j2_features.rds')[, 1:200]
-j3_features = readRDS('data/j3_features.rds')[, 1:200]
+#j1_features = readRDS('data/j1_features.rds')[, 1:200]
+#j2_features = readRDS('data/j2_features.rds')[, 1:200]
+#j3_features = readRDS('data/j3_features.rds')[, 1:200]
 
-#j1_sp = readRDS('data/data_j1_sp.rds')
-#j2_sp = readRDS('data/data_j2_sp.rds')
-#j3_sp = readRDS('data/data_j3_sp.rds')
+j1_sp = readRDS('data/data_j1_sp.rds')[, readRDS('data/j1_allcat_stat')$id[1:1200] + 1]
+j2_sp = readRDS('data/data_j2_sp.rds')[, readRDS('data/j2_allcat_stat')$id[1:1200] + 1]
+j3_sp = readRDS('data/data_j3_sp.rds')[, readRDS('data/j3_allcat_stat')$id[1:1200] + 1]
 
-j1_sp_rest = readRDS('data/j1_svd_rest_50.rds')$u
-j2_sp_rest = readRDS('data/j2_svd_rest_50.rds')$u
-j3_sp_rest = readRDS('data/j3_svd_rest_50.rds')$u
+#j1_sp_rest = readRDS('data/j1_svd_rest_50.rds')$u
+#j2_sp_rest = readRDS('data/j2_svd_rest_50.rds')$u
+#j3_sp_rest = readRDS('data/j3_svd_rest_50.rds')$u
+
+#j1_hashed = readRDS('data/j1_hashed')
+#j2_hashed = readRDS('data/j2_hashed')
+#j3_hashed = readRDS('data/j3_hashed')
 
 #j1_sp_rest = j1_sp[, -(as.integer(substr(colnames(j1_features), 4, 100)) + 1)]
 #j1_sp_rest = j1_sp_rest[, colSums(j1_sp_rest) > 1]
@@ -95,18 +99,22 @@ create_features = function (XG, remove.cuid=T) {
   
   XG = cbind(
     XG1, 
-    #j1_sp[cuid, ],
-    #j2_sp[cuid, ],
-    #j3_sp[cuid, ],
+    j1_sp[cuid, ],
+    j2_sp[cuid, ],
+    j3_sp[cuid, ],
     #j1_u[cuid, ],
     #j2_u[cuid, ],
     #j3_u[cuid, ],
-    j1_features[cuid, ],
-    j2_features[cuid, ],
-    j3_features[cuid, ],
-    j1_sp_rest[cuid, ],
-    j2_sp_rest[cuid, ],
-    j3_sp_rest[cuid, ],
+    #j1_features[cuid, ],
+    #j2_features[cuid, ],
+    #j3_features[cuid, ],
+    #j1_hashed[cuid, ],
+    #j2_hashed[cuid, ],
+    #j3_hashed[cuid, ],
+    
+    #j1_sp_rest[cuid, ],
+    #j2_sp_rest[cuid, ],
+    #j3_sp_rest[cuid, ],
     tar
   )
   
@@ -224,7 +232,7 @@ my.train.et = function (XL, params) {
 
 
 my.train.lgb = function (XLL, params) {
-  XLL = as.matrix(XLL)
+  #XLL = as.matrix(XLL)
   
   ret = my.boot(XLL, function (XL, XK) {
     dtrain = lgb.Dataset(data=XL[, -ncol(XL), drop=F], label=XL[, ncol(XL), drop=T], free_raw_data=FALSE)
@@ -258,7 +266,7 @@ my.train.lgb = function (XLL, params) {
       nthread=params$nthread
     )
     function (X) {
-      X = as.matrix(X)
+      #X = as.matrix(X)
       predict(model, X)
     }
   }, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
@@ -289,6 +297,7 @@ j1_features = j2_features = j3_features = NULL
 j1_sp = j2_sp = j3_sp = NULL
 j1_u = j2_u = j3_u = NULL
 j1_sp_rest = j2_sp_rest = j3_sp_rest = NULL
+j1_hashed = j2_hashed = j3_hashed = NULL
 
 print('preparing complete')
 
@@ -337,8 +346,7 @@ lgbParams = list(
 
 model = algo1(XL2)
 
-XX = as.data.frame(XX)
-XX$target = model(select(XX, -cuid))
-R = left_join(test_cuids, XX, "cuid")
+#XX = as.data.frame(XX)
+R = data.frame(target = model(XX[, colnames(XX) != 'cuid']), cuid = XX[, colnames(XX) == 'cuid', drop=T])
+R = left_join(test_cuids, R, "cuid")
 write(R$target, file="res/result.txt", sep='\n')
-XX = select(XX, -target)
