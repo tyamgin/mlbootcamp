@@ -20,9 +20,9 @@ set.seed(888)
 #j2_features = readRDS('data/j2_features.rds')[, 1:200]
 #j3_features = readRDS('data/j3_features.rds')[, 1:200]
 
-j1_sp = readRDS('data/data_j1_sp.rds')[, readRDS('data/j1_allcat_stat')$id[1:1200] + 1]
-j2_sp = readRDS('data/data_j2_sp.rds')[, readRDS('data/j2_allcat_stat')$id[1:1200] + 1]
-j3_sp = readRDS('data/data_j3_sp.rds')[, readRDS('data/j3_allcat_stat')$id[1:1200] + 1]
+j1_sp = readRDS('data/data_j1_sp.rds')[, readRDS('data/j1_allcat_stat')$id[1:5300] + 1]
+j2_sp = readRDS('data/data_j2_sp.rds')[, readRDS('data/j2_allcat_stat')$id[1:5300] + 1]
+j3_sp = readRDS('data/data_j3_sp.rds')[, readRDS('data/j3_allcat_stat')$id[1:4300] + 1]
 
 #j1_sp_rest = readRDS('data/j1_svd_rest_50.rds')$u
 #j2_sp_rest = readRDS('data/j2_svd_rest_50.rds')$u
@@ -31,6 +31,11 @@ j3_sp = readRDS('data/data_j3_sp.rds')[, readRDS('data/j3_allcat_stat')$id[1:120
 #j1_hashed = readRDS('data/j1_hashed')
 #j2_hashed = readRDS('data/j2_hashed')
 #j3_hashed = readRDS('data/j3_hashed')
+
+#j1_u = readRDS('data/j1_u.rds')
+#j2_u = readRDS('data/j2_u.rds')
+#j3_u = readRDS('data/j3_u.rds')
+
 
 #j1_sp_rest = j1_sp[, -(as.integer(substr(colnames(j1_features), 4, 100)) + 1)]
 #j1_sp_rest = j1_sp_rest[, colSums(j1_sp_rest) > 1]
@@ -201,6 +206,32 @@ my.train.nnet = function (XL, params, newdata=NULL) {
   }
 }
 
+my.train.knn = function (XL, params, newdata=NULL) {
+  X = XL[, -ncol(XL), drop=F]
+  colnames(X) <- paste0('X', 1:ncol(X))
+  Y = factor(XL[, ncol(XL), drop=T], labels=c('a', 'b'))
+  
+  trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary)
+  
+  tuneGrid = expand.grid(
+    kmax=7,
+    distance=2,
+    kernel='cos'
+  )
+  
+  
+  capture.output(
+    model <- train(X, Y, method='kknn', metric='ROC',
+                   maximize=F, trControl=trControl,
+                   tuneGrid=tuneGrid)
+  )
+  
+  function (X) {
+    colnames(X) <- paste0('X', 1:ncol(X))
+    predict(model, X, type='prob')$b
+  }
+}
+
 my.train.et = function (XL, params) {
   ret = my.boot(XL, function (XL, XK) {
     X = XL[, -ncol(XL), drop=F]
@@ -278,6 +309,7 @@ my.train.lgb = function (XLL, params) {
 algo1 = function (XL) {
   #my.train.lm(XL)
   #my.train.nnet(XL)
+  #my.train.knn(XL)
   my.train.lgb(XL, lgbParams)
   #my.train.et(XL, etParams)
 }
@@ -314,8 +346,8 @@ lgbParams = list(
   iters=1,
   rowsFactor=1,
   
-  num_leaves=c(10),
-  nrounds=c(420),
+  num_leaves=c(11),
+  nrounds=c(1000),
   learning_rate=c(0.05),
   
   max_depth=c(6),
@@ -334,6 +366,7 @@ lgbParams = list(
 #               family='binomial',type.logistic='Newton', type.multinomial='ungrouped', 
 #               alpha=0)
 
+
 #my.tuneSequential(XL2, function (params) {
 #  function (XL, newdata) {
 #    my.train.lgb(XL, params)
@@ -343,6 +376,9 @@ lgbParams = list(
 
 #set.seed(888)
 #validation.tqfold(XL2, algo1, folds=5, iters=3, verbose=T, seed=2707); asdasd()
+
+
+
 
 model = algo1(XL2)
 
