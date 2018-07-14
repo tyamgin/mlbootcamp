@@ -1,5 +1,11 @@
-my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F, use.newdata=F, folds.seed=777, train.seed=2) {
-  minE = -1e10 ##TODO maxE actually
+logParams = function (params) {
+  for (name in names(params))
+    cat(name, ':', params[[name]], ' ', sep='')
+  cat('\n')
+}
+
+my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F, use.newdata=F, folds.seed=777, train.seed=2, maximize=T) {
+  resE = ifelse(maximize, -1e10, 1e10)
   for (i in 1:nrow(grid)) {
     params = grid[i, ]
     
@@ -10,17 +16,17 @@ my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F, use.new
     params$SCORE_MEAN = e
     params$SCORE_SD = sd(val)
     
-    print(params)
+    logParams(params)
     
-    if (e > minE) {
-      minE = e
+    if (maximize && e > resE || !maximize && e < resE) {
+      resE = e
       selParams = params
     }
     gc()
   }
-  print('-------------------------------')
-  print(selParams)
-  list(e=minE, params=selParams)
+  cat('-------------------------------\n')
+  logParams(selParams)
+  list(e=resE, params=selParams)
 }
 
 my.tuneSequential = function (XLL, func, tuneGrid, loops=1, ...) {
@@ -48,8 +54,8 @@ my.tuneSequential = function (XLL, func, tuneGrid, loops=1, ...) {
           selParams[[j]] = r$params[[j]]
       }
       
-      print(sprintf('Current best result: %f:', minE))
-      print(selParams)
+      cat(sprintf('Current best result: %f:\n', minE))
+      logParams(selParams)
       
       if (nrow(expand.grid(tuneGrid)) == 1) {
         break

@@ -1,3 +1,6 @@
+sink()
+sink("data/log.txt", append=T, split=T)
+
 options(java.parameters = "-Xmx16000m")
 library(plyr)  
 library(dplyr)  
@@ -13,6 +16,7 @@ library(RSpectra)
 
 debugSource("cv.R")
 debugSource("tune.R")
+debugSource("models.R")
 
 set.seed(888)
 
@@ -20,9 +24,24 @@ set.seed(888)
 #j2_features = readRDS('data/j2_features.rds')[, 1:200]
 #j3_features = readRDS('data/j3_features.rds')[, 1:200]
 
-j1_sp = readRDS('data/data_j1_sp.rds')[, readRDS('data/j1_allcat_stat')$id[1:5300] + 1]
-j2_sp = readRDS('data/data_j2_sp.rds')[, readRDS('data/j2_allcat_stat')$id[1:5300] + 1]
-j3_sp = readRDS('data/data_j3_sp.rds')[, readRDS('data/j3_allcat_stat')$id[1:4300] + 1]
+readSp = function (cname, i) {
+  ids = readRDS(paste0('data/', cname, '_allcat_stat'))$id[i]
+  r = readRDS(paste0('data/data_', cname, '_sp.rds'))[, ids + 1]
+  colnames(r) = paste0(cname, '_', ids)
+  
+  #r1 = r[, 1:100]
+  #colnames(r1) = paste0(colnames(r1), '_o')
+  #cbind(mbool(r), r1)
+  mbool(r)
+}
+
+mbool = function (a) {
+  sparseMatrix(a@i+1, p=a@p, x=min(1, a@x), dims=a@Dim, dimnames=a@Dimnames)
+}
+
+j1_sp = readSp('j1', 1:5300)
+j2_sp = readSp('j2', 1:5300)
+j3_sp = readSp('j3', 1:4300)
 
 #j1_sp_rest = readRDS('data/j1_svd_rest_50.rds')$u
 #j2_sp_rest = readRDS('data/j2_svd_rest_50.rds')$u
@@ -92,7 +111,11 @@ create_features = function (XG, remove.cuid=T) {
       dt_diff_mean=mean(dt_diff),
       dt_diff_min=min(dt_diff),
       dt_diff_max=max(dt_diff),
+      dt_diff_max_diff = max(diff(dt_diff), 0),
       j1s=sum(j1s), j2s=sum(j2s), j3s=sum(j3s)
+    ) %>% mutate(
+      #cats=(cat0>0)+(cat1>0)+(cat2>0)+(cat3>0)+(cat4>0)+(cat5>0),
+      dt_diff_spread = dt_diff_max - dt_diff_min
     )
   tar = grp %>% summarise(target=max(target)) %>% select(-cuid) %>% as.matrix()
   grp = NULL
@@ -136,174 +159,6 @@ create_features = function (XG, remove.cuid=T) {
   XG
 }
 
-my.train.lm = function (XL, params) {
-  #model = MatrixModels:::lm.fit.sparse(XL[, -ncol(XL), drop=F], XL[, ncol(XL), drop=T])
-  lambda = 0.04709416
-  model = glmnet(XL[, -ncol(XL), drop=F], XL[, ncol(XL), drop=T],
-                 family='binomial',type.logistic='Newton', type.multinomial='ungrouped', 
-                 lambda=lambda, alpha=0)
-  
-  function (X) {
-    #r=predict(model, X, type="response")
-    #bestlam <- model$lambda.max
-    r2=predict(model, X, type="response", s=lambda)
-    r2[,1]
-  }
-}
-
-my.train.lm2 = function (XL, params) {
-  model = lm(target~., as.data.frame(XL))
-  
-  function (X) {
-    predict(model, as.data.frame(X))
-  }
-}
-
-my.train.glm = function (XL, params, newdata=NULL) {
-  X = XL[, -ncol(XL), drop=F]
-  colnames(X) <- paste0('X', 1:ncol(X))
-  Y = factor(XL[, ncol(XL), drop=T], labels=c('a', 'b'))
-  
-  trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary)
-  
-  tuneGrid = NULL
-  
-  capture.output(
-    model <- train(X, Y, method='glm',
-                   maximize=F, trControl=trControl,
-                   tuneGrid=tuneGrid)
-  )
-  
-  function (X) {
-    colnames(X) <- paste0('X', 1:ncol(X))
-    predict(model, X, type='prob')$b
-  }
-}
-
-my.train.nnet = function (XL, params, newdata=NULL) {
-  X = XL[, -ncol(XL), drop=F]
-  colnames(X) <- paste0('X', 1:ncol(X))
-  Y = factor(XL[, ncol(XL), drop=T], labels=c('a', 'b'))
-  
-  trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary)
-  
-  tuneGrid = expand.grid(
-    size=5,
-    decay=100
-  )
-  
-  
-  capture.output(
-    model <- train(X, Y, method='nnet', metric='ROC',
-                   maximize=F, trControl=trControl,
-                   maxit=200,
-                   tuneGrid=tuneGrid)
-  )
-  
-  function (X) {
-    colnames(X) <- paste0('X', 1:ncol(X))
-    predict(model, X, type='prob')$b
-  }
-}
-
-my.train.knn = function (XL, params, newdata=NULL) {
-  X = XL[, -ncol(XL), drop=F]
-  colnames(X) <- paste0('X', 1:ncol(X))
-  Y = factor(XL[, ncol(XL), drop=T], labels=c('a', 'b'))
-  
-  trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary)
-  
-  tuneGrid = expand.grid(
-    kmax=7,
-    distance=2,
-    kernel='cos'
-  )
-  
-  
-  capture.output(
-    model <- train(X, Y, method='kknn', metric='ROC',
-                   maximize=F, trControl=trControl,
-                   tuneGrid=tuneGrid)
-  )
-  
-  function (X) {
-    colnames(X) <- paste0('X', 1:ncol(X))
-    predict(model, X, type='prob')$b
-  }
-}
-
-my.train.et = function (XL, params) {
-  ret = my.boot(XL, function (XL, XK) {
-    X = XL[, -ncol(XL), drop=F]
-    colnames(X) <- paste0('X', 1:ncol(X))
-    Y = factor(XL[, ncol(XL), drop=T], labels=c('a', 'b'))
-    
-    trControl = trainControl(method='none', classProbs=T, summaryFunction=defaultSummary)
-    
-    tuneGrid = expand.grid(
-      numRandomCuts=params$numRandomCuts,
-      mtry=params$mtry
-    )
-    
-    model <- train(X, Y, method='extraTrees', metric='ROC',
-                   maximize=T, trControl=trControl,
-                   ntree=params$ntree,
-                   nodesize=params$nodesize,
-                   numThreads=4,
-                   tuneGrid=tuneGrid)
-    
-    function (X) {
-      colnames(X) <- paste0('X', 1:ncol(X))
-      predict(model, X, type='prob')$b
-    }
-  }, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
-  
-  ret
-}
-
-
-my.train.lgb = function (XLL, params) {
-  #XLL = as.matrix(XLL)
-  
-  ret = my.boot(XLL, function (XL, XK) {
-    dtrain = lgb.Dataset(data=XL[, -ncol(XL), drop=F], label=XL[, ncol(XL), drop=T], free_raw_data=FALSE)
-    
-    if (params$early_stopping_rounds <= 0) {
-      early_stopping_rounds = NULL
-      valids = list()
-    } else {
-      dtest = lgb.Dataset(data=XK[, -ncol(XK)], label=XK[, ncol(XK)], free_raw_data=FALSE)
-      valids = list(train=dtrain, test=dtest)
-      early_stopping_rounds = params$early_stopping_rounds
-    }
-    
-    model = lgb.train( 
-      data=dtrain, 
-      num_leaves=params$num_leaves, 
-      max_depth=params$max_depth, 
-      learning_rate=params$learning_rate,
-      nrounds=params$nrounds,
-      min_data_in_leaf=params$min_data_in_leaf, 
-      lambda_l2=params$lambda_l2,
-      feature_fraction=params$feature_fraction,
-      bagging_fraction=params$bagging_fraction,
-      valids=valids, 
-      early_stopping_rounds=early_stopping_rounds,
-      objective='binary', 
-      metric='auc',
-      verbose=-1, 
-      feature_fraction_seed=sample(1:1000, 1),
-      bagging_seed=sample(1:1000, 1),
-      nthread=params$nthread
-    )
-    function (X) {
-      #X = as.matrix(X)
-      predict(model, X)
-    }
-  }, aggregator='meanAggregator', iters=params$iters, rowsFactor=params$rowsFactor, replace=F, nthread=1)
-  
-  ret
-}
 
 
 algo1 = function (XL) {
@@ -333,31 +188,6 @@ j1_hashed = j2_hashed = j3_hashed = NULL
 
 print('preparing complete')
 
-etParams = list(
-  numRandomCuts=c(1),
-  mtry=c(2),
-  ntree=c(250),
-  nodesize=1,
-  iters=1,
-  rowsFactor=1
-)
-
-lgbParams = list(
-  iters=1,
-  rowsFactor=1,
-  
-  num_leaves=c(11),
-  nrounds=c(1000),
-  learning_rate=c(0.05),
-  
-  max_depth=c(6),
-  lambda_l2=c(10),
-  feature_fraction=0.6,
-  min_data_in_leaf=382,
-  bagging_fraction=0.910187,
-  early_stopping_rounds=0,
-  nthread=4
-)
 
 #XY_all = NULL
 
@@ -366,12 +196,14 @@ lgbParams = list(
 #               family='binomial',type.logistic='Newton', type.multinomial='ungrouped', 
 #               alpha=0)
 
-
-#my.tuneSequential(XL2, function (params) {
-#  function (XL, newdata) {
-#    my.train.lgb(XL, params)
-#  }
-#}, lgbParams, verbose=T, loops=1, iters=1, folds=5, train.seed=2707, folds.seed=888, use.newdata=F)
+#print(system.time({
+#  my.gridSearch(XL2, function (params) {
+#    function (XL, newdata) {
+#      my.train.lgb(XL, params)
+#    }
+#  }, expand.grid(lgbParams), verbose=T, iters=1, folds=5, train.seed=2707, folds.seed=888, use.newdata=F)
+#})
+#)
 #lol()
 
 #set.seed(888)

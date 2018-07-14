@@ -128,7 +128,7 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F, use.
     XKerr <<- c(XKerr, e)
     
     if (verbose)
-      print(paste0('tqfold ', it, '-', fold, '/', iters, '-', folds, ' cur=', e, ' mean=', mean(XKerr), ' sd=', sd(XKerr)))
+      cat('tqfold ', it, '-', fold, '/', iters, '-', folds, ' cur=', e, ' mean=', mean(XKerr), ' sd=', sd(XKerr), '\n', sep='')
     
   }, XLL, folds=folds, iters=iters)
   
