@@ -52,12 +52,12 @@ lgbParams = list(
   rowsFactor=1,
   
   num_leaves=c(11),
-  nrounds=c(700),
+  nrounds=c(1000),
   learning_rate=c(0.05),
   
   max_depth=c(6),
-  lambda_l2=c(20),
-  feature_fraction=0.6,
+  lambda_l2=c(100),
+  feature_fraction=c(0.05),
   min_data_in_leaf=382,
   bagging_fraction=0.910187,
   early_stopping_rounds=0,
