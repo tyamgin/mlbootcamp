@@ -28,6 +28,8 @@ readSp = function (cname, i) {
   ids = readRDS(paste0('data/', cname, '_allcat_stat'))$id[i]
   r = readRDS(paste0('data/data_', cname, '_sp.rds'))[, ids + 1]
   colnames(r) = paste0(cname, '_', ids)
+  imp = readRDS('data/imp.rds')
+  r = r[, colnames(r) %in% imp$Feature]
   
   #r1 = r[, 1:100]
   #colnames(r1) = paste0(colnames(r1), '_o')
