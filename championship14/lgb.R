@@ -38,6 +38,7 @@ my.train.lgb = function (XLL, params) {
       #bin_construct_sample_cnt=2000000,
       nthread=params$nthread
     )
+    g.model <<- model
     function (X) {
       if (is.data.frame(X))
         X = as.matrix(X)
@@ -52,11 +53,12 @@ lgbParams = list(
   iters=1,
   rowsFactor=1,
   
-  num_leaves=c(11),
-  nrounds=c(1200),
-  learning_rate=c(0.05),
+  num_leaves=12,
+  nrounds=c(1400),
+  learning_rate=c(0.04),
   
-  max_depth=c(7),
+  max_depth=9,
+  #lambda_l1=c(5),
   lambda_l2=c(100),
   feature_fraction=c(0.05),
   min_data_in_leaf=382,
