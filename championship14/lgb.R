@@ -53,15 +53,15 @@ lgbParams = list(
   iters=1,
   rowsFactor=1,
   
-  num_leaves=12,
+  num_leaves=c(18),
   nrounds=c(1400),
   learning_rate=c(0.04),
   
   max_depth=9,
   #lambda_l1=c(5),
   lambda_l2=c(100),
-  feature_fraction=c(0.05),
-  min_data_in_leaf=150,#382,
+  feature_fraction=c(0.04),
+  min_data_in_leaf=20,#382,
   bagging_fraction=c(0.85),
   bagging_freq=2,
   early_stopping_rounds=0,

@@ -28,7 +28,7 @@ readSp = function (cname, i) {
   ids = readRDS(paste0('data/', cname, '_allcat_stat'))$id[i]
   r = readRDS(paste0('data/data_', cname, '_sp.rds'))[, ids + 1]
   colnames(r) = paste0(cname, '_', ids)
-  imp = readRDS('data/impa3.rds')
+  imp = readRDS('data/impb2.rds')
   r = r[, colnames(r) %in% imp$Feature]
   
   #r1 = r[, 1:100]
@@ -41,9 +41,9 @@ mbool = function (a) {
   sparseMatrix(a@i+1, p=a@p, x=min(1, a@x), dims=a@Dim, dimnames=a@Dimnames)
 }
 
-j1_sp = readSp('j1', 1:6300)
-j2_sp = readSp('j2', 1:6300)
-j3_sp = readSp('j3', 1:6300)
+j1_sp = readSp('j1', 1:9300)
+j2_sp = readSp('j2', 1:9300)
+j3_sp = readSp('j3', 1:9300)
 
 #j1_sp_rest = readRDS('data/j1_svd_rest_50.rds')$u
 #j2_sp_rest = readRDS('data/j2_svd_rest_50.rds')$u
@@ -178,9 +178,9 @@ print('before create features')
 XL2 = XY_all[!is.na(XY_all$target),] %>% create_features()
 print('after create features')
 
-#XX = XY_all[is.na(XY_all$target),] %>%
-#  select(-target) %>%
-#  create_features(remove.cuid=F)
+XX = XY_all[is.na(XY_all$target),] %>%
+  select(-target) %>%
+  create_features(remove.cuid=F)
 
 j1_features = j2_features = j3_features = NULL
 j1_sp = j2_sp = j3_sp = NULL
@@ -203,7 +203,7 @@ print('preparing complete')
 #    function (XL, newdata) {
 #      my.train.lgb(XL, params)
 #    }
-#  }, expand.grid(lgbParams), verbose=T, iters=5, folds=5, train.seed=2707, folds.seed=888, use.newdata=F)
+#  }, expand.grid(lgbParams), verbose=T, iters=1, folds=5, train.seed=2708, folds.seed=888, use.newdata=F)
 #})
 #)
 #lol()
