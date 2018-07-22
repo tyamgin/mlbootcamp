@@ -29,7 +29,7 @@ readSp = function (cname, i) {
   r = readRDS(paste0('data/data_', cname, '_sp.rds'))[, ids + 1]
   colnames(r) = paste0(cname, '_', ids)
   imp = readRDS('data/impb3.rds')
-  r = r[, colnames(r) %in% imp$Feature[imp$Gain > 5e-5]]
+  #r = r[, colnames(r) %in% imp$Feature[imp$Gain > 5e-5]]
   
   #r1 = r[, 1:100]
   #colnames(r1) = paste0(colnames(r1), '_o')
@@ -41,9 +41,9 @@ mbool = function (a) {
   sparseMatrix(a@i+1, p=a@p, x=min(1, a@x), dims=a@Dim, dimnames=a@Dimnames)
 }
 
-j1_sp = readSp('j1', 1:9300)
-j2_sp = readSp('j2', 1:9300)
-j3_sp = readSp('j3', 1:9300)
+j1_sp = readSp('j1', 1:5300)
+j2_sp = readSp('j2', 1:5300)
+j3_sp = readSp('j3', 1:4300)
 
 #j1_sp_rest = readRDS('data/j1_svd_rest_50.rds')$u
 #j2_sp_rest = readRDS('data/j2_svd_rest_50.rds')$u
@@ -204,11 +204,11 @@ print('preparing complete')
 #               alpha=0)
 
 #print(system.time({
- # my.gridSearch(XL2, function (params) {
-  #  function (XL, newdata) {
-  #    my.train.lgb(XL, params)
-  #  }
- # }, expand.grid(lgbParams), verbose=T, iters=1, folds=5, train.seed=2708, folds.seed=888, use.newdata=F)
+#  my.gridSearch(XL2, function (params) {
+#    function (XL, newdata) {
+#      my.train.lgb(XL, params)
+#    }
+#  }, expand.grid(lgbParams), verbose=T, iters=1, folds=5, train.seed=2708, folds.seed=888, use.newdata=F)
 #})
 #)
 #lol()
