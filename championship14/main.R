@@ -29,7 +29,7 @@ readSp = function (cname, i) {
   r = readRDS(paste0('data/data_', cname, '_sp.rds'))[, ids + 1]
   colnames(r) = paste0(cname, '_', ids)
   imp = readRDS('data/impb3.rds')
-  r = r[, colnames(r) %in% imp$Feature]
+  r = r[, colnames(r) %in% imp$Feature[imp$Gain > 5e-5]]
   
   #r1 = r[, 1:100]
   #colnames(r1) = paste0(colnames(r1), '_o')
@@ -114,9 +114,14 @@ create_features = function (XG, remove.cuid=T) {
       dt_diff_min=min(dt_diff),
       dt_diff_max=max(dt_diff),
       dt_diff_max_diff = max(diff(dt_diff), 0),
+      #dt_diff_distinct = n_distinct(dt_diff),
       j1s=sum(j1s), j2s=sum(j2s), j3s=sum(j3s)
+      #j1s=sum(j1s), j2s=sum(j2s), j3s=sum(j3s)
     ) %>% mutate(
       #cats=(cat0>0)+(cat1>0)+(cat2>0)+(cat3>0)+(cat4>0)+(cat5>0),
+      #j1s_per_day = j1s / dt_diff_distinct,
+      #j2s_per_day = j2s / dt_diff_distinct,
+      #j3s_per_day = j3s / dt_diff_distinct,
       dt_diff_spread = dt_diff_max - dt_diff_min
     )
   tar = grp %>% summarise(target=max(target)) %>% select(-cuid) %>% as.matrix()
@@ -199,11 +204,11 @@ print('preparing complete')
 #               alpha=0)
 
 #print(system.time({
-#  my.gridSearch(XL2, function (params) {
-#    function (XL, newdata) {
-#      my.train.lgb(XL, params)
-#    }
-#  }, expand.grid(lgbParams), verbose=T, iters=1, folds=5, train.seed=2708, folds.seed=888, use.newdata=F)
+ # my.gridSearch(XL2, function (params) {
+  #  function (XL, newdata) {
+  #    my.train.lgb(XL, params)
+  #  }
+ # }, expand.grid(lgbParams), verbose=T, iters=1, folds=5, train.seed=2708, folds.seed=888, use.newdata=F)
 #})
 #)
 #lol()
