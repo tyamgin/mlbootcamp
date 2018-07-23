@@ -183,9 +183,11 @@ print('before create features')
 XL2 = XY_all[!is.na(XY_all$target),] %>% create_features()
 print('after create features')
 
+if(1) {
 XX = XY_all[is.na(XY_all$target),] %>%
   select(-target) %>%
   create_features(remove.cuid=F)
+}
 
 j1_features = j2_features = j3_features = NULL
 j1_sp = j2_sp = j3_sp = NULL
@@ -202,16 +204,16 @@ print('preparing complete')
 #               nfolds=5, type.measure="auc",
 #               family='binomial',type.logistic='Newton', type.multinomial='ungrouped', 
 #               alpha=0)
-
-#print(system.time({
-#  my.gridSearch(XL2, function (params) {
-#    function (XL, newdata) {
-#      my.train.lgb(XL, params)
-#    }
-#  }, expand.grid(lgbParams), verbose=T, iters=1, folds=5, train.seed=2708, folds.seed=888, use.newdata=F)
-#})
-#)
-#lol()
+if(0){
+print(system.time({
+  my.gridSearch(XL2, function (params) {
+    function (XL, newdata) {
+      my.train.lgb(XL, params)
+    }
+  }, expand.grid(lgbParams), verbose=T, iters=1, folds=5, train.seed=2708, folds.seed=888, use.newdata=F)
+})
+)
+lol()}
 
 #set.seed(888)
 #validation.tqfold(XL2, algo1, folds=5, iters=3, verbose=T, seed=2707); asdasd()

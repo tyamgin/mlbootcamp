@@ -59,9 +59,9 @@ lgbParams = list(
   
   max_depth=9,
   #lambda_l1=c(5),
-  lambda_l2=c(100),
+  lambda_l2=c(80),
   feature_fraction=c(0.04),
-  min_data_in_leaf=300,
+  min_data_in_leaf=380,
   bagging_fraction=c(0.85),
   bagging_freq=2,
   early_stopping_rounds=0,
