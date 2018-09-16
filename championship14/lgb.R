@@ -50,14 +50,14 @@ my.train.lgb = function (XLL, params) {
 }
 
 lgbParams = list(
-  iters=1,
-  rowsFactor=1,
+  iters=5,
+  rowsFactor=0.98,
   
   num_leaves=c(12),
   nrounds=c(1400),
   learning_rate=c(0.04),
   
-  max_depth=9,
+  max_depth=c(9),
   #lambda_l1=c(5),
   lambda_l2=c(80),
   feature_fraction=c(0.04),

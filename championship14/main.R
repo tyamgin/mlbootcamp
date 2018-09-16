@@ -183,7 +183,7 @@ print('before create features')
 XL2 = XY_all[!is.na(XY_all$target),] %>% create_features()
 print('after create features')
 
-if(1) {
+if(0) {
 XX = XY_all[is.na(XY_all$target),] %>%
   select(-target) %>%
   create_features(remove.cuid=F)
@@ -204,7 +204,7 @@ print('preparing complete')
 #               nfolds=5, type.measure="auc",
 #               family='binomial',type.logistic='Newton', type.multinomial='ungrouped', 
 #               alpha=0)
-if(0){
+if(1){
 print(system.time({
   my.gridSearch(XL2, function (params) {
     function (XL, newdata) {
