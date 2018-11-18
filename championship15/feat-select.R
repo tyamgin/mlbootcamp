@@ -3,8 +3,8 @@ tqfoldEstimation = function(XL, teach) {
   if (p <= 1)
     return( list(int=0, ext=0) )
   
-  my.set.seed(12349) # need?
-  e = validation.tqfold.parallel(XL, teach, folds=5, iters=8, resample.seed=234234, algo.seed=5244)
+  my.set.seed(123449) # need?
+  e = validation.tqfold.parallel(XL, teach, folds=5, iters=8, resample.seed=2434234, algo.seed=5244)
   my.restore.seed()
   list(int=e, ext=e)
 }
