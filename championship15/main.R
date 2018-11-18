@@ -302,6 +302,9 @@ feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','INTERNET_TYPE_ID_2','RENT_CHANNEL','RO
 feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','INTERNET_TYPE_ID_2','RENT_CHANNEL','ROAM','C17','C25','C27','count_v','C30S',
           'ITC','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','C33','C2_FREQ','C23S','DATA_VOL_MB_MEAN','COST_S','C19S')
 
+feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','INTERNET_TYPE_ID_2','RENT_CHANNEL','ROAM','C17','C25','C27','count_v','C30S',
+          'ITC','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','C33','C2_FREQ','C23S','DATA_VOL_MB_MEAN','COST_S')
+
 stopCluster(cl)
 cl = makeCluster(4)
 registerDoParallel(cl)
