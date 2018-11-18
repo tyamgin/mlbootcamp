@@ -133,3 +133,43 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F, use.
   
   XKerr
 }
+
+validation.tqfold.parallel = function (XLL, teachFunc, folds=5, iters=10, resample.seed = 0, algo.seed=0) {
+  nrows = length(unique(XLL[, ncol(XLL), drop=T]))
+  
+  if (resample.seed > 0) {
+    set.seed(resample.seed)
+  }
+  
+  resamples = matrix(NA, nrow=iters, ncol=nrow(XLL))
+  for (i in 1:iters) {
+    resamples[i, ] = sample(nrow(XLL))
+  }
+  
+  mean(foreach(it=1:iters, .combine=c,
+               .export=c('my.extendedColsTrain', 'my.train.lgb', 'extendXYCols', 'feats', 'my.boot', 'lgbParams', 'meanAggregator'),
+               .packages=c('foreach', 'lightgbm', 'pROC')
+               ) %do% {
+    perm = resamples[it, ]
+    mean(foreach(fold=1:folds, .combine=c) %do% {
+      foldLength = floor(nrow(XLL) / folds)
+      foldStart = (fold - 1) * foldLength
+      foldEnd = foldStart + foldLength - 1
+      
+      controlIdxes = perm[foldStart:foldEnd]
+      XK = XLL[controlIdxes, ]
+      XL = XLL[-controlIdxes, ]  
+      
+      if (algo.seed > 0) {
+        set.seed(algo.seed)
+      }
+      
+      act = XK[, ncol(XL), drop=T]
+
+      algo = teachFunc(XL)
+      pred = algo(XK[, -ncol(XL)])
+      
+      roc(act, pred)$auc
+    })
+  })
+}

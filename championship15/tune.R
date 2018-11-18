@@ -4,17 +4,14 @@ logParams = function (params) {
   cat('\n')
 }
 
-my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F, use.newdata=F, folds.seed=777, train.seed=2, maximize=T) {
+my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F, resample.seed=777, algo.seed=2, maximize=T) {
   resE = ifelse(maximize, -1e10, 1e10)
   for (i in 1:nrow(grid)) {
     params = grid[i, ]
     
-    my.set.seed(folds.seed)
-    val = validation.tqfold(XLL, teach(params), folds=folds, iters=iters, verbose=verbose, use.newdata=use.newdata, seed=train.seed)
-    my.restore.seed()
-    e = mean(val)
+    e = validation.tqfold.parallel(XLL, teach(params), folds=folds, iters=iters, resample.seed=resample.seed, algo.seed=algo.seed)
+    
     params$SCORE_MEAN = e
-    params$SCORE_SD = sd(val)
     
     logParams(params)
     

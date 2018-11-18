@@ -3,8 +3,8 @@ tqfoldEstimation = function(XL, teach) {
   if (p <= 1)
     return( list(int=0, ext=0) )
   
-  my.set.seed(11349)
-  e = mean(validation.tqfold(XL, teach, folds=5, iters=7, verbose=F))
+  my.set.seed(12349) # need?
+  e = validation.tqfold.parallel(XL, teach, folds=5, iters=8, resample.seed=234234, algo.seed=5244)
   my.restore.seed()
   list(int=e, ext=e)
 }
@@ -97,6 +97,7 @@ addRemoveSelect = function(iterations,  # количество итераций
       
       plot(c(iterPts, iterPts), c(intPts, extPts), col=c(rep("green", length(intPts)), rep("red", length(extPts))), pch=20)
     }
-    print(paste0('[', i, '] ', newEst$ext, ' ', iterations - it, " iterations remains"))
+    cat()
+    cat(paste0('[', i, '] ', ifelse(addOrRemove, '-', '+'), colnames(XL)[i], ' ', newEst$ext, ' ', iterations - it, " iterations remains\n"))
   }
 }

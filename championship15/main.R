@@ -6,6 +6,7 @@ library(caret)
 library(e1071)
 library(nnet)
 library(extraTrees)
+library(doParallel)
 
 debugSource("cv.R")
 debugSource("tune.R")
@@ -42,23 +43,20 @@ not.most.freq.count = function (vec) {
   sum(vec != most.freq(vec))
 }
 
-read_data = function (name) {
-  read.csv(file=paste0("data/", name, ".csv"), head=T, sep=";", dec=",")
-}
+bs_avg_kpi_1_12 = readRDS('cache/bs_avg_kpi_1_12')
+bs_chnn_kpi_1_12 = readRDS('cache/bs_chnn_kpi_1_12')
 
-#bs_avg_kpi = read.csv(file="data/bs_avg_kpi.csv", head=T, sep=";", dec=",")
-#bs_chnn_kpi = read.csv(file="data/bs_chnn_kpi.csv", head=T, sep=";", dec=",")
-subs_features_train = read_data("subs_features_train")
-subs_csi_train = read_data("subs_csi_train")
-subs_bs_data_session_train = read_data("subs_bs_data_session_train")
-subs_bs_voice_session_train = read_data("subs_bs_voice_session_train")
-subs_bs_consumption_train = read_data("subs_bs_consumption_train")
+subs_features_train = readRDS("cache/subs_features_train")
+subs_csi_train = readRDS("cache/subs_csi_train")
+subs_bs_data_session_train = readRDS("cache/subs_bs_data_session_train")
+subs_bs_voice_session_train = readRDS("cache/subs_bs_voice_session_train")
+subs_bs_consumption_train = readRDS("cache/subs_bs_consumption_train")
 
-subs_features_test = read_data("subs_features_test")
-subs_csi_test = read_data("subs_csi_test")
-subs_bs_data_session_test = read_data("subs_bs_data_session_test")
-subs_bs_voice_session_test = read_data("subs_bs_voice_session_test")
-subs_bs_consumption_test = read_data("subs_bs_consumption_test")
+subs_features_test = readRDS("cache/subs_features_test")
+subs_csi_test = readRDS("cache/subs_csi_test")
+subs_bs_data_session_test = readRDS("cache/subs_bs_data_session_test")
+subs_bs_voice_session_test = readRDS("cache/subs_bs_voice_session_test")
+subs_bs_consumption_test = readRDS("cache/subs_bs_consumption_test")
 
 subs_features_train = subs_features_train %>% arrange(SK_ID)
 subs_csi_train = subs_csi_train %>% arrange(SK_ID)
@@ -66,7 +64,55 @@ subs_bs_data_session_train = subs_bs_data_session_train %>% arrange(SK_ID)
 subs_bs_voice_session_train = subs_bs_voice_session_train %>% arrange(SK_ID)
 subs_bs_consumption_train = subs_bs_consumption_train %>% arrange(SK_ID)
 
-create_features = function (subs_features, subs_csi, subs_bs_data_session, subs_bs_voice_session, subs_bs_consumption) {
+bs_avg_kpi_1_12 = bs_avg_kpi_1_12 %>% arrange(CELL_LAC_ID) 
+
+na3g = is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_3G)
+bs_avg_kpi_1_12$CELL_AVAILABILITY_3G[na3g] = bs_avg_kpi_1_12$CELL_AVAILABILITY_4G[na3g]
+ls3g = !is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_3G) & !is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_4G) & bs_avg_kpi_1_12$CELL_AVAILABILITY_3G < bs_avg_kpi_1_12$CELL_AVAILABILITY_4G
+bs_avg_kpi_1_12$CELL_AVAILABILITY_3G[ls3g] = bs_avg_kpi_1_12$CELL_AVAILABILITY_4G[ls3g]
+
+na2g = is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_2G)
+bs_avg_kpi_1_12$CELL_AVAILABILITY_2G[na2g] = bs_avg_kpi_1_12$CELL_AVAILABILITY_3G[na2g]
+ls2g = !is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_2G) & !is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_3G) & bs_avg_kpi_1_12$CELL_AVAILABILITY_2G < bs_avg_kpi_1_12$CELL_AVAILABILITY_3G
+bs_avg_kpi_1_12$CELL_AVAILABILITY_2G[ls2g] = bs_avg_kpi_1_12$CELL_AVAILABILITY_3G[ls2g]
+
+
+avg1 = bs_avg_kpi_1_12 %>% group_by(CELL_LAC_ID) %>% summarise(
+  CELL_AVAILABILITY_2G = mean(CELL_AVAILABILITY_2G, na.rm=T),
+  CELL_AVAILABILITY_3G = mean(CELL_AVAILABILITY_3G, na.rm=T),
+  CELL_AVAILABILITY_4G = mean(CELL_AVAILABILITY_4G, na.rm=T),
+  CSSR_2G = mean(CSSR_2G, na.rm=T),
+  CSSR_3G = mean(CSSR_3G, na.rm=T),
+  ERAB_PS_BLOCKING_RATE_LTE = mean(ERAB_PS_BLOCKING_RATE_LTE, na.rm=T),
+  ERAB_PS_BLOCKING_RATE_PLMN_LTE = mean(ERAB_PS_BLOCKING_RATE_PLMN_LTE, na.rm=T),
+  ERAB_PS_DROP_RATE_LTE = mean(ERAB_PS_DROP_RATE_LTE, na.rm=T)
+)
+
+chnn1 = bs_chnn_kpi_1_12 %>% group_by(CELL_LAC_ID) %>% summarise(
+  AVEUSERNUMBER = mean(AVEUSERNUMBER, na.rm=T),
+  AVEUSERNUMBER_PLMN = mean(AVEUSERNUMBER_PLMN, na.rm=T),
+  AVR_DL_HSPA_USER_3G = mean(AVR_DL_HSPA_USER_3G, na.rm=T),
+  AVR_DL_R99_USER_3G = mean(AVR_DL_R99_USER_3G, na.rm=T),
+  AVR_DL_USER_3G = mean(AVR_DL_USER_3G, na.rm=T),
+  AVR_DL_USER_LTE = mean(AVR_DL_USER_LTE, na.rm=T),
+  AVR_TX_POWER_3G = mean(AVR_TX_POWER_3G, na.rm=T),
+  AVR_UL_HSPA_USER = mean(AVR_UL_HSPA_USER, na.rm=T),
+  AVR_UL_R99_USER = mean(AVR_UL_R99_USER, na.rm=T),
+  AVR_UL_USER_3G = mean(AVR_UL_USER_3G, na.rm=T)
+)
+
+avg1_d_train = left_join(subs_bs_data_session_train, avg1, 'CELL_LAC_ID')
+avg1_d_test = left_join(subs_bs_data_session_test, avg1, 'CELL_LAC_ID')
+avg1_v_train = left_join(subs_bs_voice_session_train, avg1, 'CELL_LAC_ID')
+avg1_v_test = left_join(subs_bs_voice_session_test, avg1, 'CELL_LAC_ID')
+
+chnn1_d_train = left_join(subs_bs_data_session_train, chnn1, 'CELL_LAC_ID')
+chnn1_d_test = left_join(subs_bs_data_session_test, chnn1, 'CELL_LAC_ID')
+chnn1_v_train = left_join(subs_bs_voice_session_train, chnn1, 'CELL_LAC_ID')
+chnn1_v_test = left_join(subs_bs_voice_session_test, chnn1, 'CELL_LAC_ID')
+
+
+create_features = function (subs_features, subs_csi, avg1_d, avg1_v, chnn1_d, chnn1_v, subs_bs_consumption) {
   ss = subs_features %>% group_by(SK_ID) %>% summarise(
     REVENUE = sum(REVENUE),
     C1_FREQ = most.freq(COM_CAT.1),
@@ -137,39 +183,69 @@ create_features = function (subs_features, subs_csi, subs_bs_data_session, subs_
     C34 = most.freq(COM_CAT.34),
     count=n()
   )
-if(F){
-  ss_stat <<- subs_features %>% group_by(SK_ID) %>% summarise(
-    REVENUE_MEAN = mean(REVENUE),
-    C1_NOT_FREQ = not.most.freq.count(COM_CAT.1), # 0
-    C2_NOT_FREQ = not.most.freq.count(COM_CAT.2), # 15
-    BASE_TYPE_NOT_FREQ = not.most.freq.count(BASE_TYPE), # 1108
-    ACT_NOT_FREQ = not.most.freq.count(ACT), # 320
-    
-    C7_NOT_FREQ = not.most.freq.count(COM_CAT.7), # 
-    C8_NOT_FREQ = not.most.freq.count(COM_CAT.8), # 
-    DEVICE_TYPE_ID_NOT_FREQ = not.most.freq.count(DEVICE_TYPE_ID), # 1825
-    INTERNET_TYPE_ID_NOT_FREQ = not.most.freq.count(INTERNET_TYPE_ID), # 3582
-    C25_NOT_FREQ = not.most.freq.count(COM_CAT.25), # 6
-    C26_NOT_FREQ = not.most.freq.count(COM_CAT.26), # 455
-    C34_NOT_FREQ = not.most.freq.count(COM_CAT.34), # 6033
-    count=n()
-  )
-}
 
-  dd = subs_bs_data_session %>% group_by(SK_ID) %>% summarise(
+  dd = avg1_d %>% group_by(SK_ID) %>% summarise(
     DATA_VOL_MB_MEAN = mean(DATA_VOL_MB, na.rm=T),
     DATA_VOL_MB_SUM = sum(DATA_VOL_MB, na.rm=T),
     DATA_VOL_MB_MIN = min(DATA_VOL_MB, na.rm=T),
     DATA_VOL_MB_MAX = max(DATA_VOL_MB, na.rm=T),
+    
+    CELL_AVAILABILITY_2G_D_MEAN = mean(CELL_AVAILABILITY_2G, na.rm=T),
+    CELL_AVAILABILITY_3G_D_MEAN = mean(CELL_AVAILABILITY_3G, na.rm=T),
+    CELL_AVAILABILITY_4G_D_MEAN = mean(CELL_AVAILABILITY_4G, na.rm=T),
+    CSSR_2G_D_MEAN = mean(CSSR_2G, na.rm=T),
+    CSSR_3G_D_MEAN = mean(CSSR_3G, na.rm=T),
+    
+    ERAB_PS_BLOCKING_RATE_LTE_D_MEAN = mean(ERAB_PS_BLOCKING_RATE_LTE, na.rm=T),
+    ERAB_PS_BLOCKING_RATE_PLMN_LTE_D_MEAN = mean(ERAB_PS_BLOCKING_RATE_PLMN_LTE, na.rm=T),
+    ERAB_PS_DROP_RATE_LTE_D_MEAN = mean(ERAB_PS_DROP_RATE_LTE, na.rm=T),
+    
     count_d = n()
   )
   
-  vv = subs_bs_voice_session %>% group_by(SK_ID) %>% summarise(
+  ddd = chnn1_d %>% group_by(SK_ID) %>% summarise(
+    AVEUSERNUMBER_D_MEAN = mean(AVEUSERNUMBER, na.rm=T),
+    AVEUSERNUMBER_PLMN_D_MEAN = mean(AVEUSERNUMBER_PLMN, na.rm=T),
+    AVR_DL_HSPA_USER_3G_D_MEAN = mean(AVR_DL_HSPA_USER_3G, na.rm=T),
+    AVR_DL_R99_USER_3G_D_MEAN = mean(AVR_DL_R99_USER_3G, na.rm=T),
+    AVR_DL_USER_3G_D_MEAN = mean(AVR_DL_USER_3G, na.rm=T),
+    AVR_DL_USER_LTE_D_MEAN = mean(AVR_DL_USER_LTE, na.rm=T),
+    AVR_TX_POWER_3G_D_MEAN = mean(AVR_TX_POWER_3G, na.rm=T),
+    AVR_UL_HSPA_USER_D_MEAN = mean(AVR_UL_HSPA_USER, na.rm=T),
+    AVR_UL_R99_USER_D_MEAN = mean(AVR_UL_R99_USER, na.rm=T),
+    AVR_UL_USER_3G_D_MEAN = mean(AVR_UL_USER_3G, na.rm=T)
+  )
+  
+  vv = avg1_v %>% group_by(SK_ID) %>% summarise(
     VOICE_DUR_MIN_MEAN = mean(VOICE_DUR_MIN, na.rm=T),
     VOICE_DUR_MIN_SUM = sum(VOICE_DUR_MIN, na.rm=T),
     VOICE_DUR_MIN_MIN = min(VOICE_DUR_MIN, na.rm=T),
     VOICE_DUR_MIN_MAX = max(VOICE_DUR_MIN, na.rm=T),
+    
+    CELL_AVAILABILITY_2G_V_MEAN = mean(CELL_AVAILABILITY_2G, na.rm=T),
+    CELL_AVAILABILITY_3G_V_MEAN = mean(CELL_AVAILABILITY_3G, na.rm=T),
+    CELL_AVAILABILITY_4G_V_MEAN = mean(CELL_AVAILABILITY_4G, na.rm=T),
+    CSSR_2G_V_MEAN = mean(CSSR_2G, na.rm=T),
+    CSSR_3G_V_MEAN = mean(CSSR_3G, na.rm=T),
+    
+    ERAB_PS_BLOCKING_RATE_LTE_V_MEAN = mean(ERAB_PS_BLOCKING_RATE_LTE, na.rm=T),
+    ERAB_PS_BLOCKING_RATE_PLMN_LTE_V_MEAN = mean(ERAB_PS_BLOCKING_RATE_PLMN_LTE, na.rm=T),
+    ERAB_PS_DROP_RATE_LTE_V_MEAN = mean(ERAB_PS_DROP_RATE_LTE, na.rm=T),
+    
     count_v = n()
+  )
+  
+  vvv = chnn1_v %>% group_by(SK_ID) %>% summarise(
+    AVEUSERNUMBER_V_MEAN = mean(AVEUSERNUMBER, na.rm=T),
+    AVEUSERNUMBER_PLMN_V_MEAN = mean(AVEUSERNUMBER_PLMN, na.rm=T),
+    AVR_DL_HSPA_USER_3G_V_MEAN = mean(AVR_DL_HSPA_USER_3G, na.rm=T),
+    AVR_DL_R99_USER_3G_V_MEAN = mean(AVR_DL_R99_USER_3G, na.rm=T),
+    AVR_DL_USER_3G_V_MEAN = mean(AVR_DL_USER_3G, na.rm=T),
+    AVR_DL_USER_LTE_V_MEAN = mean(AVR_DL_USER_LTE, na.rm=T),
+    AVR_TX_POWER_3G_V_MEAN = mean(AVR_TX_POWER_3G, na.rm=T),
+    AVR_UL_HSPA_USER_V_MEAN = mean(AVR_UL_HSPA_USER, na.rm=T),
+    AVR_UL_R99_USER_V_MEAN = mean(AVR_UL_R99_USER, na.rm=T),
+    AVR_UL_USER_3G_V_MEAN = mean(AVR_UL_USER_3G, na.rm=T)
   )
   
   cc = subs_bs_consumption %>% group_by(SK_ID) %>% summarise(
@@ -193,6 +269,8 @@ if(F){
   XL1 = left_join(ss, dd, 'SK_ID')
   XL1 = left_join(XL1, vv, 'SK_ID')
   XL1 = left_join(XL1, cc, 'SK_ID')
+  XL1 = left_join(XL1, vvv, 'SK_ID')
+  XL1 = left_join(XL1, ddd, 'SK_ID')
   XL = left_join(XL1, XL, 'SK_ID')
   
   XL
@@ -205,7 +283,7 @@ my.extendedColsTrain = function (XL, trainFunc, feats) {
   }
 }
 
-XL = create_features(subs_features_train, subs_csi_train, subs_bs_data_session_train, subs_bs_voice_session_train, subs_bs_consumption_train)
+XL = create_features(subs_features_train, subs_csi_train, avg1_d_train, avg1_v_train, chnn1_d_train, chnn1_v_train, subs_bs_consumption_train)
 
 algo1 = function (XL) {
   my.extendedColsTrain(XL, function (XL) {
@@ -213,28 +291,35 @@ algo1 = function (XL) {
   }, feats);
 }
 
-#paste(lapply(colnames(XL), function (x) paste0("'", x, "'")), collapse=",")
-#feats = c('C1_FREQ','C2_FREQ','ACT_MEAN','C7_FREQ','INTERNET_TYPE_ID_2','ITC','RENT_CHANNEL','ROAM','C17','C25','C26',
-#          'DATA_VOL_MB_MEAN','BASE_TYPE_MEAN','VAS','ITC_M','C33','COST')
-#feats = c('C1_FREQ','C2_FREQ','ACT_MEAN','C7_FREQ','INTERNET_TYPE_ID_2','ITC','RENT_CHANNEL','ROAM','C17','C25','C26',
-#          'DATA_VOL_MB_MEAN','C33','COST','C27','SUM_DATA_MIN_MEAN')
-feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','INTERNET_TYPE_ID_2','RENT_CHANNEL','ROAM','C17','C25','C33','COST','C27',
-          'SUM_DATA_MIN_MEAN','DATA_VOL_MB_MAX','count_v','SUM_DATA_MIN_SUM','VOICE_DUR_MIN_SUM','count')
+feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','INTERNET_TYPE_ID_2','RENT_CHANNEL','ROAM','C17','C25','C27','DATA_VOL_MB_MAX',
+          'count_v','BASE_TYPE_MEAN','C30S','ITC','C29S','RENT_CHANNEL_M','C33','count_c','DATA_VOL_MB_MEAN',
+          'CELL_AVAILABILITY_3G_D_MEAN', 'CELL_AVAILABILITY_4G_D_MEAN', 'CSSR_3G_V_MEAN')
 
+feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','INTERNET_TYPE_ID_2','RENT_CHANNEL','ROAM','C17','C25','C27','DATA_VOL_MB_MAX',
+          'count_v','BASE_TYPE_MEAN','C30S','ITC','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','C33',
+          'ERAB_PS_BLOCKING_RATE_LTE_D_MEAN','C2_FREQ')
 
+stopCluster(cl)
+cl = makeCluster(4)
+registerDoParallel(cl)
 my.gridSearch(XL, function (params) {
   function (XL) {
     my.extendedColsTrain(XL, function (XL) {
       my.train.lgb(XL, params)
     }, feats);
   }
-}, expand.grid(lgbParams), verbose=T, iters=10, folds=7, train.seed=2707, folds.seed=889, use.newdata=F)
+}, expand.grid(lgbParams), verbose=T, iters=10, folds=7, resample.seed=2707, algo.seed=449)
+stopCluster(cl)
 
+stopCluster(cl)
+cl = makeCluster(4)
+registerDoParallel(cl)
 addRemoveSelect(400, XL, function (XL) {
   my.train.lgb(XL, lgbParams)
 }, startFeatures=feats)
+stopCluster(cl)
 
-XX = create_features(subs_features_test, subs_csi_test, subs_bs_data_session_test, subs_bs_voice_session_test, subs_bs_consumption_test)
+XX = create_features(subs_features_test, subs_csi_test, avg1_d_test, avg1_v_test, chnn1_d_test, chnn1_v_test, subs_bs_consumption_test)
 model = algo1(XL)
 XX$Y = model(XX)
 resulted_table = left_join(subs_csi_test, XX, "SK_ID")
