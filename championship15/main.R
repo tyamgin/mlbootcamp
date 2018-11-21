@@ -8,6 +8,13 @@ library(nnet)
 library(extraTrees)
 library(doParallel)
 
+# NOTES
+# subs_csi_train$CONTACT_DATE                  01.05 - 31.05 (31 дн)   Дата опроса CSI абонента
+#          test                 01.04 - 28.04  01.05 - 31.05 (59 дн)
+# 
+# subs_features_train$SNAP_DATE 01.06.01 - 01.05.02 (12 мес)           Дата расчета абонентских показателей
+#               test            01.05.01 - 01.05.02 (13 мес)
+
 debugSource("cv.R")
 debugSource("tune.R")
 debugSource("models.R")
@@ -43,8 +50,7 @@ not.most.freq.count = function (vec) {
   sum(vec != most.freq(vec))
 }
 
-bs_avg_kpi_1_12 = readRDS('cache/bs_avg_kpi_1_12')
-bs_chnn_kpi_1_12 = readRDS('cache/bs_chnn_kpi_1_12')
+
 
 subs_features_train = readRDS("cache/subs_features_train")
 subs_csi_train = readRDS("cache/subs_csi_train")
@@ -64,43 +70,151 @@ subs_bs_data_session_train = subs_bs_data_session_train %>% arrange(SK_ID)
 subs_bs_voice_session_train = subs_bs_voice_session_train %>% arrange(SK_ID)
 subs_bs_consumption_train = subs_bs_consumption_train %>% arrange(SK_ID)
 
-bs_avg_kpi_1_12 = bs_avg_kpi_1_12 %>% arrange(CELL_LAC_ID) 
+if (F) {
+  bs_avg_kpi_1_12 = readRDS('cache/bs_avg_kpi_1_12')
+  bs_chnn_kpi_1_12 = readRDS('cache/bs_chnn_kpi_1_12')
+  
+  na3g = is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_3G)
+  bs_avg_kpi_1_12$CELL_AVAILABILITY_3G[na3g] = bs_avg_kpi_1_12$CELL_AVAILABILITY_4G[na3g]
+  ls3g = !is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_3G) & !is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_4G) & bs_avg_kpi_1_12$CELL_AVAILABILITY_3G < bs_avg_kpi_1_12$CELL_AVAILABILITY_4G
+  bs_avg_kpi_1_12$CELL_AVAILABILITY_3G[ls3g] = bs_avg_kpi_1_12$CELL_AVAILABILITY_4G[ls3g]
+  
+  na2g = is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_2G)
+  bs_avg_kpi_1_12$CELL_AVAILABILITY_2G[na2g] = bs_avg_kpi_1_12$CELL_AVAILABILITY_3G[na2g]
+  ls2g = !is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_2G) & !is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_3G) & bs_avg_kpi_1_12$CELL_AVAILABILITY_2G < bs_avg_kpi_1_12$CELL_AVAILABILITY_3G
+  bs_avg_kpi_1_12$CELL_AVAILABILITY_2G[ls2g] = bs_avg_kpi_1_12$CELL_AVAILABILITY_3G[ls2g]
+  
+  avg1 = bs_avg_kpi_1_12 %>% group_by(CELL_LAC_ID) %>% summarise(
+    CELL_AVAILABILITY_2G = mean(CELL_AVAILABILITY_2G, na.rm=T),
+    CELL_AVAILABILITY_3G = mean(CELL_AVAILABILITY_3G, na.rm=T),
+    CELL_AVAILABILITY_4G = mean(CELL_AVAILABILITY_4G, na.rm=T),
+    CSSR_2G = mean(CSSR_2G, na.rm=T),
+    CSSR_3G = mean(CSSR_3G, na.rm=T),
+    ERAB_PS_BLOCKING_RATE_LTE = mean(ERAB_PS_BLOCKING_RATE_LTE, na.rm=T),
+    ERAB_PS_BLOCKING_RATE_PLMN_LTE = mean(ERAB_PS_BLOCKING_RATE_PLMN_LTE, na.rm=T),
+    ERAB_PS_DROP_RATE_LTE = mean(ERAB_PS_DROP_RATE_LTE, na.rm=T)
+  )
+  
+  chnn1 = bs_chnn_kpi_1_12 %>% group_by(CELL_LAC_ID) %>% summarise(
+    AVEUSERNUMBER = mean(AVEUSERNUMBER, na.rm=T),
+    AVEUSERNUMBER_PLMN = mean(AVEUSERNUMBER_PLMN, na.rm=T),
+    AVR_DL_HSPA_USER_3G = mean(AVR_DL_HSPA_USER_3G, na.rm=T),
+    AVR_DL_R99_USER_3G = mean(AVR_DL_R99_USER_3G, na.rm=T),
+    AVR_DL_USER_3G = mean(AVR_DL_USER_3G, na.rm=T),
+    AVR_DL_USER_LTE = mean(AVR_DL_USER_LTE, na.rm=T),
+    AVR_TX_POWER_3G = mean(AVR_TX_POWER_3G, na.rm=T),
+    AVR_UL_HSPA_USER = mean(AVR_UL_HSPA_USER, na.rm=T),
+    AVR_UL_R99_USER = mean(AVR_UL_R99_USER, na.rm=T),
+    AVR_UL_USER_3G = mean(AVR_UL_USER_3G, na.rm=T)
+  )
+  saveRDS(avg1, 'cache/avg1', compress=F)
+  saveRDS(chnn1, 'cache/chnn1', compress=F)
+} else {
+  avg1 = readRDS('cache/avg1')
+  chnn1 = readRDS('cache/chnn1')
+}
 
-na3g = is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_3G)
-bs_avg_kpi_1_12$CELL_AVAILABILITY_3G[na3g] = bs_avg_kpi_1_12$CELL_AVAILABILITY_4G[na3g]
-ls3g = !is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_3G) & !is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_4G) & bs_avg_kpi_1_12$CELL_AVAILABILITY_3G < bs_avg_kpi_1_12$CELL_AVAILABILITY_4G
-bs_avg_kpi_1_12$CELL_AVAILABILITY_3G[ls3g] = bs_avg_kpi_1_12$CELL_AVAILABILITY_4G[ls3g]
+if (F) {
+  bs_avg_kpi_2 = readRDS('cache/bs_avg_kpi_2')
+  bs_chnn_kpi_2 = readRDS('cache/bs_chnn_kpi_2')
+  
+  avg2 = bs_avg_kpi_2 %>% group_by(CELL_LAC_ID) %>% summarise(
+    PART_CQI_QPSK_LTE = mean(PART_CQI_QPSK_LTE, na.rm=T),
+    PART_MCS_QPSK_LTE = mean(PART_MCS_QPSK_LTE, na.rm=T),
+    #PROC_LOAD_3G = mean(PROC_LOAD_3G, na.rm=T),                      #пустая колонка
+    PSSR_2G = mean(PSSR_2G, na.rm=T),
+    PSSR_3G = mean(PSSR_3G, na.rm=T),
+    PSSR_LTE = mean(PSSR_LTE, na.rm=T),
+    RAB_CS_BLOCKING_RATE_3G = mean(RAB_CS_BLOCKING_RATE_3G, na.rm=T),
+    RAB_CS_DROP_RATE_3G = mean(RAB_CS_DROP_RATE_3G, na.rm=T),
+    RAB_PS_BLOCKING_RATE_3G = mean(RAB_PS_BLOCKING_RATE_3G, na.rm=T),
+    RAB_PS_DROP_RATE_3G = mean(RAB_PS_DROP_RATE_3G, na.rm=T),
+    RBU_AVAIL_DL = mean(RBU_AVAIL_DL, na.rm=T)
+    #RBU_AVAIL_DL_LTE = mean(RBU_AVAIL_DL_LTE, na.rm=T)               #пустая колонка
+  )
+  
+  # aaa=as.data.frame(chnn3); for (ccc in colnames(aaa)) if (sum(!is.nan(aaa[,ccc]))==0) print(ccc)
+  
+  chnn2 = bs_chnn_kpi_2 %>% group_by(CELL_LAC_ID) %>% summarise(
+    AVR_UL_USER_LTE = mean(AVR_UL_USER_LTE, na.rm=T),
+    DL_AVR_THROUGHPUT_3G = mean(DL_AVR_THROUGHPUT_3G, na.rm=T),
+    DL_AVR_THROUGHPUT_LTE = mean(DL_AVR_THROUGHPUT_LTE, na.rm=T),
+    DL_AVR_THROUGHPUT_R99 = mean(DL_AVR_THROUGHPUT_R99, na.rm=T),
+    DL_MEAN_USER_THROUGHPUT_LTE = mean(DL_MEAN_USER_THROUGHPUT_LTE, na.rm=T),
+    DL_MEAN_USER_THROUGHPUT_DL_2G = mean(DL_MEAN_USER_THROUGHPUT_DL_2G, na.rm=T),
+    DL_MEAN_USER_THROUGHPUT_HSPA3G = mean(DL_MEAN_USER_THROUGHPUT_HSPA3G, na.rm=T),
+    DL_MEAN_USER_THROUGHPUT_PLTE = mean(DL_MEAN_USER_THROUGHPUT_PLTE, na.rm=T),
+    DL_MEAN_USER_THROUGHPUT_REL93G = mean(DL_MEAN_USER_THROUGHPUT_REL93G, na.rm=T),
+    #HSDPA_USERS_3G = mean(HSDPA_USERS_3G, na.rm=T),    #пустая колонка
+    #HSUPA_USERS_3G = mean(HSUPA_USERS_3G, na.rm=T),    #пустая колонка
+    RBU_USED_DL = mean(RBU_USED_DL, na.rm=T)
+  )
+  saveRDS(avg2, 'cache/avg2', compress=F)
+  saveRDS(chnn2, 'cache/chnn2', compress=F)
+} else {
+  avg2 = readRDS('cache/avg2')
+  chnn2 = readRDS('cache/chnn2')
+}
 
-na2g = is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_2G)
-bs_avg_kpi_1_12$CELL_AVAILABILITY_2G[na2g] = bs_avg_kpi_1_12$CELL_AVAILABILITY_3G[na2g]
-ls2g = !is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_2G) & !is.na(bs_avg_kpi_1_12$CELL_AVAILABILITY_3G) & bs_avg_kpi_1_12$CELL_AVAILABILITY_2G < bs_avg_kpi_1_12$CELL_AVAILABILITY_3G
-bs_avg_kpi_1_12$CELL_AVAILABILITY_2G[ls2g] = bs_avg_kpi_1_12$CELL_AVAILABILITY_3G[ls2g]
+if (F) {
+  bs_avg_kpi_3 = readRDS('cache/bs_avg_kpi_3')
+  bs_avg_kpi_4 = readRDS('cache/bs_avg_kpi_4')
+  bs_chnn_kpi_3 = readRDS('cache/bs_chnn_kpi_3')
 
+  avg3 = bs_avg_kpi_3 %>% group_by(CELL_LAC_ID) %>% summarise(
+    RBU_AVAIL_UL = mean(RBU_AVAIL_UL, na.rm=T),
+    RBU_OTHER_DL = mean(RBU_OTHER_DL, na.rm=T),
+    RBU_OTHER_UL = mean(RBU_OTHER_UL, na.rm=T),
+    RBU_OWN_DL = mean(RBU_OWN_DL, na.rm=T),
+    RBU_OWN_UL = mean(RBU_OWN_UL, na.rm=T),
+    RRC_BLOCKING_RATE_3G = mean(RRC_BLOCKING_RATE_3G, na.rm=T),
+    RRC_BLOCKING_RATE_LTE = mean(RRC_BLOCKING_RATE_LTE, na.rm=T),
+    #RTWP_3G = mean(RTWP_3G, na.rm=T),            ####
+    SHO_FACTOR = mean(SHO_FACTOR, na.rm=T),
+    TBF_DROP_RATE_2G = mean(TBF_DROP_RATE_2G, na.rm=T),
+    TCH_DROP_RATE_2G = mean(TCH_DROP_RATE_2G, na.rm=T)
+    #UTIL_BRD_CPU_3G = mean(UTIL_BRD_CPU_3G, na.rm=T)  ####
+  )
+  
+  avg4 = bs_avg_kpi_4 %>% group_by(CELL_LAC_ID) %>% summarise(
+    UTIL_CE_DL_3G = mean(UTIL_CE_DL_3G, na.rm=T),
+    #UTIL_CE_HW_DL_3G = mean(UTIL_CE_HW_DL_3G, na.rm=T),  #####
+    #UTIL_CE_UL_3G = mean(UTIL_CE_UL_3G, na.rm=T),        #####
+    #UTIL_SUBUNITS_3G = mean(UTIL_SUBUNITS_3G, na.rm=T),  #####
+    UL_VOLUME_LTE = mean(UL_VOLUME_LTE, na.rm=T),
+    DL_VOLUME_LTE = mean(DL_VOLUME_LTE, na.rm=T),
+    TOTAL_DL_VOLUME_3G = mean(TOTAL_DL_VOLUME_3G, na.rm=T),
+    TOTAL_UL_VOLUME_3G = mean(TOTAL_UL_VOLUME_3G, na.rm=T)
+  )
 
-avg1 = bs_avg_kpi_1_12 %>% group_by(CELL_LAC_ID) %>% summarise(
-  CELL_AVAILABILITY_2G = mean(CELL_AVAILABILITY_2G, na.rm=T),
-  CELL_AVAILABILITY_3G = mean(CELL_AVAILABILITY_3G, na.rm=T),
-  CELL_AVAILABILITY_4G = mean(CELL_AVAILABILITY_4G, na.rm=T),
-  CSSR_2G = mean(CSSR_2G, na.rm=T),
-  CSSR_3G = mean(CSSR_3G, na.rm=T),
-  ERAB_PS_BLOCKING_RATE_LTE = mean(ERAB_PS_BLOCKING_RATE_LTE, na.rm=T),
-  ERAB_PS_BLOCKING_RATE_PLMN_LTE = mean(ERAB_PS_BLOCKING_RATE_PLMN_LTE, na.rm=T),
-  ERAB_PS_DROP_RATE_LTE = mean(ERAB_PS_DROP_RATE_LTE, na.rm=T)
-)
+  chnn3 = bs_chnn_kpi_3 %>% group_by(CELL_LAC_ID) %>% summarise(
+    RBU_USED_UL = mean(RBU_USED_UL, na.rm=T),
+    RELATIVE_RBU_USED_DL = mean(RELATIVE_RBU_USED_DL, na.rm=T),
+    RELATIVE_RBU_USED_UL = mean(RELATIVE_RBU_USED_UL, na.rm=T),
+    RELATIVE_TX_POWER_3G = mean(RELATIVE_TX_POWER_3G, na.rm=T),
+    UL_AVR_THROUGHPUT_3G = mean(UL_AVR_THROUGHPUT_3G, na.rm=T),
+    UL_AVR_THROUGHPUT_LTE = mean(UL_AVR_THROUGHPUT_LTE, na.rm=T),
+    UL_AVR_THROUGHPUT_R99 = mean(UL_AVR_THROUGHPUT_R99, na.rm=T),
+    UL_MEAN_USER_THROUGHPUT_LTE = mean(UL_MEAN_USER_THROUGHPUT_LTE, na.rm=T),
+    UL_MEAN_USER_THROUGHPUT_HS3G = mean(UL_MEAN_USER_THROUGHPUT_HS3G, na.rm=T),
+    UL_MEAN_USER_THROUGHPUT_PLTE = mean(UL_MEAN_USER_THROUGHPUT_PLTE, na.rm=T),
+    UL_MEAN_USER_THROUGHPUT_REL93G = mean(UL_MEAN_USER_THROUGHPUT_REL93G, na.rm=T)
+  )
+  saveRDS(avg3, 'cache/avg3', compress=F)
+  saveRDS(avg4, 'cache/avg4', compress=F)
+  saveRDS(chnn3, 'cache/chnn3', compress=F)
+} else {
+  avg3 = readRDS('cache/avg3')
+  avg4 = readRDS('cache/avg4')
+  chnn3 = readRDS('cache/chnn3')
+}
 
-chnn1 = bs_chnn_kpi_1_12 %>% group_by(CELL_LAC_ID) %>% summarise(
-  AVEUSERNUMBER = mean(AVEUSERNUMBER, na.rm=T),
-  AVEUSERNUMBER_PLMN = mean(AVEUSERNUMBER_PLMN, na.rm=T),
-  AVR_DL_HSPA_USER_3G = mean(AVR_DL_HSPA_USER_3G, na.rm=T),
-  AVR_DL_R99_USER_3G = mean(AVR_DL_R99_USER_3G, na.rm=T),
-  AVR_DL_USER_3G = mean(AVR_DL_USER_3G, na.rm=T),
-  AVR_DL_USER_LTE = mean(AVR_DL_USER_LTE, na.rm=T),
-  AVR_TX_POWER_3G = mean(AVR_TX_POWER_3G, na.rm=T),
-  AVR_UL_HSPA_USER = mean(AVR_UL_HSPA_USER, na.rm=T),
-  AVR_UL_R99_USER = mean(AVR_UL_R99_USER, na.rm=T),
-  AVR_UL_USER_3G = mean(AVR_UL_USER_3G, na.rm=T)
-)
-
+avg1 = left_join(avg1, avg2, 'CELL_LAC_ID')
+avg1 = left_join(avg1, avg3, 'CELL_LAC_ID')
+avg1 = left_join(avg1, avg4, 'CELL_LAC_ID')
+chnn1 = left_join(chnn1, chnn2, 'CELL_LAC_ID')
+chnn1 = left_join(chnn1, chnn3, 'CELL_LAC_ID')
+  
 avg1_d_train = left_join(subs_bs_data_session_train, avg1, 'CELL_LAC_ID')
 avg1_d_test = left_join(subs_bs_data_session_test, avg1, 'CELL_LAC_ID')
 avg1_v_train = left_join(subs_bs_voice_session_train, avg1, 'CELL_LAC_ID')
@@ -195,10 +309,36 @@ create_features = function (subs_features, subs_csi, avg1_d, avg1_v, chnn1_d, ch
     CELL_AVAILABILITY_4G_D_MEAN = mean(CELL_AVAILABILITY_4G, na.rm=T),
     CSSR_2G_D_MEAN = mean(CSSR_2G, na.rm=T),
     CSSR_3G_D_MEAN = mean(CSSR_3G, na.rm=T),
-    
     ERAB_PS_BLOCKING_RATE_LTE_D_MEAN = mean(ERAB_PS_BLOCKING_RATE_LTE, na.rm=T),
     ERAB_PS_BLOCKING_RATE_PLMN_LTE_D_MEAN = mean(ERAB_PS_BLOCKING_RATE_PLMN_LTE, na.rm=T),
     ERAB_PS_DROP_RATE_LTE_D_MEAN = mean(ERAB_PS_DROP_RATE_LTE, na.rm=T),
+    
+    PART_CQI_QPSK_LTE_D_MEAN = mean(PART_CQI_QPSK_LTE, na.rm=T),
+    PART_MCS_QPSK_LTE_D_MEAN = mean(PART_MCS_QPSK_LTE, na.rm=T),
+    PSSR_2G_D_MEAN = mean(PSSR_2G, na.rm=T),
+    PSSR_3G_D_MEAN = mean(PSSR_3G, na.rm=T),
+    PSSR_LTE_D_MEAN = mean(PSSR_LTE, na.rm=T),
+    RAB_CS_BLOCKING_RATE_3G_D_MEAN = mean(RAB_CS_BLOCKING_RATE_3G, na.rm=T),
+    RAB_CS_DROP_RATE_3G_D_MEAN = mean(RAB_CS_DROP_RATE_3G, na.rm=T),
+    RAB_PS_BLOCKING_RATE_3G_D_MEAN = mean(RAB_PS_BLOCKING_RATE_3G, na.rm=T),
+    RAB_PS_DROP_RATE_3G_D_MEAN = mean(RAB_PS_DROP_RATE_3G, na.rm=T),
+    RBU_AVAIL_DL_D_MEAN = mean(RBU_AVAIL_DL, na.rm=T),
+    
+    RBU_AVAIL_UL_D_MEAN = mean(RBU_AVAIL_UL, na.rm=T),
+    RBU_OTHER_DL_D_MEAN = mean(RBU_OTHER_DL, na.rm=T),
+    RBU_OTHER_UL_D_MEAN = mean(RBU_OTHER_UL, na.rm=T),
+    RBU_OWN_DL_D_MEAN = mean(RBU_OWN_DL, na.rm=T),
+    RBU_OWN_UL_D_MEAN = mean(RBU_OWN_UL, na.rm=T),
+    RRC_BLOCKING_RATE_3G_D_MEAN = mean(RRC_BLOCKING_RATE_3G, na.rm=T),
+    RRC_BLOCKING_RATE_LTE_D_MEAN = mean(RRC_BLOCKING_RATE_LTE, na.rm=T),
+    SHO_FACTOR_D_MEAN = mean(SHO_FACTOR, na.rm=T),
+    TBF_DROP_RATE_2G_D_MEAN = mean(TBF_DROP_RATE_2G, na.rm=T),
+    TCH_DROP_RATE_2G_D_MEAN = mean(TCH_DROP_RATE_2G, na.rm=T),
+    UTIL_CE_DL_3G_D_MEAN = mean(UTIL_CE_DL_3G, na.rm=T),
+    UL_VOLUME_LTE_D_MEAN = mean(UL_VOLUME_LTE, na.rm=T),
+    DL_VOLUME_LTE_D_MEAN = mean(DL_VOLUME_LTE, na.rm=T),
+    TOTAL_DL_VOLUME_3G_D_MEAN = mean(TOTAL_DL_VOLUME_3G, na.rm=T),
+    TOTAL_UL_VOLUME_3G_D_MEAN = mean(TOTAL_UL_VOLUME_3G, na.rm=T),
     
     count_d = n()
   )
@@ -213,7 +353,30 @@ create_features = function (subs_features, subs_csi, avg1_d, avg1_v, chnn1_d, ch
     AVR_TX_POWER_3G_D_MEAN = mean(AVR_TX_POWER_3G, na.rm=T),
     AVR_UL_HSPA_USER_D_MEAN = mean(AVR_UL_HSPA_USER, na.rm=T),
     AVR_UL_R99_USER_D_MEAN = mean(AVR_UL_R99_USER, na.rm=T),
-    AVR_UL_USER_3G_D_MEAN = mean(AVR_UL_USER_3G, na.rm=T)
+    AVR_UL_USER_3G_D_MEAN = mean(AVR_UL_USER_3G, na.rm=T),
+    
+    AVR_UL_USER_LTE_D_MEAN = mean(AVR_UL_USER_LTE, na.rm=T),
+    DL_AVR_THROUGHPUT_3G_D_MEAN = mean(DL_AVR_THROUGHPUT_3G, na.rm=T),
+    DL_AVR_THROUGHPUT_LTE_D_MEAN = mean(DL_AVR_THROUGHPUT_LTE, na.rm=T),
+    DL_AVR_THROUGHPUT_R99_D_MEAN = mean(DL_AVR_THROUGHPUT_R99, na.rm=T),
+    DL_MEAN_USER_THROUGHPUT_LTE_D_MEAN = mean(DL_MEAN_USER_THROUGHPUT_LTE, na.rm=T),
+    DL_MEAN_USER_THROUGHPUT_DL_2G_D_MEAN = mean(DL_MEAN_USER_THROUGHPUT_DL_2G, na.rm=T),
+    DL_MEAN_USER_THROUGHPUT_HSPA3G_D_MEAN = mean(DL_MEAN_USER_THROUGHPUT_HSPA3G, na.rm=T),
+    DL_MEAN_USER_THROUGHPUT_PLTE_D_MEAN = mean(DL_MEAN_USER_THROUGHPUT_PLTE, na.rm=T),
+    DL_MEAN_USER_THROUGHPUT_REL93G_D_MEAN = mean(DL_MEAN_USER_THROUGHPUT_REL93G, na.rm=T),
+    RBU_USED_DL_D_MEAN = mean(RBU_USED_DL, na.rm=T),
+    
+    RBU_USED_UL_D_MEAN = mean(RBU_USED_UL, na.rm=T),
+    RELATIVE_RBU_USED_DL_D_MEAN = mean(RELATIVE_RBU_USED_DL, na.rm=T),
+    RELATIVE_RBU_USED_UL_D_MEAN = mean(RELATIVE_RBU_USED_UL, na.rm=T),
+    RELATIVE_TX_POWER_3G_D_MEAN = mean(RELATIVE_TX_POWER_3G, na.rm=T),
+    UL_AVR_THROUGHPUT_3G_D_MEAN = mean(UL_AVR_THROUGHPUT_3G, na.rm=T),
+    UL_AVR_THROUGHPUT_LTE_D_MEAN = mean(UL_AVR_THROUGHPUT_LTE, na.rm=T),
+    UL_AVR_THROUGHPUT_R99_D_MEAN = mean(UL_AVR_THROUGHPUT_R99, na.rm=T),
+    UL_MEAN_USER_THROUGHPUT_LTE_D_MEAN = mean(UL_MEAN_USER_THROUGHPUT_LTE, na.rm=T),
+    UL_MEAN_USER_THROUGHPUT_HS3G_D_MEAN = mean(UL_MEAN_USER_THROUGHPUT_HS3G, na.rm=T),
+    UL_MEAN_USER_THROUGHPUT_PLTE_D_MEAN = mean(UL_MEAN_USER_THROUGHPUT_PLTE, na.rm=T),
+    UL_MEAN_USER_THROUGHPUT_REL93G_D_MEAN = mean(UL_MEAN_USER_THROUGHPUT_REL93G, na.rm=T)
   )
   
   vv = avg1_v %>% group_by(SK_ID) %>% summarise(
@@ -227,10 +390,36 @@ create_features = function (subs_features, subs_csi, avg1_d, avg1_v, chnn1_d, ch
     CELL_AVAILABILITY_4G_V_MEAN = mean(CELL_AVAILABILITY_4G, na.rm=T),
     CSSR_2G_V_MEAN = mean(CSSR_2G, na.rm=T),
     CSSR_3G_V_MEAN = mean(CSSR_3G, na.rm=T),
-    
     ERAB_PS_BLOCKING_RATE_LTE_V_MEAN = mean(ERAB_PS_BLOCKING_RATE_LTE, na.rm=T),
     ERAB_PS_BLOCKING_RATE_PLMN_LTE_V_MEAN = mean(ERAB_PS_BLOCKING_RATE_PLMN_LTE, na.rm=T),
     ERAB_PS_DROP_RATE_LTE_V_MEAN = mean(ERAB_PS_DROP_RATE_LTE, na.rm=T),
+    
+    PART_CQI_QPSK_LTE_V_MEAN = mean(PART_CQI_QPSK_LTE, na.rm=T),
+    PART_MCS_QPSK_LTE_V_MEAN = mean(PART_MCS_QPSK_LTE, na.rm=T),
+    PSSR_2G_V_MEAN = mean(PSSR_2G, na.rm=T),
+    PSSR_3G_V_MEAN = mean(PSSR_3G, na.rm=T),
+    PSSR_LTE_V_MEAN = mean(PSSR_LTE, na.rm=T),
+    RAB_CS_BLOCKING_RATE_3G_V_MEAN = mean(RAB_CS_BLOCKING_RATE_3G, na.rm=T),
+    RAB_CS_DROP_RATE_3G_V_MEAN = mean(RAB_CS_DROP_RATE_3G, na.rm=T),
+    RAB_PS_BLOCKING_RATE_3G_V_MEAN = mean(RAB_PS_BLOCKING_RATE_3G, na.rm=T),
+    RAB_PS_DROP_RATE_3G_V_MEAN = mean(RAB_PS_DROP_RATE_3G, na.rm=T),
+    RBU_AVAIL_DL_V_MEAN = mean(RBU_AVAIL_DL, na.rm=T),
+    
+    RBU_AVAIL_UL_V_MEAN = mean(RBU_AVAIL_UL, na.rm=T),
+    RBU_OTHER_DL_V_MEAN = mean(RBU_OTHER_DL, na.rm=T),
+    RBU_OTHER_UL_V_MEAN = mean(RBU_OTHER_UL, na.rm=T),
+    RBU_OWN_DL_V_MEAN = mean(RBU_OWN_DL, na.rm=T),
+    RBU_OWN_UL_V_MEAN = mean(RBU_OWN_UL, na.rm=T),
+    RRC_BLOCKING_RATE_3G_V_MEAN = mean(RRC_BLOCKING_RATE_3G, na.rm=T),
+    RRC_BLOCKING_RATE_LTE_V_MEAN = mean(RRC_BLOCKING_RATE_LTE, na.rm=T),
+    SHO_FACTOR_V_MEAN = mean(SHO_FACTOR, na.rm=T),
+    TBF_DROP_RATE_2G_V_MEAN = mean(TBF_DROP_RATE_2G, na.rm=T),
+    TCH_DROP_RATE_2G_V_MEAN = mean(TCH_DROP_RATE_2G, na.rm=T),
+    UTIL_CE_DL_3G_V_MEAN = mean(UTIL_CE_DL_3G, na.rm=T),
+    UL_VOLUME_LTE_V_MEAN = mean(UL_VOLUME_LTE, na.rm=T),
+    DL_VOLUME_LTE_V_MEAN = mean(DL_VOLUME_LTE, na.rm=T),
+    TOTAL_DL_VOLUME_3G_V_MEAN = mean(TOTAL_DL_VOLUME_3G, na.rm=T),
+    TOTAL_UL_VOLUME_3G_V_MEAN = mean(TOTAL_UL_VOLUME_3G, na.rm=T),
     
     count_v = n()
   )
@@ -245,7 +434,30 @@ create_features = function (subs_features, subs_csi, avg1_d, avg1_v, chnn1_d, ch
     AVR_TX_POWER_3G_V_MEAN = mean(AVR_TX_POWER_3G, na.rm=T),
     AVR_UL_HSPA_USER_V_MEAN = mean(AVR_UL_HSPA_USER, na.rm=T),
     AVR_UL_R99_USER_V_MEAN = mean(AVR_UL_R99_USER, na.rm=T),
-    AVR_UL_USER_3G_V_MEAN = mean(AVR_UL_USER_3G, na.rm=T)
+    AVR_UL_USER_3G_V_MEAN = mean(AVR_UL_USER_3G, na.rm=T),
+    
+    AVR_UL_USER_LTE_V_MEAN = mean(AVR_UL_USER_LTE, na.rm=T),
+    DL_AVR_THROUGHPUT_3G_V_MEAN = mean(DL_AVR_THROUGHPUT_3G, na.rm=T),
+    DL_AVR_THROUGHPUT_LTE_V_MEAN = mean(DL_AVR_THROUGHPUT_LTE, na.rm=T),
+    DL_AVR_THROUGHPUT_R99_V_MEAN = mean(DL_AVR_THROUGHPUT_R99, na.rm=T),
+    DL_MEAN_USER_THROUGHPUT_LTE_V_MEAN = mean(DL_MEAN_USER_THROUGHPUT_LTE, na.rm=T),
+    DL_MEAN_USER_THROUGHPUT_DL_2G_V_MEAN = mean(DL_MEAN_USER_THROUGHPUT_DL_2G, na.rm=T),
+    DL_MEAN_USER_THROUGHPUT_HSPA3G_V_MEAN = mean(DL_MEAN_USER_THROUGHPUT_HSPA3G, na.rm=T),
+    DL_MEAN_USER_THROUGHPUT_PLTE_V_MEAN = mean(DL_MEAN_USER_THROUGHPUT_PLTE, na.rm=T),
+    DL_MEAN_USER_THROUGHPUT_REL93G_V_MEAN = mean(DL_MEAN_USER_THROUGHPUT_REL93G, na.rm=T),
+    RBU_USED_DL_V_MEAN = mean(RBU_USED_DL, na.rm=T),
+    
+    RBU_USED_UL_V_MEAN = mean(RBU_USED_UL, na.rm=T),
+    RELATIVE_RBU_USED_DL_V_MEAN = mean(RELATIVE_RBU_USED_DL, na.rm=T),
+    RELATIVE_RBU_USED_UL_V_MEAN = mean(RELATIVE_RBU_USED_UL, na.rm=T),
+    RELATIVE_TX_POWER_3G_V_MEAN = mean(RELATIVE_TX_POWER_3G, na.rm=T),
+    UL_AVR_THROUGHPUT_3G_V_MEAN = mean(UL_AVR_THROUGHPUT_3G, na.rm=T),
+    UL_AVR_THROUGHPUT_LTE_V_MEAN = mean(UL_AVR_THROUGHPUT_LTE, na.rm=T),
+    UL_AVR_THROUGHPUT_R99_V_MEAN = mean(UL_AVR_THROUGHPUT_R99, na.rm=T),
+    UL_MEAN_USER_THROUGHPUT_LTE_V_MEAN = mean(UL_MEAN_USER_THROUGHPUT_LTE, na.rm=T),
+    UL_MEAN_USER_THROUGHPUT_HS3G_V_MEAN = mean(UL_MEAN_USER_THROUGHPUT_HS3G, na.rm=T),
+    UL_MEAN_USER_THROUGHPUT_PLTE_V_MEAN = mean(UL_MEAN_USER_THROUGHPUT_PLTE, na.rm=T),
+    UL_MEAN_USER_THROUGHPUT_REL93G_V_MEAN = mean(UL_MEAN_USER_THROUGHPUT_REL93G, na.rm=T)
   )
   
   cc = subs_bs_consumption %>% group_by(SK_ID) %>% summarise(
@@ -283,27 +495,45 @@ my.extendedColsTrain = function (XL, trainFunc, feats) {
   }
 }
 
+my.fillNasTrain = function (XL, trainFunc) {
+  means = rep(0, ncol(XL))
+  for (j in 1:ncol(XL)) {
+    means[j] = mean(XL[, j], na.rm=T)
+    XL[is.na(XL[, j]) | is.nan(XL[, j]), j] = means[j]
+  }
+  model = trainFunc(XL)
+  function (X) {
+    X = as.matrix(X) # WTF tibble ???
+    for (j in 1:ncol(X)) {
+      X[is.na(X[, j]) | is.nan(X[, j]), j] = means[j]
+    }
+    model(X)
+  }
+}
+
 XL = create_features(subs_features_train, subs_csi_train, avg1_d_train, avg1_v_train, chnn1_d_train, chnn1_v_train, subs_bs_consumption_train)
 
 algo1 = function (XL) {
   my.extendedColsTrain(XL, function (XL) {
-    my.train.lgb(XL, lgbParams)
-  }, feats);
+    my.fillNasTrain(XL, function (XL) {
+      my.train.lgb(XL, lgbParams)
+    })
+  }, feats)
 }
 
-feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','INTERNET_TYPE_ID_2','RENT_CHANNEL','ROAM','C17','C25','C27','DATA_VOL_MB_MAX',
-          'count_v','BASE_TYPE_MEAN','C30S','ITC','C29S','RENT_CHANNEL_M','C33','count_c','DATA_VOL_MB_MEAN',
-          'CELL_AVAILABILITY_3G_D_MEAN', 'CELL_AVAILABILITY_4G_D_MEAN', 'CSSR_3G_V_MEAN')
-
-feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','INTERNET_TYPE_ID_2','RENT_CHANNEL','ROAM','C17','C25','C27','DATA_VOL_MB_MAX',
-          'count_v','BASE_TYPE_MEAN','C30S','ITC','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','C33',
-          'ERAB_PS_BLOCKING_RATE_LTE_D_MEAN','C2_FREQ')
-
 feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','INTERNET_TYPE_ID_2','RENT_CHANNEL','ROAM','C17','C25','C27','count_v','C30S',
-          'ITC','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','C33','C2_FREQ','C23S','DATA_VOL_MB_MEAN','COST_S','C19S')
+          'C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','SUM_DATA_MIN_SUM','ERAB_PS_BLOCKING_RATE_LTE_D_MEAN',
+          'SUM_DATA_MIN_MEAN','PSSR_2G_D_MEAN','VOICE_DUR_MIN_MIN','count_c','AVEUSERNUMBER_D_MEAN','ITC_M',
+          'BASE_TYPE_MEAN','CSSR_2G_D_MEAN','RBU_AVAIL_DL_D_MEAN','VAS_M','DATA_VOL_MB_MEAN','AVR_DL_USER_LTE_D_MEAN',
+          'C7_3456','RAB_CS_DROP_RATE_3G_V_MEAN','DL_MEAN_USER_THROUGHPUT_HSPA3G_D_MEAN','C30','C33','C23S',
+          'TOTAL_DL_VOLUME_3G_V_MEAN','UL_MEAN_USER_THROUGHPUT_PLTE_D_MEAN','C26','DATA_VOL_MB_MAX','count',
+          'DEVICE_TYPE_ID_FREQ','C19S')
 
-feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','INTERNET_TYPE_ID_2','RENT_CHANNEL','ROAM','C17','C25','C27','count_v','C30S',
-          'ITC','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','C33','C2_FREQ','C23S','DATA_VOL_MB_MEAN','COST_S')
+feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','INTERNET_TYPE_ID_2','RENT_CHANNEL','C17','C25','C27','count_v','C30S','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','SUM_DATA_MIN_SUM','ERAB_PS_BLOCKING_RATE_LTE_D_MEAN','SUM_DATA_MIN_MEAN','PSSR_2G_D_MEAN','VOICE_DUR_MIN_MIN','count_c','AVEUSERNUMBER_D_MEAN','ITC_M','BASE_TYPE_MEAN','CSSR_2G_D_MEAN','RBU_AVAIL_DL_D_MEAN','VAS_M','DATA_VOL_MB_MEAN','AVR_DL_USER_LTE_D_MEAN','C7_3456','RAB_CS_DROP_RATE_3G_V_MEAN','DL_MEAN_USER_THROUGHPUT_HSPA3G_D_MEAN','C30','C33','C23S','TOTAL_DL_VOLUME_3G_V_MEAN','UL_MEAN_USER_THROUGHPUT_PLTE_D_MEAN','C26','count','C19S','C18','RBU_OWN_DL_D_MEAN')
+
+feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','INTERNET_TYPE_ID_2','RENT_CHANNEL','C17','C25','C27','count_v','C30S','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','SUM_DATA_MIN_SUM','ERAB_PS_BLOCKING_RATE_LTE_D_MEAN','SUM_DATA_MIN_MEAN','PSSR_2G_D_MEAN','VOICE_DUR_MIN_MIN','count_c','AVEUSERNUMBER_D_MEAN','ITC_M','BASE_TYPE_MEAN','CSSR_2G_D_MEAN','RBU_AVAIL_DL_D_MEAN','VAS_M','DATA_VOL_MB_MEAN','AVR_DL_USER_LTE_D_MEAN','C7_3456','RAB_CS_DROP_RATE_3G_V_MEAN','DL_MEAN_USER_THROUGHPUT_HSPA3G_D_MEAN','C30','C33','C23S','TOTAL_DL_VOLUME_3G_V_MEAN','UL_MEAN_USER_THROUGHPUT_PLTE_D_MEAN','C26','count','C19S','C18','RBU_OWN_DL_D_MEAN','SHO_FACTOR_V_MEAN','AVEUSERNUMBER_PLMN_D_MEAN','RELATIVE_TX_POWER_3G_D_MEAN')
+
+feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','INTERNET_TYPE_ID_2','RENT_CHANNEL','C17','C25','C27','count_v','C30S','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','SUM_DATA_MIN_SUM','ERAB_PS_BLOCKING_RATE_LTE_D_MEAN','SUM_DATA_MIN_MEAN','VOICE_DUR_MIN_MIN','count_c','AVEUSERNUMBER_D_MEAN','ITC_M','BASE_TYPE_MEAN','CSSR_2G_D_MEAN','RBU_AVAIL_DL_D_MEAN','VAS_M','DATA_VOL_MB_MEAN','AVR_DL_USER_LTE_D_MEAN','C7_3456','RAB_CS_DROP_RATE_3G_V_MEAN','DL_MEAN_USER_THROUGHPUT_HSPA3G_D_MEAN','C30','C33','C23S','TOTAL_DL_VOLUME_3G_V_MEAN','C26','count','C19S','C18','RBU_OWN_DL_D_MEAN','SHO_FACTOR_V_MEAN','AVEUSERNUMBER_PLMN_D_MEAN','RELATIVE_TX_POWER_3G_D_MEAN')
 
 stopCluster(cl)
 cl = makeCluster(4)
@@ -311,19 +541,40 @@ registerDoParallel(cl)
 my.gridSearch(XL, function (params) {
   function (XL) {
     my.extendedColsTrain(XL, function (XL) {
-      my.train.lgb(XL, params)
-    }, feats);
+      my.fillNasTrain(XL, function (XL) {
+        my.train.lgb(XL, params)
+      })
+    }, feats)
   }
 }, expand.grid(lgbParams), verbose=T, iters=10, folds=7, resample.seed=2707, algo.seed=449)
 stopCluster(cl)
 
 stopCluster(cl)
-cl = makeCluster(4)
+cl = makeCluster(8)
 registerDoParallel(cl)
-addRemoveSelect(400, XL, function (XL) {
-  my.train.lgb(XL, lgbParams)
+addRemoveSelect(600, XL, function (XL) {
+  my.fillNasTrain(XL, function (XL) {
+    my.train.lgb(XL, lgbParams)
+  })
 }, startFeatures=feats)
 stopCluster(cl)
+
+normalize_test = function (XL, XX) {
+  XL = as.data.frame(XL)
+  XX = as.data.frame(XX)
+  for (cname in colnames(XX)) {
+    train_mean = mean(XL[, cname], na.rm=T)
+    test_mean = mean(XX[, cname], na.rm=T)
+    XX[, cname] = XX[, cname] * (train_mean / test_mean)
+  }
+  XX
+}
+
+XL_tr = XL[XL$CONTACT_DATE >= 137, ]
+XL_ts = XL[XL$CONTACT_DATE < 137, ]
+model = algo1(XL_tr)
+print(roc(XL_ts$Y, model(XL_ts))$auc)
+
 
 XX = create_features(subs_features_test, subs_csi_test, avg1_d_test, avg1_v_test, chnn1_d_test, chnn1_v_test, subs_bs_consumption_test)
 model = algo1(XL)

@@ -147,9 +147,9 @@ validation.tqfold.parallel = function (XLL, teachFunc, folds=5, iters=10, resamp
   }
   
   mean(foreach(it=1:iters, .combine=c,
-               .export=c('my.extendedColsTrain', 'my.train.lgb', 'extendXYCols', 'feats', 'my.boot', 'lgbParams', 'meanAggregator'),
+               .export=c('my.extendedColsTrain', 'my.fillNasTrain', 'my.train.lgb', 'extendXYCols', 'feats', 'my.boot', 'lgbParams', 'meanAggregator'),
                .packages=c('foreach', 'lightgbm', 'pROC')
-               ) %do% {
+               ) %dopar% {
     perm = resamples[it, ]
     mean(foreach(fold=1:folds, .combine=c) %do% {
       foldLength = floor(nrow(XLL) / folds)
@@ -169,7 +169,11 @@ validation.tqfold.parallel = function (XLL, teachFunc, folds=5, iters=10, resamp
       algo = teachFunc(XL)
       pred = algo(XK[, -ncol(XL)])
       
-      roc(act, pred)$auc
+      e = roc(act, pred)$auc
+      
+      cat('tqfold ', it, '-', fold, '/', iters, '-', folds, ' ', round(sum(act == 1) / length(act) * 100),  '% cur=', e, '\n', sep='')
+      
+      e
     })
   })
 }

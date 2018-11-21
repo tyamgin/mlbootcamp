@@ -3,8 +3,8 @@ tqfoldEstimation = function(XL, teach) {
   if (p <= 1)
     return( list(int=0, ext=0) )
   
-  my.set.seed(223449) # need?
-  e = validation.tqfold.parallel(XL, teach, folds=5, iters=16, resample.seed=3434234, algo.seed=5244)
+  my.set.seed(227449) # need?
+  e = validation.tqfold.parallel(XL, teach, folds=5, iters=16, resample.seed=3934234, algo.seed=5244)
   my.restore.seed()
   list(int=e, ext=e)
 }
@@ -42,7 +42,8 @@ addRemoveSelect = function(iterations,  # количество итераций
   tries = c()
   
   for (it in 1:iterations) {
-    addOrRemove = sample(0:1, 1)
+    p = length(features) / ncol(XL)
+    addOrRemove = sample(0:1, 1, F, c(1 - p, p))
     #addOrRemove = 1
     # 0 - add
     # 1 - remove
