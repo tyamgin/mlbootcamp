@@ -50,8 +50,8 @@ my.train.lgb = function (XLL, params) {
 }
 
 lgbParams = list(
-  iters=100,
-  rowsFactor=0.95,
+  iters=1,
+  rowsFactor=1,
   
   num_leaves=c(6),
   nrounds=c(2000),
@@ -61,7 +61,7 @@ lgbParams = list(
   #lambda_l1=c(5),
   lambda_l2=c(80),
   feature_fraction=c(0.4),
-  min_data_in_leaf=c(100),
+  min_data_in_leaf=c(120),
   bagging_fraction=c(1),
   bagging_freq=c(1),
   early_stopping_rounds=0,
