@@ -3,8 +3,8 @@ tqfoldEstimation = function(XL, teach) {
   if (p <= 1)
     return( list(int=0, ext=0) )
   
-  my.set.seed(227449) # need?
-  e = validation.tqfold.parallel(XL, teach, folds=5, iters=16, resample.seed=3934234, algo.seed=5244)
+  my.set.seed(287449) # need?
+  e = validation.tqfold.parallel(XL, teach, folds=5, iters=16, resample.seed=3234, algo.seed=52)
   my.restore.seed()
   list(int=e, ext=e)
 }
@@ -42,7 +42,7 @@ addRemoveSelect = function(iterations,  # количество итераций
   tries = c()
   
   for (it in 1:iterations) {
-    p = length(features) / ncol(XL)
+    p = length(features) / (ncol(XL)-1)
     addOrRemove = sample(0:1, 1, F, c(1 - p, p))
     #addOrRemove = 1
     # 0 - add
@@ -62,7 +62,7 @@ addRemoveSelect = function(iterations,  # количество итераций
       break
     }
     if (i == -1) {
-      if (length(tries) == length(features)) {
+      if (length(tries) == ncol(XL) - 1) {
         print('stopped')
         break
       } else {
@@ -78,7 +78,15 @@ addRemoveSelect = function(iterations,  # количество итераций
     else
       newFeatures = c(newFeatures, colnames(XL)[i])
     
-    newEst = estimate(extendXYCols(XL, features=newFeatures), teach)
+    possibleError = tryCatch({
+      newEst = estimate(extendXYCols(XL, features=newFeatures), teach)  
+    }, error=function(err) {
+      print(err)
+    })
+    
+    if (inherits(possibleError, "error")) {
+      next
+    }
     
     if (minimize && newEst$ext < est$ext || !minimize && newEst$ext > est$ext) {
       tries = c()

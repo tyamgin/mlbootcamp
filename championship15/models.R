@@ -1,22 +1,28 @@
 debugSource('lgb.R')
 
 my.train.lm = function (XL, params) {
-  #model = MatrixModels:::lm.fit.sparse(XL[, -ncol(XL), drop=F], XL[, ncol(XL), drop=T])
-  lambda = 0.04709416
-  model = glmnet(XL[, -ncol(XL), drop=F], XL[, ncol(XL), drop=T],
-                 family='binomial',type.logistic='Newton', type.multinomial='ungrouped',
-                 lambda=lambda, alpha=0)
+  model = glm(Y ~ ., data=XL,
+              family=binomial(link='logit'))
   
   function (X) {
-    #r=predict(model, X, type="response")
-    #bestlam <- model$lambda.max
-    r2=predict(model, X, type="response", s=lambda)
-    r2[,1]
+    X = as.data.frame(X)
+    r2=predict(model, type="response", newdata=X)
+    as.vector(r2)
   }
 }
 
+my.train.lmr = function (XL, params) {
+  model = lm.ridge(Y ~ ., data=XL)
+  
+  function (X) {
+    X = as.data.frame(X)
+    as.matrix(cbind(const=1, X)) %*% coef(model)
+  }
+}
+
+
 my.train.lm2 = function (XL, params) {
-  model = lm(target~., as.data.frame(XL))
+  model = lm(Y~., as.data.frame(XL))
   
   function (X) {
     predict(model, as.data.frame(X))
@@ -59,7 +65,7 @@ my.train.nnet = function (XL, params, newdata=NULL) {
   
   capture.output(
     model <- train(X, Y, method='nnet', metric='ROC',
-                   maximize=F, trControl=trControl,
+                   maximize=T, trControl=trControl,
                    maxit=params$maxit,
                    tuneGrid=tuneGrid)
   )
@@ -71,9 +77,9 @@ my.train.nnet = function (XL, params, newdata=NULL) {
 }
 
 nnetParams = list(
-  size = 7:10,
+  size = 7,
   decay = c(70),
-  maxit = c(700,800,1000)
+  maxit = c(700)
 )
 
 my.train.knn = function (XL, params, newdata=NULL) {
