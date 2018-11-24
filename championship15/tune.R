@@ -9,7 +9,7 @@ my.gridSearch = function (XLL, teach, grid, folds=7, iters=6, verbose=F, resampl
   for (i in 1:nrow(grid)) {
     params = grid[i, ]
     
-    e = validation.tqfold.parallel(XLL, teach(params), folds=folds, iters=iters, resample.seed=resample.seed, algo.seed=algo.seed)
+    e = validation.tqfold.parallel(XLL, teach, params=params, folds=folds, iters=iters, resample.seed=resample.seed, algo.seed=algo.seed)
     
     params$SCORE_MEAN = e
     

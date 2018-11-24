@@ -59,7 +59,7 @@ lgbParams = list(
   
   max_depth=c(5),
   #lambda_l1=c(5),
-  lambda_l2=c(80),
+  lambda_l2=c(45),
   feature_fraction=c(0.4),
   min_data_in_leaf=c(120),
   bagging_fraction=c(1),

@@ -1,12 +1,15 @@
-tqfoldEstimation = function(XL, teach) {
+tqfoldEstimation = function(XL, teach, thr=0) { # TODO: for maximize only
   p = ncol(XL) - 1
   if (p <= 1)
-    return( list(int=0, ext=0) )
+    return(c(0, 0))
   
-  my.set.seed(287449) # need?
-  e = validation.tqfold.parallel(XL, teach, folds=5, iters=16, resample.seed=3234, algo.seed=52)
+  my.set.seed(2874549) # need?
+  e1 = validation.tqfold.parallel(XL, teach, folds=5, iters=16, resample.seed=3223934, algo.seed=526)
+  e2 = NA
+  if (e1 > thr)
+    e2 = validation.tqfold.parallel(XL, teach, folds=5, iters=50, resample.seed=55934, algo.seed=526)
   my.restore.seed()
-  list(int=e, ext=e)
+  c(e1, e2)
 }
 
 extendXYCols = function (XL, features) {
@@ -25,6 +28,7 @@ addRemoveSelect = function(iterations,  # количество итераций
                            teach, # teach(XL) - обучение
                            estimate = tqfoldEstimation, # оценка
                            startFeatures = c(),
+                           onlyFeatures = NULL,
                            minimize = F
 ) {
   L = nrow(XL)
@@ -55,6 +59,9 @@ addRemoveSelect = function(iterations,  # количество итераций
       if (addOrRemove == 0 && (colnames(XL)[k] %in% features)) # фича и так есть
         next
       
+      if (!is.null(onlyFeatures) && !(colnames(XL)[k] %in% onlyFeatures))
+        next
+      
       if (k %in% tries) # уже пробовали
         next
       
@@ -79,7 +86,7 @@ addRemoveSelect = function(iterations,  # количество итераций
       newFeatures = c(newFeatures, colnames(XL)[i])
     
     possibleError = tryCatch({
-      newEst = estimate(extendXYCols(XL, features=newFeatures), teach)  
+      newEst = estimate(extendXYCols(XL, features=newFeatures), teach, est[1])  
     }, error=function(err) {
       print(err)
     })
@@ -88,25 +95,27 @@ addRemoveSelect = function(iterations,  # количество итераций
       next
     }
     
-    if (minimize && newEst$ext < est$ext || !minimize && newEst$ext > est$ext) {
-      tries = c()
-      print(i)
-      print(est)
-      
-      features = newFeatures
-      est = newEst
-      
-      print(est)
-      
-      intPts = c(intPts, newEst$int)
-      extPts = c(extPts, newEst$ext)
-      iterPts = c(iterPts, it)
-      
-      dumpFeatures(features)
-      
-      plot(c(iterPts, iterPts), c(intPts, extPts), col=c(rep("green", length(intPts)), rep("red", length(extPts))), pch=20)
+    if (all(!is.na(newEst))) {
+      if (minimize && all(newEst < est) || !minimize && all(newEst > est) || addOrRemove == 1 && all(newEst == est)) {
+        tries = c()
+        print(i)
+        print(est)
+        
+        features = newFeatures
+        est = newEst
+        
+        print(est)
+        
+        intPts = c(intPts, newEst[1])
+        extPts = c(extPts, newEst[2])
+        iterPts = c(iterPts, it)
+        
+        dumpFeatures(features)
+        
+        plot(c(iterPts, iterPts), c(intPts, extPts), col=c(rep("green", length(intPts)), rep("red", length(extPts))), pch=20)
+      }
     }
     cat()
-    cat(paste0('[', i, '] ', ifelse(addOrRemove, '-', '+'), colnames(XL)[i], ' ', newEst$ext, ' ', iterations - it, " iterations remains\n"))
+    cat(paste0('[', i, '] ', ifelse(addOrRemove, '-', '+'), colnames(XL)[i], ' ', newEst[1], ' ', newEst[2], ' ', iterations - it, " iterations remains\n"))
   }
 }

@@ -134,7 +134,7 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F, use.
   XKerr
 }
 
-validation.tqfold.parallel = function (XLL, teachFunc, folds=5, iters=10, resample.seed = 0, algo.seed=0) {
+validation.tqfold.parallel = function (XLL, teachFunc, folds=5, iters=10, resample.seed = 0, algo.seed=0, params=NULL) {
   nrows = length(unique(XLL[, ncol(XLL), drop=T]))
   
   if (resample.seed > 0) {
@@ -147,7 +147,7 @@ validation.tqfold.parallel = function (XLL, teachFunc, folds=5, iters=10, resamp
   }
   
   mean(foreach(it=1:iters, .combine=c,
-               .export=c('my.extendedColsTrain', 'my.fillNasTrain', 'my.train.lgb', 'my.train.lmr', 'my.train.lm', 'my.train.lm2', 'extendXYCols', 'feats', 'my.boot', 'lgbParams', 'meanAggregator'),
+               .export=c('my.extendedColsTrain', 'my.fillNasTrain', 'my.train.lgb', 'my.train.lmr', 'my.train.lm', 'my.train.lm2', 'extendXYCols', 'feats_lmr', 'feats_lm', 'feats', 'my.boot', 'lgbParams', 'meanAggregator'),
                .packages=c('foreach', 'lightgbm', 'pROC', 'MASS')
                ) %dopar% {
     perm = resamples[it, ]
@@ -166,7 +166,7 @@ validation.tqfold.parallel = function (XLL, teachFunc, folds=5, iters=10, resamp
       
       act = XK[, ncol(XL), drop=T]
 
-      algo = teachFunc(XL)
+      algo = teachFunc(XL, params)
       pred = algo(XK[, -ncol(XL)])
       
       e = roc(act, pred)$auc

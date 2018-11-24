@@ -226,6 +226,23 @@ chnn1_d_test = left_join(subs_bs_data_session_test, chnn1, 'CELL_LAC_ID')
 chnn1_v_train = left_join(subs_bs_voice_session_train, chnn1, 'CELL_LAC_ID')
 chnn1_v_test = left_join(subs_bs_voice_session_test, chnn1, 'CELL_LAC_ID')
 
+act.last.3 = function (ACT, SNAP_DATE, metric) {
+  SNAP_DATE = as.character(SNAP_DATE)
+  ord = order(sapply(SNAP_DATE, parse.date), decreasing=T)
+  SNAP_DATE = SNAP_DATE[ord]
+  ACT = ACT[ord]
+  
+  if (metric == 'cz') {
+    r = rle(ACT)
+    v = r$lengths[r$values == 0]
+    if (length(v) == 0) return(-1)
+    return(max(v))
+  }
+  if (metric == 'm3') {
+    return(mean(ACT[1:3], na.rm=T))
+  }
+  stop('invalid metric')
+}
 
 create_features = function (subs_features, subs_csi, avg1_d, avg1_v, chnn1_d, chnn1_v, subs_bs_consumption) {
   ss = subs_features %>% group_by(SK_ID) %>% summarise(
@@ -236,6 +253,8 @@ create_features = function (subs_features, subs_csi, avg1_d, avg1_v, chnn1_d, ch
     C3_FREQ = most.freq(COM_CAT.3),
     BASE_TYPE_MEAN = mean(BASE_TYPE),
     ACT_MEAN = mean(ACT),
+    ACT_CZ=act.last.3(ACT, SNAP_DATE, 'cz'),
+    ACT_M3=act.last.3(ACT, SNAP_DATE, 'm3'),
     ARPU_GROUP = mean(ARPU_GROUP),
     ARPU_GROUP_FREQ = most.freq(ARPU_GROUP),
     C7_FREQ = most.freq(COM_CAT.7),
@@ -522,28 +541,38 @@ algo1 = function (XL) {
   }, feats)
 }
 
-feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','RENT_CHANNEL','C25','C27','count_v','C30S','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','SUM_DATA_MIN_SUM','SUM_DATA_MIN_MEAN','VOICE_DUR_MIN_MIN','count_c','ITC_M','BASE_TYPE_MEAN','CSSR_2G_D_MEAN','VAS_M','DATA_VOL_MB_MEAN','AVR_DL_USER_LTE_D_MEAN','RAB_CS_DROP_RATE_3G_V_MEAN','DL_MEAN_USER_THROUGHPUT_HSPA3G_D_MEAN','C30','C33','C23S','TOTAL_DL_VOLUME_3G_V_MEAN','C26','count','C18','RBU_OWN_DL_D_MEAN','SHO_FACTOR_V_MEAN','RELATIVE_TX_POWER_3G_D_MEAN','C18S','CSSR_3G_D_MEAN','RAB_PS_BLOCKING_RATE_3G_D_MEAN','INTERNET_TYPE_ID_1','C3','PART_CQI_QPSK_LTE_D_MEAN')
+feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','RENT_CHANNEL','C27','count_v','C30S','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','SUM_DATA_MIN_SUM','SUM_DATA_MIN_MEAN','ITC_M','BASE_TYPE_MEAN','CSSR_2G_D_MEAN','DATA_VOL_MB_MEAN','AVR_DL_USER_LTE_D_MEAN','RAB_CS_DROP_RATE_3G_V_MEAN','DL_MEAN_USER_THROUGHPUT_HSPA3G_D_MEAN','C33','C23S','TOTAL_DL_VOLUME_3G_V_MEAN','C18','RBU_OWN_DL_D_MEAN','SHO_FACTOR_V_MEAN','CSSR_3G_D_MEAN','RAB_PS_BLOCKING_RATE_3G_D_MEAN','INTERNET_TYPE_ID_1','C3','PART_CQI_QPSK_LTE_D_MEAN','RELATIVE_TX_POWER_3G_V_MEAN','VAS','C18S')
 
-#unchecked
-feats = c('C1_FREQ','ACT_MEAN','C7_FREQ','RENT_CHANNEL','C25','C27','count_v','C30S','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','SUM_DATA_MIN_SUM','SUM_DATA_MIN_MEAN','count_c','ITC_M','BASE_TYPE_MEAN','CSSR_2G_D_MEAN','VAS_M','DATA_VOL_MB_MEAN','AVR_DL_USER_LTE_D_MEAN','RAB_CS_DROP_RATE_3G_V_MEAN','DL_MEAN_USER_THROUGHPUT_HSPA3G_D_MEAN','C30','C33','C23S','TOTAL_DL_VOLUME_3G_V_MEAN','C26','count','C18','RBU_OWN_DL_D_MEAN','SHO_FACTOR_V_MEAN','C18S','CSSR_3G_D_MEAN','RAB_PS_BLOCKING_RATE_3G_D_MEAN','INTERNET_TYPE_ID_1','C3','PART_CQI_QPSK_LTE_D_MEAN','RELATIVE_TX_POWER_3G_V_MEAN')
-
-feats_lm = c('ACT_MEAN','C7_FREQ','C27','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','SUM_DATA_MIN_SUM','SUM_DATA_MIN_MEAN','RAB_PS_BLOCKING_RATE_3G_D_MEAN','RELATIVE_TX_POWER_3G_V_MEAN','RELATIVE_TX_POWER_3G_D_MEAN','DL_AVR_THROUGHPUT_3G_D_MEAN','RRC_BLOCKING_RATE_LTE_D_MEAN','PSSR_2G_V_MEAN','C28','UL_VOLUME_LTE_D_MEAN','CELL_AVAILABILITY_3G_V_MEAN','UL_AVR_THROUGHPUT_3G_D_MEAN','C29','RRC_BLOCKING_RATE_3G_V_MEAN','count_d','RAB_CS_DROP_RATE_3G_D_MEAN','RENT_CHANNEL','VOICE_DUR_MIN_MIN','DL_AVR_THROUGHPUT_LTE_D_MEAN','C17','C20','C17S','C19','C23','C20S','BASE_TYPE_MEAN','ROAM','C3','DL_MEAN_USER_THROUGHPUT_REL93G_V_MEAN','C32','C33','RBU_USED_UL_V_MEAN','ERAB_PS_DROP_RATE_LTE_V_MEAN','SUM_DATA_MB_SUM','AVR_TX_POWER_3G_D_MEAN','UL_AVR_THROUGHPUT_R99_D_MEAN','count','AVR_DL_USER_LTE_V_MEAN','RAB_CS_DROP_RATE_3G_V_MEAN')
+feats_lm = c('ACT_MEAN','C7_FREQ','C27','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','SUM_DATA_MIN_SUM','SUM_DATA_MIN_MEAN',
+             'RAB_PS_BLOCKING_RATE_3G_D_MEAN','RELATIVE_TX_POWER_3G_V_MEAN','RELATIVE_TX_POWER_3G_D_MEAN',
+             'DL_AVR_THROUGHPUT_3G_D_MEAN','RRC_BLOCKING_RATE_LTE_D_MEAN','PSSR_2G_V_MEAN','C28','UL_VOLUME_LTE_D_MEAN',
+             'CELL_AVAILABILITY_3G_V_MEAN','UL_AVR_THROUGHPUT_3G_D_MEAN','C29','RRC_BLOCKING_RATE_3G_V_MEAN','count_d',
+             'RAB_CS_DROP_RATE_3G_D_MEAN','RENT_CHANNEL','VOICE_DUR_MIN_MIN','DL_AVR_THROUGHPUT_LTE_D_MEAN','C17','C20',
+             'C17S','C19','C23','C20S','BASE_TYPE_MEAN','ROAM','C3','DL_MEAN_USER_THROUGHPUT_REL93G_V_MEAN','C32','C33',
+             'RBU_USED_UL_V_MEAN','ERAB_PS_DROP_RATE_LTE_V_MEAN','SUM_DATA_MB_SUM','AVR_TX_POWER_3G_D_MEAN',
+             'UL_AVR_THROUGHPUT_R99_D_MEAN','count','AVR_DL_USER_LTE_V_MEAN','RAB_CS_DROP_RATE_3G_V_MEAN')
 
 feats_lm2 = c('ACT_MEAN','C7_FREQ','C27','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN','SUM_DATA_MIN_SUM','SUM_DATA_MIN_MEAN','RAB_PS_BLOCKING_RATE_3G_D_MEAN','RELATIVE_TX_POWER_3G_V_MEAN','RELATIVE_TX_POWER_3G_D_MEAN','DL_AVR_THROUGHPUT_3G_D_MEAN','RRC_BLOCKING_RATE_LTE_D_MEAN','PSSR_2G_V_MEAN','C28','UL_VOLUME_LTE_D_MEAN','UL_AVR_THROUGHPUT_3G_D_MEAN','C29','RRC_BLOCKING_RATE_3G_V_MEAN','count_d','RAB_CS_DROP_RATE_3G_D_MEAN','RENT_CHANNEL','VOICE_DUR_MIN_MIN','DL_AVR_THROUGHPUT_LTE_D_MEAN','C17','C20','C17S','C19','C23','C20S','BASE_TYPE_MEAN','ROAM','C3','DL_MEAN_USER_THROUGHPUT_REL93G_V_MEAN','C32','C33','RBU_USED_UL_V_MEAN','ERAB_PS_DROP_RATE_LTE_V_MEAN','SUM_DATA_MB_SUM','AVR_TX_POWER_3G_D_MEAN','UL_AVR_THROUGHPUT_R99_D_MEAN','count','AVR_DL_USER_LTE_V_MEAN','RAB_CS_DROP_RATE_3G_V_MEAN','RBU_AVAIL_UL_D_MEAN','RBU_AVAIL_DL_D_MEAN')
 
 feats_lmr = c('ACT_MEAN','C7_FREQ','RENT_CHANNEL','C27','C29S','SUM_DATA_MIN_SUM','BASE_TYPE_MEAN','C30','C23S','CSSR_3G_D_MEAN','RAB_PS_BLOCKING_RATE_3G_D_MEAN','C3','RELATIVE_TX_POWER_3G_V_MEAN','count_d','DL_AVR_THROUGHPUT_LTE_D_MEAN','RRC_BLOCKING_RATE_3G_V_MEAN','COST_S','C29','RRC_BLOCKING_RATE_LTE_D_MEAN','TCH_DROP_RATE_2G_V_MEAN','AVR_UL_USER_LTE_V_MEAN','UL_AVR_THROUGHPUT_R99_D_MEAN','C22','RELATIVE_TX_POWER_3G_D_MEAN','UL_VOLUME_LTE_D_MEAN','ERAB_PS_DROP_RATE_LTE_V_MEAN','TOTAL_DL_VOLUME_3G_D_MEAN','RBU_USED_UL_V_MEAN','AVR_UL_HSPA_USER_V_MEAN','RBU_AVAIL_UL_D_MEAN','RBU_OWN_UL_D_MEAN','RBU_AVAIL_DL_D_MEAN','AVR_DL_USER_LTE_V_MEAN','C28','ROAM_M','DL_MEAN_USER_THROUGHPUT_REL93G_V_MEAN','REVENUE','PSSR_2G_V_MEAN','SUM_DATA_MIN_MEAN','VOICE_DUR_MIN_MIN','AVEUSERNUMBER_PLMN_V_MEAN','RRC_BLOCKING_RATE_LTE_V_MEAN','PSSR_LTE_V_MEAN','AVR_DL_HSPA_USER_3G_V_MEAN','AVR_TX_POWER_3G_V_MEAN','RAB_CS_DROP_RATE_3G_D_MEAN','UL_MEAN_USER_THROUGHPUT_LTE_D_MEAN','RAB_CS_DROP_RATE_3G_V_MEAN','SUM_DATA_MB_SUM','C17','C17S','ERAB_PS_BLOCKING_RATE_LTE_D_MEAN','C20S','ERAB_PS_BLOCKING_RATE_LTE_V_MEAN')
 
-my.gridSearch(XL, function (params) {
-  function (XL) {
-    my.extendedColsTrain(XL, function (XL) {
-      my.fillNasTrain(XL, function (XL) {
-        my.train.lmr(XL, params)
-      })
-    }, feats_lmr)
-  }
-}, expand.grid(lgbParams), verbose=T, iters=10, folds=7, resample.seed=2708, algo.seed=442)
+feats_lmr = c('ACT_MEAN','C7_FREQ','RENT_CHANNEL','C27','C29S','SUM_DATA_MIN_SUM','BASE_TYPE_MEAN','C23S','CSSR_3G_D_MEAN','RAB_PS_BLOCKING_RATE_3G_D_MEAN','C3','RELATIVE_TX_POWER_3G_V_MEAN','count_d','DL_AVR_THROUGHPUT_LTE_D_MEAN','RRC_BLOCKING_RATE_3G_V_MEAN','COST_S','C29','RRC_BLOCKING_RATE_LTE_D_MEAN','TCH_DROP_RATE_2G_V_MEAN','AVR_UL_USER_LTE_V_MEAN','UL_AVR_THROUGHPUT_R99_D_MEAN','C22','RELATIVE_TX_POWER_3G_D_MEAN','UL_VOLUME_LTE_D_MEAN','ERAB_PS_DROP_RATE_LTE_V_MEAN','TOTAL_DL_VOLUME_3G_D_MEAN','RBU_USED_UL_V_MEAN','AVR_UL_HSPA_USER_V_MEAN','RBU_AVAIL_UL_D_MEAN','RBU_OWN_UL_D_MEAN','RBU_AVAIL_DL_D_MEAN','AVR_DL_USER_LTE_V_MEAN','C28','ROAM_M','DL_MEAN_USER_THROUGHPUT_REL93G_V_MEAN','REVENUE','PSSR_2G_V_MEAN','SUM_DATA_MIN_MEAN','VOICE_DUR_MIN_MIN','AVEUSERNUMBER_PLMN_V_MEAN','RRC_BLOCKING_RATE_LTE_V_MEAN','PSSR_LTE_V_MEAN','AVR_DL_HSPA_USER_3G_V_MEAN','AVR_TX_POWER_3G_V_MEAN','RAB_CS_DROP_RATE_3G_D_MEAN','UL_MEAN_USER_THROUGHPUT_LTE_D_MEAN','RAB_CS_DROP_RATE_3G_V_MEAN','SUM_DATA_MB_SUM','C17','C17S','ERAB_PS_BLOCKING_RATE_LTE_D_MEAN','C20S','ERAB_PS_BLOCKING_RATE_LTE_V_MEAN','UL_MEAN_USER_THROUGHPUT_PLTE_D_MEAN','UL_VOLUME_LTE_V_MEAN')
 
-algoBlend = function (XL) {
+stopCluster(cl)
+cl = makeCluster(4)
+algoLgb = function (XL, params) {
+  my.extendedColsTrain(XL, function (XL) {
+    my.fillNasTrain(XL, function (XL) {
+      my.train.lmr(XL, params)
+    })
+  }, feats_lmr)
+}
+my.gridSearch(XL, algoLgb, expand.grid(lgbParams), verbose=T, iters=20, folds=7, resample.seed=2708, algo.seed=442)
+stopCluster(cl)
+
+stopCluster(cl)
+cl = makeCluster(4)
+algoBlend = function (XL, params) {
   m1 = my.extendedColsTrain(XL, function (XL) {
     my.fillNasTrain(XL, function (XL) {
       my.train.lm(XL)
@@ -560,17 +589,18 @@ algoBlend = function (XL) {
     })
   }, feats)
   function (X) {
-    p=0.3
-    q=0.3
+    p=0.28
+    q=0.28
     m1(X)*p + m2(X)*q + m3(X)*(1-p-q)
   }
 }
-validation.tqfold.parallel(XL, algoBlend, iters=10, folds=7, resample.seed=2708, algo.seed=442)
+validation.tqfold.parallel(XL, algoBlend, iters=20, folds=7, resample.seed=2708, algo.seed=442)
+stopCluster(cl)
 
 stopCluster(cl)
 cl = makeCluster(8)
 registerDoParallel(cl)
-addRemoveSelect(600, XL, function (XL) {
+addRemoveSelect(800, XL, function (XL) {
   my.fillNasTrain(XL, function (XL) {
     my.train.lgb(XL, lgbParams)
   })
@@ -580,9 +610,9 @@ stopCluster(cl)
   stopCluster(cl)
   cl = makeCluster(4)
   registerDoParallel(cl)
-  addRemoveSelect(600, XL, function (XL) {
+  addRemoveSelect(600, XL, function (XL, params) {
     my.fillNasTrain(XL, function (XL) {
-      my.train.lmr(XL, lgbParams)
+      my.train.lmr(XL)
     })
   }, startFeatures=feats_lmr)
   stopCluster(cl)
