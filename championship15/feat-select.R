@@ -44,6 +44,7 @@ addRemoveSelect = function(iterations,  # количество итераций
   print(est)
   
   tries = c()
+  dones = 0
   
   for (it in 1:iterations) {
     p = length(features) / (ncol(XL)-1)
@@ -70,8 +71,14 @@ addRemoveSelect = function(iterations,  # количество итераций
     }
     if (i == -1) {
       if (length(tries) == ncol(XL) - 1) {
-        print('stopped')
-        break
+        if (dones > 0) {
+          print('stopped')
+          break
+        } else {
+          dones = dones + 1
+          tries = c()
+          next
+        }
       } else {
         print('skipping step')
         next
@@ -97,7 +104,8 @@ addRemoveSelect = function(iterations,  # количество итераций
     
     if (all(!is.na(newEst))) {
       if (minimize && all(newEst < est) || !minimize && all(newEst > est) || addOrRemove == 1 && all(newEst == est)) {
-        tries = c()
+        #tries = c()
+        dones = 0
         print(i)
         print(est)
         
