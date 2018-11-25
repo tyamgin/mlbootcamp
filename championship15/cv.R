@@ -147,8 +147,8 @@ validation.tqfold.parallel = function (XLL, teachFunc, folds=5, iters=10, resamp
   }
   
   mean(foreach(it=1:iters, .combine=c,
-               .export=c('my.extendedColsTrain', 'my.fillNasTrain', 'my.train.lgb', 'my.train.lmr', 'my.train.lm', 'my.train.lm2', 'extendXYCols', 'feats_lmr', 'feats_lm', 'feats', 'my.boot', 'lgbParams', 'meanAggregator'),
-               .packages=c('foreach', 'lightgbm', 'pROC', 'MASS')
+               .export=c('my.extendedColsTrain', 'my.fillNasTrain', 'my.train.lgb', 'my.train.lmr', 'my.train.lm', 'my.train.lm2', 'extendXYCols', 'feats_lmr', 'feats_lm', 'feats', 'my.boot', 'lgbParams', 'lmrParams', 'meanAggregator'),
+               .packages=c('foreach', 'lightgbm', 'pROC', 'MASS', 'glmnet')
                ) %dopar% {
     perm = resamples[it, ]
     mean(foreach(fold=1:folds, .combine=c) %do% {
