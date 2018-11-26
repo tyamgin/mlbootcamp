@@ -1,4 +1,4 @@
-require(pROC)
+
 
 my.set.seed = function(seed) {
   my.tmp.nextSeed <<- sample(1:10^5, 1)
@@ -134,7 +134,7 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F, use.
   XKerr
 }
 
-validation.tqfold.parallel = function (XLL, teachFunc, folds=5, iters=10, resample.seed = 0, algo.seed=0, params=NULL) {
+validation.tqfold.parallel = function (XLL, teachFunc, folds=5, iters=10, resample.seed = 0, algo.seed=0, params=NULL, features=NULL) {
   nrows = length(unique(XLL[, ncol(XLL), drop=T]))
   
   if (resample.seed > 0) {
@@ -166,7 +166,7 @@ validation.tqfold.parallel = function (XLL, teachFunc, folds=5, iters=10, resamp
       
       act = XK[, ncol(XL), drop=T]
 
-      algo = teachFunc(XL, params)
+      algo = teachFunc(XL, params, features)
       pred = algo(XK[, -ncol(XL)])
       
       e = roc(act, pred)$auc

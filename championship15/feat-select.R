@@ -1,13 +1,13 @@
-tqfoldEstimation = function(XL, teach, thr=0) { # TODO: for maximize only
+tqfoldEstimation = function(XL, teach, features, thr=0) { # TODO: for maximize only
   p = ncol(XL) - 1
   if (p <= 1)
     return(c(0, 0))
   
   my.set.seed(2874549) # need?
-  e1 = validation.tqfold.parallel(XL, teach, folds=5, iters=16, resample.seed=3223934, algo.seed=526)
+  e1 = validation.tqfold.parallel(XL, teach, folds=5, iters=16, resample.seed=3223934, algo.seed=526, features=features)
   e2 = NA
   if (e1 > thr)
-    e2 = validation.tqfold.parallel(XL, teach, folds=5, iters=50, resample.seed=55934, algo.seed=526)
+    e2 = validation.tqfold.parallel(XL, teach, folds=5, iters=50, resample.seed=55934, algo.seed=526, features=features)
   my.restore.seed()
   c(e1, e2)
 }
@@ -39,7 +39,7 @@ addRemoveSelect = function(iterations,  # количество итераций
   intPts = c()
   extPts = c()
   
-  est = estimate(extendXYCols(XL, features=features), teach)
+  est = estimate(XL, teach, features)
   print('started at')
   print(est)
   
@@ -93,7 +93,7 @@ addRemoveSelect = function(iterations,  # количество итераций
       newFeatures = c(newFeatures, colnames(XL)[i])
     
     possibleError = tryCatch({
-      newEst = estimate(extendXYCols(XL, features=newFeatures), teach, est[1])  
+      newEst = estimate(XL, teach, newFeatures, est[1])  
     }, error=function(err) {
       print(err)
     })

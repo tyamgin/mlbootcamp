@@ -7,6 +7,15 @@ act.last.3 = function (ACT, CONTACT_DATE, SNAP_DATE, metric) {
   SNAP_DATE = SNAP_DATE[ord]
   ACT = ACT[ord]
   
+  if (length(grep('.04', CONTACT_DATE)) > 0) {
+    if (length(grep('.05.02', SNAP_DATE)) > 0) {
+      print(CONTACT_DATE)
+      print(SNAP_DATE)
+      stop('asdsa')
+      
+    }
+  }
+  
   if (metric == 'cz') {
     r = rle(ACT)
     v = r$lengths[r$values == 0]
@@ -18,6 +27,10 @@ act.last.3 = function (ACT, CONTACT_DATE, SNAP_DATE, metric) {
   }
   stop('invalid metric')
 }
+zz2343 = left_join(subs_features_test, subs_csi_test, 'SK_ID') %>% group_by(SK_ID) %>% summarise(
+  ACT_CZ=act.last.3(ACT, CONTACT_DATE, SNAP_DATE, 'cz')
+)
+
 
 zz = left_join(subs_features_train, subs_csi_train, 'SK_ID') %>% group_by(SK_ID) %>% summarise(
   ACT1=mean(ACT),
