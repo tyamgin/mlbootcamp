@@ -302,7 +302,9 @@ create_features = function (subs_features, subs_csi, avg1_d, avg1_v, chnn1_d, ch
     C22 = mean(COM_CAT.22),
     C23 = mean(COM_CAT.23),
     C25 = mean(COM_CAT.25),#01
+    C25_FREQ = most.freq(COM_CAT.25),#01
     C26 = mean(COM_CAT.26),#01
+    C26_FREQ = most.freq(COM_CAT.26),#01
     C27 = mean(COM_CAT.27),
     C28 = mean(COM_CAT.28),
     C29 = mean(COM_CAT.29),
@@ -330,6 +332,11 @@ create_features = function (subs_features, subs_csi, avg1_d, avg1_v, chnn1_d, ch
     NEW_USER = n() < 12,
     count = n()
   )
+  
+  for (x in 1:8)
+    ss[, paste0('C1_', x)] = ss$C1_FREQ == x
+  for (x in 1:17)
+    ss[, paste0('C3_', x)] = ss$C3_FREQ == x
 
   dd = avg1_d %>% group_by(SK_ID) %>% summarise(
     DATA_VOL_MB_MEAN = mean(DATA_VOL_MB, na.rm=T),
@@ -574,18 +581,46 @@ feats_lm2 = c('ACT_MEAN','C7_FREQ','C27','C29S','RENT_CHANNEL_M','CSSR_3G_V_MEAN
 
 feats_lmr = c('ACT_MEAN','C7_FREQ','RENT_CHANNEL','C27','C29S','SUM_DATA_MIN_SUM','BASE_TYPE_MEAN','C23S','CSSR_3G_D_MEAN','RAB_PS_BLOCKING_RATE_3G_D_MEAN','RELATIVE_TX_POWER_3G_V_MEAN','count_d','DL_AVR_THROUGHPUT_LTE_D_MEAN','RRC_BLOCKING_RATE_3G_V_MEAN','COST_S','C29','RRC_BLOCKING_RATE_LTE_D_MEAN','AVR_UL_USER_LTE_V_MEAN','UL_AVR_THROUGHPUT_R99_D_MEAN','C22','RELATIVE_TX_POWER_3G_D_MEAN','UL_VOLUME_LTE_D_MEAN','ERAB_PS_DROP_RATE_LTE_V_MEAN','TOTAL_DL_VOLUME_3G_D_MEAN','RBU_USED_UL_V_MEAN','RBU_AVAIL_DL_D_MEAN','AVR_DL_USER_LTE_V_MEAN','C28','REVENUE','SUM_DATA_MIN_MEAN','VOICE_DUR_MIN_MIN','AVEUSERNUMBER_PLMN_V_MEAN','RRC_BLOCKING_RATE_LTE_V_MEAN','PSSR_LTE_V_MEAN','AVR_DL_HSPA_USER_3G_V_MEAN','AVR_TX_POWER_3G_V_MEAN','RAB_CS_DROP_RATE_3G_D_MEAN','UL_MEAN_USER_THROUGHPUT_LTE_D_MEAN','RAB_CS_DROP_RATE_3G_V_MEAN','SUM_DATA_MB_SUM','C17','C17S','ERAB_PS_BLOCKING_RATE_LTE_D_MEAN','ERAB_PS_BLOCKING_RATE_LTE_V_MEAN','UL_MEAN_USER_THROUGHPUT_PLTE_D_MEAN','UL_VOLUME_LTE_V_MEAN','RENT_CHANNEL_M','ROAM','ERAB_PS_BLOCKING_RATE_PLMN_LTE_D_MEAN','ROAM_M','CELL_AVAILABILITY_3G_V_MEAN','RBU_USED_UL_D_MEAN')
 
-feats_lm = c( 'C27','C29S','RENT_CHANNEL_M','AVR_DL_USER_3G_D_MEAN','C33','VAS_M','AVR_UL_USER_LTE_V_MEAN','RAB_PS_BLOCKING_RATE_3G_D_MEAN','AVEUSERNUMBER_V_MEAN','C7_FREQ','VOICE_DUR_MIN_MIN','ACT_MEAN','AVR_TX_POWER_3G_D_MEAN','RBU_AVAIL_DL_D_MEAN','C2_FREQ','DL_MEAN_USER_THROUGHPUT_PLTE_D_MEAN','BASE_TYPE_MEAN','C28','AVR_UL_USER_3G_D_MEAN','RBU_USED_UL_V_MEAN','SUM_DATA_MIN_SUM','RAB_CS_DROP_RATE_3G_D_MEAN','RAB_CS_DROP_RATE_3G_V_MEAN','ERAB_PS_DROP_RATE_LTE_V_MEAN','count_d','CELL_AVAILABILITY_3G_V_MEAN','C32','RRC_BLOCKING_RATE_3G_V_MEAN','C17','C17S','C23S','C29','UL_AVR_THROUGHPUT_R99_D_MEAN','RELATIVE_TX_POWER_3G_V_MEAN','RELATIVE_TX_POWER_3G_D_MEAN','REVENUE','C22','count','ERAB_PS_BLOCKING_RATE_PLMN_LTE_D_MEAN','ERAB_PS_BLOCKING_RATE_LTE_D_MEAN','SUM_DATA_MIN_MEAN','ROAM_M','SUM_DATA_MB_SUM')
+feats_lmr = c('ACT_MEAN','C7_FREQ','RENT_CHANNEL','C27','C29S','SUM_DATA_MIN_SUM','BASE_TYPE_MEAN','C23S','CSSR_3G_D_MEAN','RAB_PS_BLOCKING_RATE_3G_D_MEAN','RELATIVE_TX_POWER_3G_V_MEAN','count_d','DL_AVR_THROUGHPUT_LTE_D_MEAN','RRC_BLOCKING_RATE_3G_V_MEAN','COST_S','C29','RRC_BLOCKING_RATE_LTE_D_MEAN','AVR_UL_USER_LTE_V_MEAN','UL_AVR_THROUGHPUT_R99_D_MEAN','C22','RELATIVE_TX_POWER_3G_D_MEAN','UL_VOLUME_LTE_D_MEAN','ERAB_PS_DROP_RATE_LTE_V_MEAN','TOTAL_DL_VOLUME_3G_D_MEAN','RBU_USED_UL_V_MEAN','AVR_DL_USER_LTE_V_MEAN','C28','REVENUE','SUM_DATA_MIN_MEAN','VOICE_DUR_MIN_MIN','AVEUSERNUMBER_PLMN_V_MEAN','RRC_BLOCKING_RATE_LTE_V_MEAN','PSSR_LTE_V_MEAN','AVR_DL_HSPA_USER_3G_V_MEAN','AVR_TX_POWER_3G_V_MEAN','RAB_CS_DROP_RATE_3G_D_MEAN','UL_MEAN_USER_THROUGHPUT_LTE_D_MEAN','RAB_CS_DROP_RATE_3G_V_MEAN','SUM_DATA_MB_SUM','C17','C17S','ERAB_PS_BLOCKING_RATE_LTE_D_MEAN','ERAB_PS_BLOCKING_RATE_LTE_V_MEAN','UL_MEAN_USER_THROUGHPUT_PLTE_D_MEAN','UL_VOLUME_LTE_V_MEAN','RENT_CHANNEL_M','ROAM','ERAB_PS_BLOCKING_RATE_PLMN_LTE_D_MEAN','ROAM_M','RBU_USED_UL_D_MEAN','C1_8','TCH_DROP_RATE_2G_V_MEAN')
+
+feats_lm = c( 'C27','C29S','RENT_CHANNEL_M','AVR_DL_USER_3G_D_MEAN','C33','VAS_M','AVR_UL_USER_LTE_V_MEAN',
+              'RAB_PS_BLOCKING_RATE_3G_D_MEAN','AVEUSERNUMBER_V_MEAN','C7_FREQ','VOICE_DUR_MIN_MIN','ACT_MEAN',
+              'AVR_TX_POWER_3G_D_MEAN','RBU_AVAIL_DL_D_MEAN','C2_FREQ','DL_MEAN_USER_THROUGHPUT_PLTE_D_MEAN','BASE_TYPE_MEAN',
+              'C28','AVR_UL_USER_3G_D_MEAN','RBU_USED_UL_V_MEAN','SUM_DATA_MIN_SUM','RAB_CS_DROP_RATE_3G_D_MEAN',
+              'RAB_CS_DROP_RATE_3G_V_MEAN','ERAB_PS_DROP_RATE_LTE_V_MEAN','count_d','CELL_AVAILABILITY_3G_V_MEAN','C32',
+              'RRC_BLOCKING_RATE_3G_V_MEAN','C17','C17S','C23S','C29','UL_AVR_THROUGHPUT_R99_D_MEAN','RELATIVE_TX_POWER_3G_V_MEAN',
+              'RELATIVE_TX_POWER_3G_D_MEAN','REVENUE','C22','count','ERAB_PS_BLOCKING_RATE_PLMN_LTE_D_MEAN',
+              'ERAB_PS_BLOCKING_RATE_LTE_D_MEAN','SUM_DATA_MIN_MEAN','ROAM_M','SUM_DATA_MB_SUM', 'C1_7','C1_8','C3_7')
+
+feats_lm = c('C27','C29S','RENT_CHANNEL_M','AVR_DL_USER_3G_D_MEAN','C33','VAS_M','AVR_UL_USER_LTE_V_MEAN','RAB_PS_BLOCKING_RATE_3G_D_MEAN','AVEUSERNUMBER_V_MEAN','C7_FREQ','VOICE_DUR_MIN_MIN','ACT_MEAN','AVR_TX_POWER_3G_D_MEAN','RBU_AVAIL_DL_D_MEAN','DL_MEAN_USER_THROUGHPUT_PLTE_D_MEAN','BASE_TYPE_MEAN','C28','AVR_UL_USER_3G_D_MEAN','RBU_USED_UL_V_MEAN','SUM_DATA_MIN_SUM','RAB_CS_DROP_RATE_3G_D_MEAN','RAB_CS_DROP_RATE_3G_V_MEAN','ERAB_PS_DROP_RATE_LTE_V_MEAN','count_d','CELL_AVAILABILITY_3G_V_MEAN','C32','RRC_BLOCKING_RATE_3G_V_MEAN','C17','C17S','C23S','C29','UL_AVR_THROUGHPUT_R99_D_MEAN','RELATIVE_TX_POWER_3G_V_MEAN','RELATIVE_TX_POWER_3G_D_MEAN','REVENUE','C22','count','ERAB_PS_BLOCKING_RATE_PLMN_LTE_D_MEAN','ERAB_PS_BLOCKING_RATE_LTE_D_MEAN','SUM_DATA_MIN_MEAN','ROAM_M','SUM_DATA_MB_SUM',
+             'C1_7','C1_8','C3_7','C1_1')
+feats_lm = c('C27','C29S','RENT_CHANNEL_M','AVR_DL_USER_3G_D_MEAN','C33','VAS_M','AVR_UL_USER_LTE_V_MEAN','RAB_PS_BLOCKING_RATE_3G_D_MEAN','C7_FREQ','VOICE_DUR_MIN_MIN','ACT_MEAN','AVR_TX_POWER_3G_D_MEAN','RBU_AVAIL_DL_D_MEAN','DL_MEAN_USER_THROUGHPUT_PLTE_D_MEAN','BASE_TYPE_MEAN','C28','AVR_UL_USER_3G_D_MEAN','RBU_USED_UL_V_MEAN','SUM_DATA_MIN_SUM','RAB_CS_DROP_RATE_3G_D_MEAN','ERAB_PS_DROP_RATE_LTE_V_MEAN','count_d','CELL_AVAILABILITY_3G_V_MEAN','C32','RRC_BLOCKING_RATE_3G_V_MEAN','C17','C17S','C23S','C29','UL_AVR_THROUGHPUT_R99_D_MEAN','RELATIVE_TX_POWER_3G_V_MEAN','RELATIVE_TX_POWER_3G_D_MEAN','REVENUE','C22','count','ERAB_PS_BLOCKING_RATE_PLMN_LTE_D_MEAN','ERAB_PS_BLOCKING_RATE_LTE_D_MEAN','SUM_DATA_MIN_MEAN','ROAM_M','SUM_DATA_MB_SUM','C1_8','C3_7','C1_1')
+
 
 feats = c('ACT_MEAN','C30S','DATA_VOL_MB_MEAN','C23S','count_v','CSSR_3G_D_MEAN','RENT_CHANNEL','SUM_DATA_MIN_SUM','CELL_AVAILABILITY_4G_D_MEAN','C29S','CSSR_3G_V_MEAN','UL_VOLUME_LTE_D_MEAN','RAB_PS_BLOCKING_RATE_3G_D_MEAN','C33','DL_MEAN_USER_THROUGHPUT_HSPA3G_D_MEAN','RBU_OWN_DL_D_MEAN','UL_AVR_THROUGHPUT_R99_V_MEAN','SHO_FACTOR_V_MEAN','RELATIVE_TX_POWER_3G_D_MEAN','INTERNET_TYPE_ID_NOT_1','AVR_DL_USER_LTE_D_MEAN','AVR_UL_USER_LTE_D_MEAN','PART_CQI_QPSK_LTE_D_MEAN','AVR_DL_R99_USER_3G_D_MEAN','TOTAL_DL_VOLUME_3G_V_MEAN','C1_FREQ','SUM_DATA_MIN_MEAN','C27','CSSR_2G_D_MEAN','RENT_CHANNEL_M','C7_FREQ')
 
+feats = c('ACT_MEAN','C30S','DATA_VOL_MB_MEAN','C23S','count_v','CSSR_3G_D_MEAN','RENT_CHANNEL','SUM_DATA_MIN_SUM','C29S','CSSR_3G_V_MEAN',
+          'UL_VOLUME_LTE_D_MEAN','RAB_PS_BLOCKING_RATE_3G_D_MEAN','C33','DL_MEAN_USER_THROUGHPUT_HSPA3G_D_MEAN','RBU_OWN_DL_D_MEAN',
+          'UL_AVR_THROUGHPUT_R99_V_MEAN','SHO_FACTOR_V_MEAN','RELATIVE_TX_POWER_3G_D_MEAN','INTERNET_TYPE_ID_NOT_1','AVR_DL_USER_LTE_D_MEAN',
+          'AVR_UL_USER_LTE_D_MEAN','PART_CQI_QPSK_LTE_D_MEAN','AVR_DL_R99_USER_3G_D_MEAN','TOTAL_DL_VOLUME_3G_V_MEAN','C1_FREQ','SUM_DATA_MIN_MEAN',
+          'C27','CSSR_2G_D_MEAN','RENT_CHANNEL_M','C7_FREQ','RBU_AVAIL_DL_D_MEAN','CELL_AVAILABILITY_2G_D_MEAN','C3_5')
+
 stopCluster(cl)
 cl = makeCluster(4)
+registerDoParallel(cl)
 algoLgb = function (XL, params, ._f) {
   my.extendedColsTrain(XL, function (XL) {
     my.fillNasTrain(XL, function (XL) {
       my.train.lgb(XL, params)
     })
   }, feats)
+}
+algoLm = function (XL, params, ._f) {
+  my.extendedColsTrain(XL, function (XL) {
+    my.fillNasTrain(XL, function (XL) {
+      my.train.lm(XL, params)
+    })
+  }, feats_lm)
 }
 my.gridSearch(XL, algoLgb, expand.grid(lgbParams), verbose=T, iters=20, folds=7, resample.seed=2708, algo.seed=442)
 stopCluster(cl)
@@ -610,8 +645,8 @@ algoBlend = function (XL, params, ._f) {
     })
   }, feats)
   function (X) {
-    p=0.25
-    q=0.28
+    p=0.5
+    q=0.5
     m1(X)*p + m2(X)*q + m3(X)*(1-p-q)
   }
 }
@@ -621,54 +656,91 @@ stopCluster(cl)
 stopCluster(cl)
 cl = makeCluster(4)
 registerDoParallel(cl)
-addRemoveSelect(3000, XL, function (XL, params, features) {
+addRemoveSelect(2000, XL, function (XL, params, features) {
   my.extendedColsTrain(XL, function (XL) {
     my.fillNasTrain(XL, function (XL) {
       my.train.lgb(XL, lgbParams)
     })
   }, features)
-}, startFeatures=c('C2_AVG_Y',  'C1_FREQ','ACT_MEAN'), onlyFeatures=NULL)
+}, startFeatures=feats)
 stopCluster(cl)
 
-  stopCluster(cl)
-  cl = makeCluster(4)
-  registerDoParallel(cl)
-  addRemoveSelect(2000, XL, function (XL, params) {
+stopCluster(cl)
+cl = makeCluster(4)
+registerDoParallel(cl)
+addRemoveSelect(1000, XL, function (XL, params, features) {
+  my.extendedColsTrain(XL, function (XL) {
     my.fillNasTrain(XL, function (XL) {
-      my.train.lm(XL, lmrParams)
+      my.train.lmr(XL, lmrParams)
     })
-  }, startFeatures=feats_lm)
-  stopCluster(cl)
+  }, features)
+}, startFeatures=feats_lmr)
+stopCluster(cl)
 
 normalize_test = function (XL, XX) {
   XL = as.data.frame(XL)
   XX = as.data.frame(XX)
   for (cname in colnames(XX)) {
+    if (all(round(XL[!is.na(XL[, cname]), cname]) == XL[!is.na(XL[, cname]), cname])) {
+      #cat(paste0('Skip ', cname, '\n'))
+      next
+    }
+    if (min(XL[, cname], na.rm=T) == min(XX[, cname], na.rm=T) && max(XL[, cname], na.rm=T) == max(XX[, cname], na.rm=T)) {
+      #cat(paste0('Skip2 ', cname, '\n'))
+      next
+    }
     train_mean = mean(XL[, cname], na.rm=T)
+    train_sd = sd(XL[, cname], na.rm=T)
     test_mean = mean(XX[, cname], na.rm=T)
-    XX[, cname] = XX[, cname] * (train_mean / test_mean)
+    test_sd = sd(XX[, cname], na.rm=T)
+    XX[!is.na(XX[, cname]), cname] = (XX[!is.na(XX[, cname]), cname] - test_mean) / test_sd * train_sd + train_mean
   }
   XX
 }
 
-asd = sample(1:nrow(XL), 2100)
-
-XL_tr = XL[asd, ]
-XL_ts = XL[-asd, 1:(ncol(XL)-1)]
-Y_ts = XL[-asd, ]$Y
-model = algo1(XL_tr)
-print(roc(XL_ts$Y, model(XL_ts))$auc)
-
-algoLmr = function (XL, params) {
-  my.extendedColsTrain(XL, function (XL) {
-    my.fillNasTrain(XL, function (XL) {
-      my.train.lmr(XL)
-    })
-  }, feats_lmr)
+#136
+pts_x = c()
+pts_y1 = c()
+pts_y2 = c()
+set.seed(122323)
+for (threshold in 130:150) {
+  XL_tr = XL[XL$CONTACT_DATE >= threshold, ]
+  XL_ts = XL[XL$CONTACT_DATE < threshold, -ncol(XL)]
+  Y_ts = XL[XL$CONTACT_DATE < threshold, ]$Y
+  
+  pts_x = c(pts_x, nrow(XL_tr) / nrow(XL_ts))
+  
+  vv1 = c()
+  vv2 = c()
+  XL_tr = XL_tr[sample(nrow(XL_tr)), ]
+  model = algoLm(XL_tr, NULL)
+    
+  for(it in 1:20) {
+    dd = sample(nrow(XL_ts), round(nrow(XL_ts)*0.4))
+    vv1 = c(vv1, as.double(roc(Y_ts[dd], model(XL_ts[dd, ]))$auc))
+    vv2 = c(vv2, as.double(roc(Y_ts[-dd], model(XL_ts[-dd, ]))$auc))
+  }
+  pts_y1 = c(pts_y1, mean(vv1))  
+  pts_y2 = c(pts_y2, mean(vv2))  
+  
+#  print(ggplot(data.frame(x=c(pts_x,pts_x),y=c(pts_y1,pts_y2),col=c(rep(1,length(pts_x)),rep(2,length(pts_x)))), aes(x, y)) + 
+#          geom_point(aes(colour=factor(col))) + 
+#          labs(x="nrow(train)/nrow(test)", y="score") +
+#          geom_vline(xintercept=nrow(XL)/nrow(XX), color="green")
+#        )
+  print(ggplot() + 
+          geom_line(data=data.frame(x=pts_x,y=pts_y1), aes(x=x, y=y), color="blue") + 
+          geom_line(data=data.frame(x=pts_x,y=pts_y2), aes(x=x, y=y), color="red") + 
+          labs(x="nrow(train)/nrow(test)", y="score") +
+          geom_vline(xintercept=nrow(XL)/nrow(XX), color="green")
+  )
 }
 
+
 XX = create_features(subs_features_test, subs_csi_test, avg1_d_test, avg1_v_test, chnn1_d_test, chnn1_v_test, subs_bs_consumption_test)
-model = algoBlend(XL)
+#model = algoBlend(XL)
+model = algoLm(XL)
+#XX$Y = model(normalize_test(XL, XX))
 XX$Y = model(XX)
 #XX[XX$C2_FREQ==64, ]$Y = 0
 resulted_table = left_join(subs_csi_test, XX, "SK_ID")
