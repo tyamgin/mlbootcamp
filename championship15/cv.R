@@ -134,31 +134,47 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F, use.
   XKerr
 }
 
-validation.tqfold.parallel = function (XLL, teachFunc, folds=5, iters=10, resample.seed = 0, algo.seed=0, params=NULL, features=NULL) {
+validation.tqfold.parallel = function (XLL, teachFunc, folds=rep(5, 5), folds.mult=3, resample.seed = 0, algo.seed=0, timefolds=F, params=NULL, features=NULL) {
   nrows = length(unique(XLL[, ncol(XLL), drop=T]))
   
   if (resample.seed > 0) {
     set.seed(resample.seed)
   }
   
-  resamples = matrix(NA, nrow=iters, ncol=nrow(XLL))
-  for (i in 1:iters) {
+  resamples = matrix(NA, nrow=length(folds), ncol=nrow(XLL))
+  for (i in 1:length(folds)) {
     resamples[i, ] = sample(nrow(XLL))
   }
   
-  mean(foreach(it=1:iters, .combine=c,
-               .export=c('my.extendedColsTrain', 'my.fillNasTrain', 'my.train.lgb', 'my.train.lmr', 'my.train.lm', 'my.train.lm2', 'extendXYCols', 'feats_lmr', 'feats_lm', 'feats', 'my.boot', 'lgbParams', 'lmrParams', 'meanAggregator'),
-               .packages=c('foreach', 'lightgbm', 'pROC', 'MASS', 'glmnet')
-               ) %dopar% {
+  .exports = c('my.extendedColsTrain', 'my.fillNasTrain', 'my.train.lgb', 'my.train.lmr', 'my.train.lm', 'my.train.lm2', 'extendXYCols', 'feats_lmr', 'feats_lm', 'feats', 'my.boot', 'lgbParams', 'lmrParams', 'meanAggregator')
+  .packages = c('foreach', 'lightgbm', 'pROC', 'MASS', 'glmnet')
+  
+  mean(foreach(it=1:length(folds), .combine=c, .export=.exports, .packages=.packages) %dopar% {
     perm = resamples[it, ]
-    mean(foreach(fold=1:folds, .combine=c) %do% {
-      foldLength = floor(nrow(XLL) / folds)
-      foldStart = (fold - 1) * foldLength
-      foldEnd = foldStart + foldLength - 1
+    nFolds = folds[it]
+    mean(foreach(fold=1:(nFolds+(nFolds-1)*(folds.mult-1)), .combine=c) %do% {
+      if (timefolds) {
+        ord = order(XLL$CONTACT_DATE)
+        foldLength = floor(nrow(XLL) / (nFolds + 1))
+        
+        testStart = (fold-1)*floor(foldLength/folds.mult) + 1
+        testEnd = testStart + foldLength - 1
+        trainStart = testEnd + 1
+        trainEnd = trainStart + foldLength - 1
+        if (trainEnd > nrow(XLL)) stop('Error while computing folds for CV')
+        controlIdxes = ord[testStart:testEnd]
+        trainIdxes = ord[trainStart:trainEnd]
+        print(c("Fold INFO: ", testStart, testEnd, trainStart, trainEnd, nrow(XLL)))
+      } else {
+        foldLength = floor(nrow(XLL) / nFolds)
+        foldStart = (fold - 1) * foldLength
+        foldEnd = foldStart + foldLength - 1
+        controlIdxes = perm[foldStart:foldEnd]
+        trainIdxes = -controlIdxes
+      }
       
-      controlIdxes = perm[foldStart:foldEnd]
       XK = XLL[controlIdxes, ]
-      XL = XLL[-controlIdxes, ]  
+      XL = XLL[trainIdxes, ]  
       
       if (algo.seed > 0) {
         set.seed(algo.seed)
@@ -171,7 +187,7 @@ validation.tqfold.parallel = function (XLL, teachFunc, folds=5, iters=10, resamp
       
       e = roc(act, pred)$auc
       
-      cat('tqfold ', it, '-', fold, '/', iters, '-', folds, ' ', round(sum(act == 1) / length(act) * 100),  '% cur=', e, '\n', sep='')
+      cat('tqfold ', it, '-', fold, '/', length(folds), '-', nFolds, ' ', round(sum(act == 1) / length(act) * 100),  '% cur=', e, '\n', sep='')
       
       e
     })

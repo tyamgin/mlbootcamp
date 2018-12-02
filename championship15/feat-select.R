@@ -4,10 +4,11 @@ tqfoldEstimation = function(XL, teach, features, thr=0) { # TODO: for maximize o
     return(c(0, 0))
   
   my.set.seed(2874549) # need?
-  e1 = validation.tqfold.parallel(XL, teach, folds=5, iters=16, resample.seed=324, algo.seed=52, features=features)
+  e1 = validation.tqfold.parallel(XL, teach, folds=1:4, folds.mult=10, resample.seed=324, algo.seed=52, features=features, timefolds=T)
   e2 = NA
   if (e1 > thr)
-    e2 = validation.tqfold.parallel(XL, teach, folds=5, iters=50, resample.seed=4, algo.seed=52, features=features)
+    #e2 = validation.tqfold.parallel(XL, teach, folds=5, iters=1, resample.seed=4, algo.seed=52, features=features)
+    e2=e1
   my.restore.seed()
   c(e1, e2)
 }
