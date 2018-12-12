@@ -134,7 +134,7 @@ validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F, use.
   XKerr
 }
 
-validation.tqfold.parallel = function (XLL, teachFunc, folds=rep(5, 5), folds.mult=3, resample.seed = 0, algo.seed=0, timefolds=F, params=NULL, features=NULL) {
+validation.tqfold.parallel = function (XLL, teachFunc, folds=rep(5, 5), folds.mult=3, resample.seed = 0, algo.seed=0, timefolds=F, params=NULL, features=NULL, lower.bound=NULL, fnc=mean) {
   nrows = length(unique(XLL[, ncol(XLL), drop=T]))
   
   if (resample.seed > 0) {
@@ -149,47 +149,62 @@ validation.tqfold.parallel = function (XLL, teachFunc, folds=rep(5, 5), folds.mu
   .exports = c('my.extendedColsTrain', 'my.fillNasTrain', 'my.train.lgb', 'my.train.lmr', 'my.train.lm', 'my.train.lm2', 'extendXYCols', 'feats_lmr', 'feats_lm', 'feats', 'my.boot', 'lgbParams', 'lmrParams', 'meanAggregator')
   .packages = c('foreach', 'lightgbm', 'pROC', 'MASS', 'glmnet')
   
-  mean(foreach(it=1:length(folds), .combine=c, .export=.exports, .packages=.packages) %dopar% {
-    perm = resamples[it, ]
-    nFolds = folds[it]
-    mean(foreach(fold=1:(nFolds+(nFolds-1)*(folds.mult-1)), .combine=c) %do% {
-      if (timefolds) {
-        ord = order(XLL$CONTACT_DATE)
-        foldLength = floor(nrow(XLL) / (nFolds + 1))
+  ret = 0
+  
+  possibleError = tryCatch({
+    ret = fnc(foreach(it=1:length(folds), .combine=c, .export=.exports, .packages=.packages) %dopar% {
+      perm = resamples[it, ]
+      nFolds = folds[it]
+      if (timefolds)
+        fRange = 1:(nFolds+(nFolds-1)*(folds.mult-1))
+      else
+        fRange = 1:nFolds
+      fnc(foreach(fold=fRange, .combine=c) %do% {
+        if (timefolds) {
+          ord = order(XLL$CONTACT_DATE)
+          foldLength = floor(nrow(XLL) / (nFolds + 1))
+          
+          testStart = (fold-1)*floor(foldLength/folds.mult) + 1
+          testEnd = testStart + foldLength - 1
+          trainStart = testEnd + 1
+          trainEnd = trainStart + foldLength - 1
+          if (trainEnd > nrow(XLL)) stop('Error while computing folds for CV')
+          controlIdxes = ord[testStart:testEnd]
+          trainIdxes = ord[trainStart:trainEnd]
+          print(c("Fold INFO: ", testStart, testEnd, trainStart, trainEnd, nrow(XLL)))
+        } else {
+          foldLength = floor(nrow(XLL) / nFolds)
+          foldStart = (fold - 1) * foldLength
+          foldEnd = foldStart + foldLength - 1
+          controlIdxes = perm[foldStart:foldEnd]
+          trainIdxes = -controlIdxes
+        }
         
-        testStart = (fold-1)*floor(foldLength/folds.mult) + 1
-        testEnd = testStart + foldLength - 1
-        trainStart = testEnd + 1
-        trainEnd = trainStart + foldLength - 1
-        if (trainEnd > nrow(XLL)) stop('Error while computing folds for CV')
-        controlIdxes = ord[testStart:testEnd]
-        trainIdxes = ord[trainStart:trainEnd]
-        print(c("Fold INFO: ", testStart, testEnd, trainStart, trainEnd, nrow(XLL)))
-      } else {
-        foldLength = floor(nrow(XLL) / nFolds)
-        foldStart = (fold - 1) * foldLength
-        foldEnd = foldStart + foldLength - 1
-        controlIdxes = perm[foldStart:foldEnd]
-        trainIdxes = -controlIdxes
-      }
-      
-      XK = XLL[controlIdxes, ]
-      XL = XLL[trainIdxes, ]  
-      
-      if (algo.seed > 0) {
-        set.seed(algo.seed)
-      }
-      
-      act = XK[, ncol(XL), drop=T]
-
-      algo = teachFunc(XL, params, features)
-      pred = algo(XK[, -ncol(XL)])
-      
-      e = roc(act, pred)$auc
-      
-      cat('tqfold ', it, '-', fold, '/', length(folds), '-', nFolds, ' ', round(sum(act == 1) / length(act) * 100),  '% cur=', e, '\n', sep='')
-      
-      e
+        XK = XLL[controlIdxes, ]
+        XL = XLL[trainIdxes, ]  
+        
+        if (algo.seed > 0) {
+          set.seed(algo.seed)
+        }
+        
+        act = XK[, ncol(XL), drop=T]
+  
+        algo = teachFunc(XL, params, features)
+        pred = algo(XK[, -ncol(XL)])
+        
+        e = roc(act, pred)$auc
+        
+        cat('tqfold ', it, '-', fold, '/', length(folds), '-', nFolds, ' ', round(sum(act == 1) / length(act) * 100),  '% cur=', e, '\n', sep='')
+        
+        if (!is.null(lower.bound) && e < lower.bound) {
+          stop(paste0("Lower bound reached: ", e))
+        }
+        
+        e
+      })
     })
+  }, error=function(err) {
+    print(err$message)
   })
+  ret
 }
