@@ -53,11 +53,11 @@ lgbParams = list(
   iters=1,
   rowsFactor=1,
   
-  num_leaves=c(6),
+  num_leaves=c(7),
   nrounds=c(2000),
   learning_rate=c(0.02),
   
-  max_depth=c(5),
+  max_depth=c(4),
   #lambda_l1=c(5),
   lambda_l2=c(45),
   feature_fraction=c(0.4),

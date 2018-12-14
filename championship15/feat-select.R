@@ -4,11 +4,11 @@ tqfoldEstimation = function(XL, teach, features, thr=0) { # TODO: for maximize o
     return(c(0, 0))
   
   my.set.seed(2874549) # need?
-  e1 = validation.tqfold.parallel(XL, teach, folds=rep(3,40), resample.seed=3994, algo.seed=52, features=features)
+  e1 = validation.tqfold.parallel(XL, teach, folds=rep(3,80), resample.seed=37755, algo.seed=53, features=features)
   e2 = NA
   if (e1 > thr)
-    e2 = validation.tqfold.parallel(XL, teach, folds=rep(3,150), resample.seed=4, algo.seed=52, features=features)
-    #e2=e1
+    #e2 = validation.tqfold.parallel(XL, teach, folds=rep(3,150), resample.seed=4, algo.seed=52, features=features)
+    e2=e1
   my.restore.seed()
   c(e1, e2)
 }
@@ -127,4 +127,5 @@ addRemoveSelect = function(iterations,  # количество итераций
     cat()
     cat(paste0('[', i, '] ', ifelse(addOrRemove, '-', '+'), colnames(XL)[i], ' ', newEst[1], ' ', newEst[2], ' ', iterations - it, " iterations remains\n"))
   }
+  dumpFeatures(features)
 }
