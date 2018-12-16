@@ -146,7 +146,7 @@ validation.tqfold.parallel = function (XLL, teachFunc, folds=rep(5, 5), folds.mu
     resamples[i, ] = sample(nrow(XLL))
   }
   
-  .exports = c('my.extendedColsTrain', 'my.fillNasTrain', 'my.train.lgb', 'my.train.lmr', 'my.train.lm', 'my.train.lm2', 'extendXYCols', 'feats_lm2', 'feats_lmr', 'feats_lm', 'feats', 'my.boot', 'lgbParams', 'lmrParams', 'meanAggregator')
+  .exports = c('my.extendedColsTrain', 'my.fillNasTrain', 'my.train.lgb', 'my.train.lmr', 'my.train.lm', 'my.train.lm2', 'extendXYCols', 'normalize_test', 'feats_lm2', 'feats_lmr', 'feats_lm', 'feats', 'my.boot', 'lgbParams', 'lmrParams', 'meanAggregator')
   .packages = c('foreach', 'lightgbm', 'pROC', 'MASS', 'glmnet')
   
   ret = 0

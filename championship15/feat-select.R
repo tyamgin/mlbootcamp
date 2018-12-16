@@ -1,10 +1,13 @@
+qwe = function (nrow, ncol) (ncol * (log(2*nrow/ncol) + 1) / nrow - log(0.05) / nrow^0.5) / 1
+
 tqfoldEstimation = function(XL, teach, features, thr=0) { # TODO: for maximize only
   p = ncol(XL) - 1
   if (p <= 1)
     return(c(0, 0))
   
   my.set.seed(2874549) # need?
-  e1 = validation.tqfold.parallel(XL, teach, folds=rep(3,80), resample.seed=37755, algo.seed=53, features=features)
+  #ff = function (ncol) (ncol * (log(2*nrow(XL)/ncol) + 1) / nrow(XL) - log(0.05) / nrow(XL))^0.5
+  e1 = validation.tqfold.parallel(XL, teach, folds=rep(3,80), resample.seed=377575, algo.seed=53, features=features) - qwe(nrow(XL), length(features))
   e2 = NA
   if (e1 > thr)
     #e2 = validation.tqfold.parallel(XL, teach, folds=rep(3,150), resample.seed=4, algo.seed=52, features=features)
@@ -40,7 +43,7 @@ addRemoveSelect = function(iterations,  # количество итераций
   intPts = c()
   extPts = c()
   
-  est = estimate(XL, teach, features)
+  est = estimate(XL[, feats.cut(features)], teach, features)
   print('started at')
   print(est)
   
@@ -49,7 +52,7 @@ addRemoveSelect = function(iterations,  # количество итераций
   
   for (it in 1:iterations) {
     p = length(features) / (ncol(XL)-1)
-    addOrRemove = sample(0:1, 1, F, c(1 - p, p))
+    addOrRemove = sample(0:1, 1, F, c(0.9, 0.1))
     #addOrRemove = 1
     # 0 - add
     # 1 - remove
@@ -94,7 +97,7 @@ addRemoveSelect = function(iterations,  # количество итераций
       newFeatures = c(newFeatures, colnames(XL)[i])
     
     possibleError = tryCatch({
-      newEst = estimate(XL[, unique(c(newFeatures, 'C1_FREQ', 'C2_FREQ', 'Y'))], teach, newFeatures, est[1])  
+      newEst = estimate(XL[, feats.cut(newFeatures)], teach, newFeatures, est[1])  
     }, error=function(err) {
       print(err)
     })
@@ -108,12 +111,12 @@ addRemoveSelect = function(iterations,  # количество итераций
         #tries = c()
         dones = 0
         print(i)
-        print(est)
+        print(c(est[1], est[1] + qwe(nrow(XL), length(features))))
         
         features = newFeatures
         est = newEst
         
-        print(est)
+        print(c(est[1], est[1] + qwe(nrow(XL), length(features))))
         
         intPts = c(intPts, newEst[1])
         extPts = c(extPts, newEst[2])
@@ -125,7 +128,7 @@ addRemoveSelect = function(iterations,  # количество итераций
       }
     }
     cat()
-    cat(paste0('[', i, '] ', ifelse(addOrRemove, '-', '+'), colnames(XL)[i], ' ', newEst[1], ' ', newEst[2], ' ', iterations - it, " iterations remains\n"))
+    cat(paste0('[', i, '] ', ifelse(addOrRemove, '-', '+'), colnames(XL)[i], ' ', newEst[1], ' ', newEst[1] + qwe(nrow(XL), length(newFeatures)), ' ', iterations - it, " iterations remains\n"))
   }
   dumpFeatures(features)
 }
