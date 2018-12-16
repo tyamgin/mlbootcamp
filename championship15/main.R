@@ -530,8 +530,8 @@ algoBlend = function (XL, params, ._f) {
     }, aggr=median)
   }, feats_lm2)
   function (X) {
-    p=0.2
-    q=0.2
+    p=0.19
+    q=0.19
     v=0.26
     r = function (x) order(order(x)) / length(x)
     r(m1(X))*p + r(m2(X))*q + r(m4(X))*v + r(m3(X))*(1-p-q-v)
@@ -610,8 +610,8 @@ print(roc(XX_1$Y, mm(XX_1[,-ncol(XX_1)]))$auc)
 
 
 XX = create_features(subs_features_test, subs_csi_test, bd_d_test, bd_v_test, bd_c_test)
-#model = algoBlend(XL)
-model = algoLm(XL, lgbParams)
+model = algoBlend(XL)
+#model = algoLm(XL, lgbParams)
 #XX$Y = model(normalize_test(XL, XX))
 XX$Y = model(XX)
 #XX[XX$C2_FREQ==64, ]$Y = 0
