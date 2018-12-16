@@ -80,59 +80,6 @@ my.boot = function (XLL, train, aggregator, iters=10, rowsFactor=0.3, replace=F,
   }
 }
 
-validation.tqfold.enumerate = function (callback, XLL, folds=5, iters=10) {
-  resamples = matrix(NA, nrow=iters, ncol=nrow(XLL))
-  for (i in 1:iters) {
-    resamples[i, ] = sample(nrow(XLL))
-  }
-  
-  for (it in 1:iters) {
-    perm = resamples[it, ]
-    for (fold in 1:folds) {
-      foldLength = floor(nrow(XLL) / folds)
-      foldStart = (fold - 1) * foldLength
-      foldEnd = foldStart + foldLength - 1
-      
-      controlIdxes = perm[foldStart:foldEnd]
-      XK = XLL[controlIdxes, ]
-      XL = XLL[-controlIdxes, ]  
-      
-      callback(XL, XK, it, fold)
-    }
-  }
-}
-
-
-validation.tqfold = function (XLL, teachFunc, folds=5, iters=10, verbose=F, use.newdata=F, seed=0) {
-  XKerr = c()
-  
-  nrows = length(unique(XLL[, ncol(XLL), drop=T]))
-
-  validation.tqfold.enumerate(function (XL, XK, it, fold) {
-    if (seed > 0) {
-      set.seed(seed)
-    }
-    
-    act = XK[, ncol(XL), drop=T]
-    if (use.newdata) {
-      algo = teachFunc(XL, newdata=XK[, -ncol(XL)])
-      pred = algo(XK[, -ncol(XL)])
-    } else {
-      algo = teachFunc(XL)
-      pred = algo(XK[, -ncol(XL)])
-    }
-    
-    e = roc(act, pred)$auc
-    
-    XKerr <<- c(XKerr, e)
-    
-    if (verbose)
-      cat('tqfold ', it, '-', fold, '/', iters, '-', folds, ' ', round(sum(act == 1) / length(act) * 100),  '% cur=', e, ' mean=', mean(XKerr), ' sd=', sd(XKerr), '\n', sep='')
-    
-  }, XLL, folds=folds, iters=iters)
-  
-  XKerr
-}
 
 validation.tqfold.parallel = function (XLL, teachFunc, folds=rep(5, 5), folds.mult=3, resample.seed = 0, algo.seed=0, timefolds=F, params=NULL, features=NULL, lower.bound=NULL, fnc=mean) {
   nrows = length(unique(XLL[, ncol(XLL), drop=T]))
@@ -146,7 +93,7 @@ validation.tqfold.parallel = function (XLL, teachFunc, folds=rep(5, 5), folds.mu
     resamples[i, ] = sample(nrow(XLL))
   }
   
-  .exports = c('my.extendedColsTrain', 'my.fillNasTrain', 'my.train.lgb', 'my.train.lmr', 'my.train.lm', 'my.train.lm2', 'extendXYCols', 'normalize_test', 'feats_lm2', 'feats_lmr', 'feats_lm', 'feats', 'my.boot', 'lgbParams', 'lmrParams', 'meanAggregator')
+  .exports = c('my.extendedColsTrain', 'my.fillNasTrain', 'my.train.lgb', 'my.train.lmr', 'my.train.lm', 'my.train.lm2', 'extendXYCols', 'feats_lm2', 'feats_lmr', 'feats_lm', 'feats', 'my.boot', 'lgbParams', 'lmrParams', 'meanAggregator')
   .packages = c('foreach', 'lightgbm', 'pROC', 'MASS', 'glmnet')
   
   ret = 0
