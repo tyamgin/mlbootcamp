@@ -1,0 +1,1 @@
+a=read.csv("a");for(b in split(a,a[2]))write(paste(b[1,2],min(b[3]),min(b[4]),max(b[5]),max(b[6]),sep=","),"b",1,T)
