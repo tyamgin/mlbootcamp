@@ -11,4 +11,11 @@ CMD python main.py --data-dir /tmp/data --res-path /var/log/result \
 
 
 # Для запуска:
-# sudo docker build -t vkcup . && docker run -t vkcup
+# sudo sudo docker build -t vkcup . && docker run -t vkcup
+
+# Для отправки:
+# docker tag vkcup stor.highloadcup.ru/vkcup21_age/yellow_jaguar
+# docker push stor.highloadcup.ru/vkcup21_age/yellow_jaguar
+
+# Скрипт отправки:
+# ./submit.sh
