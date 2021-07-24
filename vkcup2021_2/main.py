@@ -5,9 +5,21 @@ import pandas as pd
 
 
 def solve(edu):
-    edu['res'] = 35
-    school_idx = ~edu.school_education.isna()
-    edu.loc[school_idx, 'res'] = 2021 - edu[school_idx].school_education + 17
+    edu['res'] = 34
+    dct = {
+        'school_education': 17,  # 4.903859550418915
+        'graduation_1': 25,  # 5.590608371258384
+        'graduation_2': 24,  # 4.912185675064848
+        'graduation_3': 24,  # 4.905354217587146
+        'graduation_4': 25,  # 4.009603855360661
+        'graduation_5': 24,  # 5.55578449198568
+        'graduation_6': 25,  # 5.225676253624243
+        'graduation_7': 25,  # 7.671183665089072
+    }
+    for grad, shift in dct.items():
+        grad_idx = ~edu[grad].isna()
+        edu.loc[grad_idx, 'res'] = 2021 - edu.loc[grad_idx, grad] + shift
+
     return edu[['uid', 'res']].set_index('uid')
 
 
