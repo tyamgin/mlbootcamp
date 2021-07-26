@@ -33,11 +33,11 @@ def main():
     test = Data()
     test.read(args.test_data_dir, 'test')
 
-    model.prepare(train, test)
+    prod_model.prepare(train, test)
 
-    model.load(os.path.join(args.work_dir, 'models/lgb.txt'))
+    prod_model.load(os.path.join(args.work_dir, 'models/lgb.txt'))
 
-    res = model.predict(test)
+    res = prod_model.predict(test)
     res.rename(columns={'res': 'age'}).to_csv(args.res_path, header=True, index=False)
 
 
