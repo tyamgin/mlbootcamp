@@ -52,9 +52,14 @@ class MyModel:
     def prepare(self, train, test):
         self.registered_year_by_uid = {}
         self.age_by_uid = {}
-        for row in train.edu.itertuples():
-            self.registered_year_by_uid[row.uid] = row.registered_year
-            self.age_by_uid[row.uid] = row.age
+        for dataset in (train, test):
+            if dataset is None:
+                continue
+            is_train = 'age' in dataset.edu.columns
+            for row in dataset.edu.itertuples():
+                self.registered_year_by_uid[row.uid] = row.registered_year
+                if is_train:
+                    self.age_by_uid[row.uid] = row.age
 
     def get_X(self, data):
         del_cols = ['age']
