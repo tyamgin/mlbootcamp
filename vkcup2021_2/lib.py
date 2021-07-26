@@ -51,6 +51,7 @@ class MyModel:
     group_median_age = None
     group_size = None
     group_median_registered_year = None
+    group_max_registered_year = None
 
     def __init__(self, params):
         self.params = params or {}
@@ -61,6 +62,7 @@ class MyModel:
         self.group_median_age = {}
         self.group_size = defaultdict(int)
         self.group_median_registered_year = {}
+        self.group_max_registered_year = {}
         group_users = defaultdict(list)
         num_trains = 0
 
@@ -85,6 +87,10 @@ class MyModel:
                 if uid in self.age_by_uid
             ])
             self.group_median_registered_year[gid] = np.median([
+                self.registered_year_by_uid[uid]
+                for uid in uids
+            ])
+            self.group_max_registered_year[gid] = np.max([
                 self.registered_year_by_uid[uid]
                 for uid in uids
             ])
@@ -139,6 +145,14 @@ class MyModel:
             ])
             for uid in uids
         ]
+        # res['groups_median_max_registered_year'] = [
+        #     np.nanmedian([
+        #         self.group_max_registered_year[gr]
+        #         for gr in data.groups.get(uid, [])
+        #         if gr in self.group_max_registered_year
+        #     ])
+        #     for uid in uids
+        # ]
         # res['groups_median_size'] = [
         #     np.median([
         #         self.group_size[gr]
