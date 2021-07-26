@@ -37,7 +37,10 @@ class Data:
         result = Data()
         result.friends = self.friends
         result.edu = self.edu[self.edu['uid'].isin(idxes)]
-        result.groups = self.groups  # TODO
+        gset = set(result.edu.uid)
+        result.groups = {uid: user_groups
+                         for uid, user_groups in self.groups.items()
+                         if uid in gset}
         return result
 
 
@@ -45,6 +48,7 @@ class MyModel:
     verbose = 0
     registered_year_by_uid = None
     age_by_uid = None
+    group_median_age = None
 
     def __init__(self, params):
         self.params = params or {}
@@ -52,6 +56,7 @@ class MyModel:
     def prepare(self, train, test):
         self.registered_year_by_uid = {}
         self.age_by_uid = {}
+        self.group_median_age = {}
         for dataset in (train, test):
             if dataset is None:
                 continue
@@ -60,6 +65,17 @@ class MyModel:
                 self.registered_year_by_uid[row.uid] = row.registered_year
                 if is_train:
                     self.age_by_uid[row.uid] = row.age
+
+            if is_train:
+                group_users = defaultdict(list)
+                for uid, user_groups in dataset.groups.items():
+                    for gid in user_groups:
+                        group_users[gid].append(uid)
+
+                for gid, uids in group_users.items():
+                    self.group_median_age[gid] = np.median([
+                        self.age_by_uid[uid] for uid in uids
+                    ])
 
     def get_X(self, data):
         del_cols = ['age']
@@ -80,6 +96,14 @@ class MyModel:
                 self.age_by_uid[fr]
                 for fr in data.friends.get(uid, [])
                 if fr in self.age_by_uid
+            ])
+            for uid in uids
+        ]
+        res['groups_median_age'] = [
+            np.median([
+                self.group_median_age[gr]
+                for gr in data.groups.get(uid, [])
+                if gr in self.group_median_age
             ])
             for uid in uids
         ]
@@ -106,6 +130,7 @@ dummy_data.edu = pd.DataFrame({
     'age': [27],
     'registered_year': [2015],
 })
+dummy_data.groups = {}
 dummy_model = MyModel(None)
 dummy_model.prepare(dummy_data, None)
 dummy_model.fit(dummy_data)
