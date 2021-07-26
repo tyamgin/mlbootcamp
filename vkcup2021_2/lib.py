@@ -98,6 +98,7 @@ class MyModel:
         uids = res['uid'].values
         res['friends_count'] = [len(data.friends.get(uid, [])) for uid in uids]
         res['groups_count'] = [len(data.groups.get(uid, [])) for uid in uids]
+        #res['dff'] = res['registered_year'] - res['school_education']
         res['friends_median_registered_year'] = [
             np.median([
                 self.registered_year_by_uid[fr]
@@ -146,6 +147,9 @@ class MyModel:
         #     ])
         #     for uid in uids
         # ]
+
+        # TODO: группа, в которой давно не было новичков:
+        # reg_year - max(reg_year)
 
         return res
 
