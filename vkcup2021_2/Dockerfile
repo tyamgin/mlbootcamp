@@ -4,12 +4,13 @@ RUN pip3 install 'lightgbm==3.2.1'
 
 COPY *.py .
 COPY models models
+COPY data data
 
 COPY data /tmp/data
 
 CMD mkdir -p /var
 CMD mkdir -p /var/log
-CMD python main.py --data-dir /tmp/data --res-path /var/log/result --work-dir . \
+CMD python main.py --test-data-dir /tmp/data --train-data-dir ./data --res-path /var/log/result --work-dir . \
  && head -20 /var/log/result
 
 # pip3 install sklearn
