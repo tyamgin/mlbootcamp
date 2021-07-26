@@ -19,13 +19,13 @@ def main():
     prod_model = LgbModel({
         'boosting_type': 'gbdt',
         'min_data_in_leaf': 25,
-        'lambda_l2': 0.05,
-        'num_leaves': 13,
+        'lambda_l2': 0.06,
+        'num_leaves': 17,
         'learning_rate': 0.035,
         'feature_fraction': 1,
         'bagging_fraction': 1,
         'bagging_freq': 5,
-        'num_boost_round': 300,
+        'num_boost_round': 400,
     })
     train = Data()
     train.read(args.train_data_dir, 'train')

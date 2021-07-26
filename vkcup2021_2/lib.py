@@ -49,6 +49,7 @@ class MyModel:
     registered_year_by_uid = None
     age_by_uid = None
     group_median_age = None
+    group_size = None
 
     def __init__(self, params):
         self.params = params or {}
@@ -57,25 +58,33 @@ class MyModel:
         self.registered_year_by_uid = {}
         self.age_by_uid = {}
         self.group_median_age = {}
+        self.group_size = defaultdict(int)
+        group_users = defaultdict(list)
+        num_trains = 0
+
         for dataset in (train, test):
             if dataset is None:
                 continue
             is_train = 'age' in dataset.edu.columns
+            num_trains += int(is_train)
             for row in dataset.edu.itertuples():
                 self.registered_year_by_uid[row.uid] = row.registered_year
                 if is_train:
                     self.age_by_uid[row.uid] = row.age
 
-            if is_train:
-                group_users = defaultdict(list)
-                for uid, user_groups in dataset.groups.items():
-                    for gid in user_groups:
-                        group_users[gid].append(uid)
+            for uid, user_groups in dataset.groups.items():
+                for gid in user_groups:
+                    group_users[gid].append(uid)
 
-                for gid, uids in group_users.items():
-                    self.group_median_age[gid] = np.median([
-                        self.age_by_uid[uid] for uid in uids
-                    ])
+        for gid, uids in group_users.items():
+            self.group_median_age[gid] = np.median([
+                self.age_by_uid[uid]
+                for uid in uids
+                if uid in self.age_by_uid
+            ])
+            self.group_size[gid] = len(uids)
+
+        assert num_trains == 1
 
     def get_X(self, data):
         del_cols = ['age']
@@ -100,13 +109,21 @@ class MyModel:
             for uid in uids
         ]
         res['groups_median_age'] = [
-            np.median([
+            np.nanmedian([
                 self.group_median_age[gr]
                 for gr in data.groups.get(uid, [])
                 if gr in self.group_median_age
             ])
             for uid in uids
         ]
+        # res['groups_median_size'] = [
+        #     np.median([
+        #         self.group_size[gr]
+        #         for gr in data.groups.get(uid, [])
+        #         if gr in self.group_size
+        #     ])
+        #     for uid in uids
+        # ]
 
         return res
 
