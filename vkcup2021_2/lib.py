@@ -114,6 +114,14 @@ class MyModel:
             ])
             for uid in uids
         ]
+        res['friends_mean_age'] = [
+            np.mean([
+                self.age_by_uid[fr]
+                for fr in data.friends.get(uid, [])
+                if fr in self.age_by_uid
+            ])
+            for uid in uids
+        ]
         res['groups_median_age'] = [
             np.nanmedian([
                 self.group_median_age[gr]
