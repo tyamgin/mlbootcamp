@@ -1,7 +1,5 @@
 import os
-import math
 import argparse
-import pandas as pd
 
 from lib import (
     Data,
