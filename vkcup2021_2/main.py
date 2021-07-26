@@ -34,8 +34,9 @@ def main():
     test.read(args.test_data_dir, 'test')
 
     prod_model.prepare(train, test)
+    prod_model.fit(train)
 
-    prod_model.load(os.path.join(args.work_dir, 'models/lgb.txt'))
+    #prod_model.load(os.path.join(args.work_dir, 'models/lgb.txt'))
 
     res = prod_model.predict(test)
     res.rename(columns={'res': 'age'}).to_csv(args.res_path, header=True, index=False)
