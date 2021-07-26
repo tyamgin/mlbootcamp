@@ -22,8 +22,8 @@ def main():
         'lambda_l2': 0.06,
         'num_leaves': 17,
         'learning_rate': 0.035,
-        'feature_fraction': 1,
-        'bagging_fraction': 1,
+        'feature_fraction': 0.9,
+        'bagging_fraction': 0.9,
         'bagging_freq': 5,
         'num_boost_round': 400,
     })

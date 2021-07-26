@@ -145,6 +145,14 @@ class MyModel:
             ])
             for uid in uids
         ]
+        res['friends_median_groups_count'] = [
+            np.median([
+                len(data.friends.get(fr, []))
+                for fr in data.friends.get(uid, [])
+            ])
+            for uid in uids
+        ]
+
         # res['groups_median_max_registered_year'] = [
         #     np.nanmedian([
         #         self.group_max_registered_year[gr]
