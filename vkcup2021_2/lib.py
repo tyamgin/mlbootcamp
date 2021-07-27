@@ -1,4 +1,6 @@
+import itertools
 import datetime
+import math
 import os
 
 from collections import defaultdict
@@ -6,6 +8,15 @@ from collections import defaultdict
 import lightgbm as lgb
 import pandas as pd
 import numpy as np
+
+
+def expand_grid(dictionary):
+    return pd.DataFrame([row for row in itertools.product(*dictionary.values())], columns=dictionary.keys())
+
+
+def rmse(x, y):
+    n = len(x)
+    return math.sqrt(1.0 * sum((x - y)**2) / n)
 
 
 class Data:
@@ -47,6 +58,7 @@ class Data:
 class MyModel:
     verbose = 0
     registered_year_by_uid = None
+    school_education_by_uid = None
     age_by_uid = None
     group_median_age = None
     group_size = None
@@ -58,6 +70,7 @@ class MyModel:
 
     def prepare(self, train, test):
         self.registered_year_by_uid = {}
+        self.school_education_by_uid = {}
         self.age_by_uid = {}
         self.group_median_age = {}
         self.group_size = defaultdict(int)
@@ -73,6 +86,7 @@ class MyModel:
             num_trains += int(is_train)
             for row in dataset.edu.itertuples():
                 self.registered_year_by_uid[row.uid] = row.registered_year
+                self.school_education_by_uid[row.uid] = row.school_education
                 if is_train:
                     self.age_by_uid[row.uid] = row.age
 
@@ -152,6 +166,14 @@ class MyModel:
             ])
             for uid in uids
         ]
+        # res['friends_mean_school_education_isna'] = [
+        #     np.mean([
+        #         np.isnan(self.school_education_by_uid[fr])
+        #         for fr in data.friends.get(uid, [])
+        #         if fr in self.school_education_by_uid
+        #     ])
+        #     for uid in uids
+        # ]
 
         # res['groups_median_max_registered_year'] = [
         #     np.nanmedian([
