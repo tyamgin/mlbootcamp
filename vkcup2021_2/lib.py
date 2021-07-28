@@ -96,6 +96,18 @@ class MyModel:
         self.params = params or {}
 
     def prepare(self, train, test):
+        num_trains = 0
+        num_uids = 0
+        uid2idx = {}
+        for dataset in (train, test):
+            is_train = 'age' in dataset.edu.columns
+            num_trains += int(is_train)
+            for row in dataset.edu.itertuples():
+                uid2idx[row.uid] = num_uids
+                num_uids += 1
+
+        assert num_trains == 1
+
         self.registered_year_by_uid = {}
         self.school_education_by_uid = {}
         self.age_by_uid = {}
@@ -104,32 +116,30 @@ class MyModel:
         self.group_median_registered_year = {}
         self.group_max_registered_year = {}
         group_users = defaultdict(list)
-        num_trains = 0
+
+        test_edu = test.edu.copy()
+        test_edu['age'] = np.nan
+        edu = pd.concat((train.edu, test_edu), sort=False).reset_index()
+        groups = {**train.groups, **test.groups}
 
         x = []
         y = []
         uids_list = []
-        num_rows = 0
 
-        for dataset in (train, test):
-            if dataset is None:
-                continue
-            is_train = 'age' in dataset.edu.columns
-            num_trains += int(is_train)
-            for row in dataset.edu.itertuples():
-                self.registered_year_by_uid[row.uid] = row.registered_year
-                self.school_education_by_uid[row.uid] = row.school_education
-                if is_train:
-                    self.age_by_uid[row.uid] = row.age
-                for gid in dataset.groups.get(row.uid, []):
-                    x.append(num_rows)
-                    y.append(gid)
-                uids_list.append(row.uid)
-                num_rows += 1
+        for i, row in edu.iterrows():
+            self.registered_year_by_uid[row.uid] = row.registered_year
+            self.school_education_by_uid[row.uid] = row.school_education
+            is_train = not np.isnan(row.age)
+            if is_train:
+                self.age_by_uid[row.uid] = row.age
+            for gid in (train.groups.get(row.uid, []) if is_train else test.groups.get(row.uid, [])):
+                x.append(i)
+                y.append(gid)
+            uids_list.append(row.uid)
 
-            for uid, user_groups in dataset.groups.items():
-                for gid in user_groups:
-                    group_users[gid].append(uid)
+        for uid, user_groups in groups.items():
+            for gid in user_groups:
+                group_users[gid].append(uid)
 
         for gid, uids in group_users.items():
             self.group_median_age[gid] = np.median([
@@ -147,9 +157,7 @@ class MyModel:
             ])
             self.group_size[gid] = len(uids)
 
-        assert num_trains == 1
-
-        mat = coo_matrix((np.repeat(1, len(x)), (x, y)), shape=(num_rows, max(y) + 1))
+        mat = coo_matrix((np.repeat(1, len(x)), (x, y)), shape=(len(uids_list), max(y) + 1))
         if self.params.get('group_embeddings_n_components', 0) > 0:
             svder = TruncatedSVD(
                 n_components=self.params['group_embeddings_n_components'],
@@ -261,8 +269,9 @@ class MyModel:
     def predict(self, edu):
         return np.repeat(35, edu.shape[0])
 
-dummy_data = Data()
-dummy_data.edu = pd.DataFrame({
+dummy_train = Data()
+dummy_test = Data()
+dummy_train.edu = pd.DataFrame({
     'uid': [356],
     'school_education': [2010],
     'graduation_1': [2010],
@@ -275,15 +284,30 @@ dummy_data.edu = pd.DataFrame({
     'age': [27],
     'registered_year': [2015],
 })
-dummy_data.groups = {
+dummy_train.groups = {
     356: np.arange(0, 1000)
+}
+dummy_test.edu = pd.DataFrame({
+    'uid': [556],
+    'school_education': [2010],
+    'graduation_1': [2010],
+    'graduation_2': [2010],
+    'graduation_3': [2010],
+    'graduation_4': [2010],
+    'graduation_5': [2010],
+    'graduation_6': [2010],
+    'graduation_7': [2010],
+    'registered_year': [2015],
+})
+dummy_test.groups = {
+    556: np.arange(0, 1000)
 }
 dummy_model = MyModel({
     'group_embeddings_n_components': 5,
     'group_embeddings_n_iter': 40,
 })
-dummy_model.prepare(dummy_data, None)
-dummy_model.fit(dummy_data)
+dummy_model.prepare(dummy_train, dummy_test)
+dummy_model.fit(dummy_train)
 
 
 class MeanModel(MyModel):
