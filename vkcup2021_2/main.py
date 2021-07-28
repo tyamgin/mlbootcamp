@@ -1,4 +1,3 @@
-import os
 import argparse
 
 from lib import (
@@ -6,6 +5,7 @@ from lib import (
     LgbModel,
     KerasModel,
     MeanModel,
+    seed_everything,
 )
 
 def main():
@@ -17,6 +17,7 @@ def main():
     args = parser.parse_args()
 
     print(args)
+    seed_everything(2021)
 
     prod_model = MeanModel([
         LgbModel({
