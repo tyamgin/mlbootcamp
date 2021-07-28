@@ -8,6 +8,10 @@ from collections import defaultdict
 import lightgbm as lgb
 import pandas as pd
 import numpy as np
+import scipy.stats
+
+from sklearn.decomposition import TruncatedSVD
+from scipy.sparse import coo_matrix
 
 
 def expand_grid(dictionary):
@@ -17,6 +21,15 @@ def expand_grid(dictionary):
 def rmse(x, y):
     n = len(x)
     return math.sqrt(1.0 * sum((x - y)**2) / n)
+
+
+def array_mode(x):
+    mode = scipy.stats.mode(x)
+    if len(mode[0]) == 0:
+        return np.nan
+    if mode.count[0] < len(x) / 5:
+        return np.median(x)
+    return mode[0][0]
 
 
 class Data:
@@ -64,6 +77,7 @@ class MyModel:
     group_size = None
     group_median_registered_year = None
     group_max_registered_year = None
+    group_embeddings = None
 
     def __init__(self, params):
         self.params = params or {}
@@ -79,6 +93,11 @@ class MyModel:
         group_users = defaultdict(list)
         num_trains = 0
 
+        x = []
+        y = []
+        uids_list = []
+        num_rows = 0
+
         for dataset in (train, test):
             if dataset is None:
                 continue
@@ -89,6 +108,11 @@ class MyModel:
                 self.school_education_by_uid[row.uid] = row.school_education
                 if is_train:
                     self.age_by_uid[row.uid] = row.age
+                for gid in dataset.groups.get(row.uid, []):
+                    x.append(num_rows)
+                    y.append(gid)
+                uids_list.append(row.uid)
+                num_rows += 1
 
             for uid, user_groups in dataset.groups.items():
                 for gid in user_groups:
@@ -111,6 +135,15 @@ class MyModel:
             self.group_size[gid] = len(uids)
 
         assert num_trains == 1
+
+        mat = coo_matrix((np.repeat(1, len(x)), (x, y)), shape=(num_rows, max(y) + 1))
+        svder = TruncatedSVD(
+            n_components=self.params['group_embeddings_n_components'],
+            n_iter=self.params['group_embeddings_n_iter']
+        )
+        feats = svder.fit_transform(mat)
+        self.group_embeddings = pd.DataFrame(feats, columns=[f"group_emb_{i}" for i in range(feats.shape[1])])
+        self.group_embeddings['uid'] = uids_list
 
     def get_X(self, data):
         del_cols = ['age']
@@ -135,6 +168,14 @@ class MyModel:
             ])
             for uid in uids
         ]
+        # res['friends_mode_age'] = [
+        #     array_mode([
+        #         self.age_by_uid[fr]
+        #         for fr in data.friends.get(uid, [])
+        #         if fr in self.age_by_uid
+        #     ])
+        #     for uid in uids
+        # ]
         res['friends_mean_age'] = [
             np.mean([
                 self.age_by_uid[fr]
@@ -195,6 +236,8 @@ class MyModel:
         # TODO: группа, в которой давно не было новичков:
         # reg_year - max(reg_year)
 
+        res = res.set_index('uid').join(self.group_embeddings.set_index('uid')).reset_index()
+
         return res
 
     def fit(self, X):
@@ -217,8 +260,13 @@ dummy_data.edu = pd.DataFrame({
     'age': [27],
     'registered_year': [2015],
 })
-dummy_data.groups = {}
-dummy_model = MyModel(None)
+dummy_data.groups = {
+    356: np.arange(0, 1000)
+}
+dummy_model = MyModel({
+    'group_embeddings_n_components': 5,
+    'group_embeddings_n_iter': 40,
+})
 dummy_model.prepare(dummy_data, None)
 dummy_model.fit(dummy_data)
 

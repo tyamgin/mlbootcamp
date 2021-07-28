@@ -20,12 +20,14 @@ def main():
         'boosting_type': 'gbdt',
         'min_data_in_leaf': 25,
         'lambda_l2': 0.06,
-        'num_leaves': 17,
+        'num_leaves': 20,
         'learning_rate': 0.035,
         'feature_fraction': 0.8,
         'bagging_fraction': 0.9,
         'bagging_freq': 6,
         'num_boost_round': 400,
+        'group_embeddings_n_components': 5,
+        'group_embeddings_n_iter': 44,
     })
     train = Data()
     train.read(args.train_data_dir, 'train')
