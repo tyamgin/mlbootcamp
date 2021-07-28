@@ -1,6 +1,8 @@
 FROM continuumio/anaconda3:latest
 
 RUN pip3 install 'lightgbm==3.2.1'
+RUN pip3 install 'tensorflow==2.5.0'
+RUN pip3 install 'keras==2.4.3'
 
 COPY *.py .
 COPY models models

@@ -9,6 +9,7 @@ import lightgbm as lgb
 import pandas as pd
 import numpy as np
 import scipy.stats
+import tensorflow.keras as keras
 
 from sklearn.decomposition import TruncatedSVD
 from scipy.sparse import coo_matrix
@@ -290,6 +291,80 @@ class LgbModel(MyModel):
             params,
             lgb_train,
             num_boost_round=num_boost_round
+        )
+
+    def predict(self, data):
+        res = self.model.predict(self.get_X(data))
+        return pd.DataFrame({'uid': data.edu['uid'].values, 'res': res})
+
+    def load(self, model_file):
+        self.model = lgb.Booster(model_file=model_file)
+
+
+class MyScaler():
+    def fit_transform(self, X, inplace=False):
+        assert inplace
+
+        self.columns = []
+        for c in X.columns:
+            if c != 'label':
+                self.columns.append(c)
+
+        self.means = []
+        self.sds = []
+        self.mins = []
+        self.maxs = []
+        for c in self.columns:
+            self.means.append(np.mean(X[c]))
+            self.sds.append(np.std(X[c]))
+            self.mins.append(np.min(X[c]))
+            self.maxs.append(np.max(X[c]))
+        return self.transform(X, inplace=inplace)
+
+    def transform(self, X, inplace=False):
+        assert inplace
+        for c, mean, sd, mn, mx in zip(self.columns, self.means, self.sds, self.mins, self.maxs):
+            X[c] = ((X[c] - mean) / sd).astype(np.float32)
+            # X[c] = ((X[c].astype(np.float64) - float(mn)) / (float(mx) - float(mn))).astype(np.float32)
+
+class KerasModel(MyModel):
+    model = None
+
+    def fit(self, data):
+        params = self.params
+        self.scaler = MyScaler()
+        X = self.get_X(data)
+        self.scaler.fit_transform(X, inplace=True)
+        y = data.edu['age'].values
+
+        model = keras.models.Sequential()
+        self.model = model
+
+        model.add(keras.layers.Dense(params['n1'], activation="relu", input_shape=(X.shape[1],)))
+        model.add(keras.layers.BatchNormalization())
+        model.add(keras.layers.LeakyReLU())
+
+        model.add(keras.layers.Dropout(params['dropout'], noise_shape=None, seed=1))
+        model.add(keras.layers.Dense(params['n2'], activation="relu"))
+        model.add(keras.layers.BatchNormalization())
+
+        if 'n3' in params:
+            model.add(keras.layers.Dropout(params['dropout'], noise_shape=None, seed=1))
+            model.add(keras.layers.Dense(params['n3'], activation="relu"))
+            model.add(keras.layers.BatchNormalization())
+
+        model.add(keras.layers.Dense(1, activation="sigmoid"))
+        model.summary()
+        model.compile(
+            optimizer=keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False),
+            loss="binary_crossentropy",
+            metrics=["accuracy"]
+        )
+        results = model.fit(
+            X, y,
+            epochs=params['epochs'],
+            batch_size=params.get('batch_size', 1024),
+            verbose=params['verbose']
         )
 
     def predict(self, data):
