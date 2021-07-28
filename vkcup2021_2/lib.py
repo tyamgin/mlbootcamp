@@ -1,5 +1,6 @@
 import itertools
 import datetime
+import random
 import math
 import os
 
@@ -9,10 +10,21 @@ import lightgbm as lgb
 import pandas as pd
 import numpy as np
 import scipy.stats
+import tensorflow
 import tensorflow.keras as keras
 
 from sklearn.decomposition import TruncatedSVD
 from scipy.sparse import coo_matrix
+
+
+def seed_everything(seed):
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    #torch.manual_seed(seed)
+    #torch.cuda.manual_seed(seed)
+    #torch.backends.cudnn.deterministic = True
+    tensorflow.random.set_seed(seed)
 
 
 def expand_grid(dictionary):
@@ -138,13 +150,14 @@ class MyModel:
         assert num_trains == 1
 
         mat = coo_matrix((np.repeat(1, len(x)), (x, y)), shape=(num_rows, max(y) + 1))
-        svder = TruncatedSVD(
-            n_components=self.params['group_embeddings_n_components'],
-            n_iter=self.params['group_embeddings_n_iter']
-        )
-        feats = svder.fit_transform(mat)
-        self.group_embeddings = pd.DataFrame(feats, columns=[f"group_emb_{i}" for i in range(feats.shape[1])])
-        self.group_embeddings['uid'] = uids_list
+        if self.params.get('group_embeddings_n_components', 0) > 0:
+            svder = TruncatedSVD(
+                n_components=self.params['group_embeddings_n_components'],
+                n_iter=self.params['group_embeddings_n_iter']
+            )
+            feats = svder.fit_transform(mat)
+            self.group_embeddings = pd.DataFrame(feats, columns=[f"group_emb_{i}" for i in range(feats.shape[1])])
+            self.group_embeddings['uid'] = uids_list
 
     def get_X(self, data):
         del_cols = ['age']
@@ -237,7 +250,8 @@ class MyModel:
         # TODO: группа, в которой давно не было новичков:
         # reg_year - max(reg_year)
 
-        res = res.set_index('uid').join(self.group_embeddings.set_index('uid')).reset_index()
+        if self.group_embeddings is not None:
+            res = res.set_index('uid').join(self.group_embeddings.set_index('uid')).reset_index()
 
         return res
 
@@ -271,6 +285,34 @@ dummy_model = MyModel({
 dummy_model.prepare(dummy_data, None)
 dummy_model.fit(dummy_data)
 
+
+class MeanModel(MyModel):
+    def __init__(self, models, coefs):
+        self.models = models
+        self.coefs = coefs
+
+    def fit(self, data):
+        for model, coef in zip(self.models, self.coefs):
+            if coef != 0:
+                model.fit(data)
+
+    def predict(self, X):
+        sum = None
+        for model, coef in zip(self.models, self.coefs):
+            if coef != 0:
+                r = model.predict(X) * coef
+                if sum is None:
+                    sum = r
+                else:
+                    sum += r
+        return sum
+
+    def prepare(self, train, test):
+        for model, coef in zip(self.models, self.coefs):
+            if coef != 0:
+                model.prepare(train, test)
+
+
 class LgbModel(MyModel):
     model = None
 
@@ -283,7 +325,10 @@ class LgbModel(MyModel):
         print('Starting train: %s' % datetime.datetime.now())
         params = self.params.copy()
         num_boost_round = params['num_boost_round']
-        del params['num_boost_round']
+        for del_param in ('num_boost_round', 'group_embeddings_n_iter', 'group_embeddings_n_components'):
+            if del_param in params:
+                del params[del_param]
+
         params['objective'] = 'regression'
         params['metric'] = 'rmse'
         params['verbosity'] = 1
@@ -307,24 +352,25 @@ class MyScaler():
 
         self.columns = []
         for c in X.columns:
-            if c != 'label':
-                self.columns.append(c)
+            self.columns.append(c)
 
         self.means = []
         self.sds = []
         self.mins = []
         self.maxs = []
+        self.defaults = []
         for c in self.columns:
-            self.means.append(np.mean(X[c]))
-            self.sds.append(np.std(X[c]))
-            self.mins.append(np.min(X[c]))
-            self.maxs.append(np.max(X[c]))
+            self.means.append(np.nanmean(X[c]))
+            self.sds.append(np.nanstd(X[c]))
+            self.mins.append(np.nanmin(X[c]))
+            self.maxs.append(np.nanmax(X[c]))
+            self.defaults.append(np.nanmean(X[c]))
         return self.transform(X, inplace=inplace)
 
     def transform(self, X, inplace=False):
         assert inplace
-        for c, mean, sd, mn, mx in zip(self.columns, self.means, self.sds, self.mins, self.maxs):
-            X[c] = ((X[c] - mean) / sd).astype(np.float32)
+        for c, mean, sd, mn, mx, default in zip(self.columns, self.means, self.sds, self.mins, self.maxs, self.defaults):
+            X[c] = ((X[c].fillna(default) - mean) / sd).astype(np.float32)
             # X[c] = ((X[c].astype(np.float64) - float(mn)) / (float(mx) - float(mn))).astype(np.float32)
 
 class KerasModel(MyModel):
@@ -335,7 +381,7 @@ class KerasModel(MyModel):
         self.scaler = MyScaler()
         X = self.get_X(data)
         self.scaler.fit_transform(X, inplace=True)
-        y = data.edu['age'].values
+        y = data.edu['age'].values / 70
 
         model = keras.models.Sequential()
         self.model = model
@@ -354,11 +400,12 @@ class KerasModel(MyModel):
             model.add(keras.layers.BatchNormalization())
 
         model.add(keras.layers.Dense(1, activation="sigmoid"))
-        model.summary()
+        if params['verbose'] > 0:
+            model.summary()
         model.compile(
-            optimizer=keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False),
-            loss="binary_crossentropy",
-            metrics=["accuracy"]
+            optimizer=keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False),
+            loss=keras.metrics.mean_squared_error,
+            metrics=[keras.metrics.RootMeanSquaredError(name='rmse')],
         )
         results = model.fit(
             X, y,
@@ -368,8 +415,6 @@ class KerasModel(MyModel):
         )
 
     def predict(self, data):
-        res = self.model.predict(self.get_X(data))
-        return pd.DataFrame({'uid': data.edu['uid'].values, 'res': res})
-
-    def load(self, model_file):
-        self.model = lgb.Booster(model_file=model_file)
+        X = self.get_X(data)
+        self.scaler.transform(X, inplace=True)
+        return pd.DataFrame({'uid': data.edu['uid'].values, 'res': self.model.predict(X)[:, 0] * 70})
