@@ -32,7 +32,7 @@ def main():
             'bagging_freq': 6,
             'num_boost_round': 400,
             'group_embeddings_n_components': 5,
-            'group_embeddings_n_iter': 44,
+            'group_embeddings_n_iter': 28,
         }),
         KerasModel({
             'epochs': 80,
