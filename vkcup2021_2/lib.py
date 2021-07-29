@@ -84,7 +84,6 @@ class Data:
 class MyModel:
     verbose = 0
     train_size = None
-    registered_year_by_uid = None
     school_education_by_uid = None
     age_by_uid = None
     group_median_age = None
@@ -110,7 +109,6 @@ class MyModel:
         assert num_trains == 1
         self.train_size = train.edu.shape[0]
 
-        self.registered_year_by_uid = {}
         self.school_education_by_uid = {}
         self.age_by_uid = {}
         self.group_median_age = {}
@@ -130,7 +128,6 @@ class MyModel:
         uids_list = []
 
         for i, row in edu.iterrows():
-            self.registered_year_by_uid[row.uid] = row.registered_year
             self.school_education_by_uid[row.uid] = row.school_education
             is_train = not np.isnan(row.age)
             if is_train:
@@ -189,11 +186,16 @@ class MyModel:
         res['friends_count'] = [len(data.friends.get(uid, [])) for uid in uids]
         res['groups_count'] = [len(data.groups.get(uid, [])) for uid in uids]
         #res['dff'] = res['registered_year'] - res['school_education']
+
+        friends2 = {
+            uid: np.array([self.uid2idx[fr] for fr in uids_list if fr in self.uid2idx])
+            for uid, uids_list in data.friends.items()
+        }
+
         res['friends_median_registered_year'] = [
             np.median([
-                self.registered_year_by_uid[fr]
-                for fr in data.friends.get(uid, [])
-                if fr in self.registered_year_by_uid
+                self.registered_year_by_uid2[fr]
+                for fr in friends2.get(uid, [])
             ])
             for uid in uids
         ]
