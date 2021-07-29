@@ -83,6 +83,7 @@ class Data:
 
 class MyModel:
     verbose = 0
+    train_size = None
     registered_year_by_uid = None
     school_education_by_uid = None
     age_by_uid = None
@@ -98,15 +99,16 @@ class MyModel:
     def prepare(self, train, test):
         num_trains = 0
         num_uids = 0
-        uid2idx = {}
+        self.uid2idx = {}
         for dataset in (train, test):
             is_train = 'age' in dataset.edu.columns
             num_trains += int(is_train)
             for row in dataset.edu.itertuples():
-                uid2idx[row.uid] = num_uids
+                self.uid2idx[row.uid] = num_uids
                 num_uids += 1
 
         assert num_trains == 1
+        self.train_size = train.edu.shape[0]
 
         self.registered_year_by_uid = {}
         self.school_education_by_uid = {}
@@ -115,12 +117,13 @@ class MyModel:
         self.group_size = defaultdict(int)
         self.group_median_registered_year = {}
         self.group_max_registered_year = {}
-        group_users = defaultdict(list)
 
         test_edu = test.edu.copy()
         test_edu['age'] = np.nan
         edu = pd.concat((train.edu, test_edu), sort=False).reset_index()
         groups = {**train.groups, **test.groups}
+
+        self.registered_year_by_uid2 = edu['registered_year'].values
 
         x = []
         y = []
@@ -137,9 +140,16 @@ class MyModel:
                 y.append(gid)
             uids_list.append(row.uid)
 
+        group_users = defaultdict(list)
         for uid, user_groups in groups.items():
             for gid in user_groups:
                 group_users[gid].append(uid)
+
+        group_users2 = defaultdict(list)
+        for uid, user_groups in groups.items():
+            idx = self.uid2idx[uid]
+            for gid in user_groups:
+                group_users2[gid].append(idx)
 
         for gid, uids in group_users.items():
             self.group_median_age[gid] = np.median([
@@ -147,15 +157,17 @@ class MyModel:
                 for uid in uids
                 if uid in self.age_by_uid
             ])
+            self.group_size[gid] = len(uids)
+
+        for gid, uidxs in group_users2.items():
             self.group_median_registered_year[gid] = np.median([
-                self.registered_year_by_uid[uid]
-                for uid in uids
+                self.registered_year_by_uid2[idx]
+                for idx in uidxs
             ])
             self.group_max_registered_year[gid] = np.max([
-                self.registered_year_by_uid[uid]
-                for uid in uids
+                self.registered_year_by_uid2[idx]
+                for idx in uidxs
             ])
-            self.group_size[gid] = len(uids)
 
         mat = coo_matrix((np.repeat(1, len(x)), (x, y)), shape=(len(uids_list), max(y) + 1))
         if self.params.get('group_embeddings_n_components', 0) > 0:
@@ -171,6 +183,9 @@ class MyModel:
         del_cols = ['age']
         res = data.edu.drop([c for c in del_cols if c in data.edu.columns], 1)
         uids = res['uid'].values
+        idxes = np.arange(0, data.edu.shape[0])
+        if 'age' in data.edu.columns:
+            idxes += self.train_size
         res['friends_count'] = [len(data.friends.get(uid, [])) for uid in uids]
         res['groups_count'] = [len(data.groups.get(uid, [])) for uid in uids]
         #res['dff'] = res['registered_year'] - res['school_education']
