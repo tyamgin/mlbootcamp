@@ -85,7 +85,7 @@ class MyModel:
     verbose = 0
     train_size = None
     school_education_by_uid = None
-    age_by_uid = None
+    age_by_uid2 = None
     group_median_age = None
     group_size = None
     group_median_registered_year = None
@@ -109,7 +109,6 @@ class MyModel:
         self.train_size = train.edu.shape[0]
 
         self.school_education_by_uid = {}
-        self.age_by_uid = {}
         self.group_median_age = {}
         self.group_size = defaultdict(int)
         self.group_median_registered_year = {}
@@ -120,6 +119,7 @@ class MyModel:
         groups = {**train.groups, **test.groups}
 
         self.registered_year_by_uid2 = edu['registered_year'].values
+        self.age_by_uid2 = edu['age'].values
 
         x = []
         y = []
@@ -128,8 +128,6 @@ class MyModel:
         for i, row in edu.iterrows():
             self.school_education_by_uid[row.uid] = row.school_education
             is_train = not np.isnan(row.age)
-            if is_train:
-                self.age_by_uid[row.uid] = row.age
             for gid in (train.groups.get(row.uid, []) if is_train else test.groups.get(row.uid, [])):
                 x.append(i)
                 y.append(gid)
@@ -147,15 +145,11 @@ class MyModel:
                 group_users2[gid].append(idx)
 
         for gid, uids in group_users.items():
-            self.group_median_age[gid] = np.median([
-                self.age_by_uid[uid]
-                for uid in uids
-                if uid in self.age_by_uid
-            ])
             self.group_size[gid] = len(uids)
 
         for gid, uidxs in group_users2.items():
             self.group_median_registered_year[gid] = np.median(self.registered_year_by_uid2[uidxs])
+            self.group_median_age[gid] = np.nanmedian(self.age_by_uid2[uidxs])
 
         mat = coo_matrix((np.repeat(1, len(x)), (x, y)), shape=(len(uids_list), max(y) + 1))
         if self.params.get('group_embeddings_n_components', 0) > 0:
@@ -179,23 +173,17 @@ class MyModel:
         #res['dff'] = res['registered_year'] - res['school_education']
 
         friends2 = {
-            uid: np.array([self.uid2idx[fr] for fr in uids_list if fr in self.uid2idx])
+            uid: [self.uid2idx[fr] for fr in uids_list if fr in self.uid2idx]
             for uid, uids_list in data.friends.items()
         }
+        #print(friends2)
 
         res['friends_median_registered_year'] = [
-            np.median([
-                self.registered_year_by_uid2[fr]
-                for fr in friends2.get(uid, [])
-            ])
+            np.nanmedian(self.registered_year_by_uid2[friends2.get(uid, [])])
             for uid in uids
         ]
         res['friends_median_age'] = [
-            np.median([
-                self.age_by_uid[fr]
-                for fr in data.friends.get(uid, [])
-                if fr in self.age_by_uid
-            ])
+            np.nanmedian(self.age_by_uid2[friends2.get(uid, [])])
             for uid in uids
         ]
         # res['friends_mode_age'] = [
@@ -207,11 +195,7 @@ class MyModel:
         #     for uid in uids
         # ]
         res['friends_mean_age'] = [
-            np.mean([
-                self.age_by_uid[fr]
-                for fr in data.friends.get(uid, [])
-                if fr in self.age_by_uid
-            ])
+            np.nanmean(self.age_by_uid2[friends2.get(uid, [])])
             for uid in uids
         ]
         res['groups_median_age'] = [
