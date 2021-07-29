@@ -84,7 +84,7 @@ class Data:
 class MyModel:
     verbose = 0
     train_size = None
-    school_education_by_uid = None
+    registered_year_by_uid2 = None
     age_by_uid2 = None
     group_median_age = None
     group_size = None
@@ -108,7 +108,6 @@ class MyModel:
         assert num_trains == 1
         self.train_size = train.edu.shape[0]
 
-        self.school_education_by_uid = {}
         self.group_median_age = {}
         self.group_size = defaultdict(int)
         self.group_median_registered_year = {}
@@ -126,17 +125,11 @@ class MyModel:
         uids_list = []
 
         for i, row in edu.iterrows():
-            self.school_education_by_uid[row.uid] = row.school_education
             is_train = not np.isnan(row.age)
             for gid in (train.groups.get(row.uid, []) if is_train else test.groups.get(row.uid, [])):
                 x.append(i)
                 y.append(gid)
             uids_list.append(row.uid)
-
-        group_users = defaultdict(list)
-        for uid, user_groups in groups.items():
-            for gid in user_groups:
-                group_users[gid].append(uid)
 
         group_users2 = defaultdict(list)
         for uid, user_groups in groups.items():
@@ -144,7 +137,7 @@ class MyModel:
             for gid in user_groups:
                 group_users2[gid].append(idx)
 
-        for gid, uids in group_users.items():
+        for gid, uids in group_users2.items():
             self.group_size[gid] = len(uids)
 
         for gid, uidxs in group_users2.items():
@@ -165,18 +158,14 @@ class MyModel:
         del_cols = ['age']
         res = data.edu.drop([c for c in del_cols if c in data.edu.columns], 1)
         uids = res['uid'].values
-        idxes = np.arange(0, data.edu.shape[0])
-        if 'age' in data.edu.columns:
-            idxes += self.train_size
+
         res['friends_count'] = [len(data.friends.get(uid, [])) for uid in uids]
         res['groups_count'] = [len(data.groups.get(uid, [])) for uid in uids]
-        #res['dff'] = res['registered_year'] - res['school_education']
 
         friends2 = {
             uid: [self.uid2idx[fr] for fr in uids_list if fr in self.uid2idx]
             for uid, uids_list in data.friends.items()
         }
-        #print(friends2)
 
         res['friends_median_registered_year'] = [
             np.nanmedian(self.registered_year_by_uid2[friends2.get(uid, [])])
@@ -186,14 +175,6 @@ class MyModel:
             np.nanmedian(self.age_by_uid2[friends2.get(uid, [])])
             for uid in uids
         ]
-        # res['friends_mode_age'] = [
-        #     array_mode([
-        #         self.age_by_uid[fr]
-        #         for fr in data.friends.get(uid, [])
-        #         if fr in self.age_by_uid
-        #     ])
-        #     for uid in uids
-        # ]
         res['friends_mean_age'] = [
             np.nanmean(self.age_by_uid2[friends2.get(uid, [])])
             for uid in uids
@@ -221,31 +202,6 @@ class MyModel:
             ])
             for uid in uids
         ]
-        # res['friends_mean_school_education_isna'] = [
-        #     np.mean([
-        #         np.isnan(self.school_education_by_uid[fr])
-        #         for fr in data.friends.get(uid, [])
-        #         if fr in self.school_education_by_uid
-        #     ])
-        #     for uid in uids
-        # ]
-
-        # res['groups_median_max_registered_year'] = [
-        #     np.nanmedian([
-        #         self.group_max_registered_year[gr]
-        #         for gr in data.groups.get(uid, [])
-        #         if gr in self.group_max_registered_year
-        #     ])
-        #     for uid in uids
-        # ]
-        # res['groups_median_size'] = [
-        #     np.median([
-        #         self.group_size[gr]
-        #         for gr in data.groups.get(uid, [])
-        #         if gr in self.group_size
-        #     ])
-        #     for uid in uids
-        # ]
 
         # TODO: группа, в которой давно не было новичков:
         # reg_year - max(reg_year)
