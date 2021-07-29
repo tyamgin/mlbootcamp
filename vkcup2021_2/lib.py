@@ -400,7 +400,7 @@ class KerasModel(MyModel):
         if params['verbose'] > 0:
             model.summary()
         model.compile(
-            optimizer=keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False),
+            optimizer=keras.optimizers.Adam(learning_rate=params['learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False),
             loss=keras.metrics.mean_squared_error,
             metrics=[keras.metrics.RootMeanSquaredError(name='rmse')],
         )

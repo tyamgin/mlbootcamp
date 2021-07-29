@@ -27,7 +27,7 @@ def main():
             'lambda_l2': 0.06,
             'num_leaves': 20,
             'learning_rate': 0.035,
-            'feature_fraction': 0.8,
+            'feature_fraction': 0.6,
             'bagging_fraction': 0.9,
             'bagging_freq': 6,
             'num_boost_round': 400,
@@ -40,6 +40,7 @@ def main():
             'n1': 170,
             'n2': 150,
             'dropout': 0.1,
+            'learning_rate': 0.001,
         }),
     ], coefs=(0.7, 0.3))
 
