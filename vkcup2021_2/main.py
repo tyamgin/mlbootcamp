@@ -35,12 +35,12 @@ def main():
             'group_embeddings_n_iter': 44,
         }),
         KerasModel({
-            'epochs': 100,
+            'epochs': 80,
             'verbose': 0,
             'n1': 170,
             'n2': 150,
             'dropout': 0.1,
-            'learning_rate': 0.001,
+            'learning_rate': 0.002,
         }),
     ], coefs=(0.7, 0.3))
 

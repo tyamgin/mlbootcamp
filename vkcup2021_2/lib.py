@@ -36,15 +36,6 @@ def rmse(x, y):
     return math.sqrt(1.0 * sum((x - y)**2) / n)
 
 
-def array_mode(x):
-    mode = scipy.stats.mode(x)
-    if len(mode[0]) == 0:
-        return np.nan
-    if mode.count[0] < len(x) / 5:
-        return np.median(x)
-    return mode[0][0]
-
-
 class Data:
     friends = None
     edu = None
@@ -133,14 +124,12 @@ class MyModel:
 
             x = []
             y = []
-            uids_list = []
 
             for i, row in edu.iterrows():
                 is_train = not np.isnan(row.age)
                 for gid in (train.groups.get(row.uid, []) if is_train else test.groups.get(row.uid, [])):
                     x.append(i)
                     y.append(gid)
-                uids_list.append(row.uid)
 
             group_users2 = defaultdict(list)
             for data in train, test:
@@ -155,14 +144,15 @@ class MyModel:
                 self.group_median_age[gid] = np.nanmedian(self.age_by_uid2[uidxs])
 
             if self.params.get('group_embeddings_n_components', 0) > 0:
-                mat = coo_matrix((np.repeat(1, len(x)), (x, y)), shape=(len(uids_list), max(y) + 1))
+                mat = coo_matrix((np.repeat(1, len(x)), (x, y)), shape=(edu.shape[0], max(y) + 1))
                 svder = TruncatedSVD(
                     n_components=self.params['group_embeddings_n_components'],
                     n_iter=self.params['group_embeddings_n_iter']
                 )
                 feats = svder.fit_transform(mat)
                 self.group_embeddings = pd.DataFrame(feats, columns=[f"group_emb_{i}" for i in range(feats.shape[1])])
-                self.group_embeddings['uid'] = uids_list
+                self.group_embeddings['uid'] = edu.uid
+                self.group_embeddings.set_index('uid', inplace=True)
 
             self.res = []
             for data in train, test:
@@ -222,7 +212,7 @@ class MyModel:
         # reg_year - max(reg_year)
 
         if self.group_embeddings is not None:
-            res = res.set_index('uid').join(self.group_embeddings.set_index('uid')).reset_index()
+            res = res.set_index('uid').join(self.group_embeddings).reset_index()
 
         return res
 
@@ -353,22 +343,17 @@ class MyScaler():
 
         self.means = []
         self.sds = []
-        self.mins = []
-        self.maxs = []
         self.defaults = []
         for c in self.columns:
             self.means.append(np.nanmean(X[c]))
             self.sds.append(np.nanstd(X[c]))
-            self.mins.append(np.nanmin(X[c]))
-            self.maxs.append(np.nanmax(X[c]))
             self.defaults.append(np.nanmean(X[c]))
         return self.transform(X, inplace=inplace)
 
     def transform(self, X, inplace=False):
         assert inplace
-        for c, mean, sd, mn, mx, default in zip(self.columns, self.means, self.sds, self.mins, self.maxs, self.defaults):
+        for c, mean, sd, default in zip(self.columns, self.means, self.sds, self.defaults):
             X[c] = ((X[c].fillna(default) - mean) / sd).astype(np.float32)
-            # X[c] = ((X[c].astype(np.float64) - float(mn)) / (float(mx) - float(mn))).astype(np.float32)
 
 class KerasModel(MyModel):
     model = None
