@@ -89,7 +89,6 @@ class MyModel:
     group_median_age = None
     group_size = None
     group_median_registered_year = None
-    group_max_registered_year = None
     group_embeddings = None
 
     def __init__(self, params):
@@ -114,7 +113,6 @@ class MyModel:
         self.group_median_age = {}
         self.group_size = defaultdict(int)
         self.group_median_registered_year = {}
-        self.group_max_registered_year = {}
 
         test_edu = test.edu.copy()
         test_edu['age'] = np.nan
@@ -157,14 +155,7 @@ class MyModel:
             self.group_size[gid] = len(uids)
 
         for gid, uidxs in group_users2.items():
-            self.group_median_registered_year[gid] = np.median([
-                self.registered_year_by_uid2[idx]
-                for idx in uidxs
-            ])
-            self.group_max_registered_year[gid] = np.max([
-                self.registered_year_by_uid2[idx]
-                for idx in uidxs
-            ])
+            self.group_median_registered_year[gid] = np.median(self.registered_year_by_uid2[uidxs])
 
         mat = coo_matrix((np.repeat(1, len(x)), (x, y)), shape=(len(uids_list), max(y) + 1))
         if self.params.get('group_embeddings_n_components', 0) > 0:
