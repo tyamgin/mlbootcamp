@@ -83,7 +83,7 @@ class Data:
 
 class MyModel:
     verbose = 0
-    train_size = None
+    uid2idx = None
     registered_year_by_uid2 = None
     age_by_uid2 = None
     group_median_age = None
@@ -94,65 +94,75 @@ class MyModel:
     def __init__(self, params):
         self.params = params or {}
 
-    def prepare(self, train, test):
-        num_trains = 0
-        num_uids = 0
-        self.uid2idx = {}
-        for dataset in (train, test):
-            is_train = 'age' in dataset.edu.columns
-            num_trains += int(is_train)
-            for row in dataset.edu.itertuples():
-                self.uid2idx[row.uid] = num_uids
-                num_uids += 1
+    def prepare(self, train, test, other_model=None):
+        if other_model is not None:
+            self.uid2idx = other_model.uid2idx
+            self.registered_year_by_uid2 = other_model.registered_year_by_uid2
+            self.age_by_uid2 = other_model.age_by_uid2
+            self.group_median_age = other_model.group_median_age
+            self.group_size = other_model.group_size
+            self.group_median_registered_year = other_model.group_median_registered_year
+            if self.params.get('group_embeddings_n_components', 0) > 0:
+                self.group_embeddings = other_model.group_embeddings
+                assert self.group_embeddings is not None
+        else:
+            num_trains = 0
+            num_uids = 0
+            self.uid2idx = {}
+            for dataset in (train, test):
+                is_train = 'age' in dataset.edu.columns
+                num_trains += int(is_train)
+                for row in dataset.edu.itertuples():
+                    self.uid2idx[row.uid] = num_uids
+                    num_uids += 1
 
-        assert num_trains == 1
-        self.train_size = train.edu.shape[0]
+            assert num_trains == 1
 
-        self.group_median_age = {}
-        self.group_size = defaultdict(int)
-        self.group_median_registered_year = {}
+            self.group_median_age = {}
+            self.group_size = defaultdict(int)
+            self.group_median_registered_year = {}
 
-        test_edu = test.edu.copy()
-        test_edu['age'] = np.nan
-        edu = pd.concat((train.edu, test_edu), sort=False).reset_index()
-        groups = {**train.groups, **test.groups}
+            test_edu = test.edu.copy()
+            test_edu['age'] = np.nan
+            edu = pd.concat((train.edu, test_edu), sort=False).reset_index()
+            groups = {**train.groups, **test.groups}
 
-        self.registered_year_by_uid2 = edu['registered_year'].values
-        self.age_by_uid2 = edu['age'].values
+            self.registered_year_by_uid2 = edu['registered_year'].values
+            self.age_by_uid2 = edu['age'].values
 
-        x = []
-        y = []
-        uids_list = []
+            x = []
+            y = []
+            uids_list = []
 
-        for i, row in edu.iterrows():
-            is_train = not np.isnan(row.age)
-            for gid in (train.groups.get(row.uid, []) if is_train else test.groups.get(row.uid, [])):
-                x.append(i)
-                y.append(gid)
-            uids_list.append(row.uid)
+            for i, row in edu.iterrows():
+                is_train = not np.isnan(row.age)
+                for gid in (train.groups.get(row.uid, []) if is_train else test.groups.get(row.uid, [])):
+                    x.append(i)
+                    y.append(gid)
+                uids_list.append(row.uid)
 
-        group_users2 = defaultdict(list)
-        for uid, user_groups in groups.items():
-            idx = self.uid2idx[uid]
-            for gid in user_groups:
-                group_users2[gid].append(idx)
+            group_users2 = defaultdict(list)
+            for uid, user_groups in groups.items():
+                idx = self.uid2idx[uid]
+                for gid in user_groups:
+                    group_users2[gid].append(idx)
 
-        for gid, uids in group_users2.items():
-            self.group_size[gid] = len(uids)
+            for gid, uids in group_users2.items():
+                self.group_size[gid] = len(uids)
 
-        for gid, uidxs in group_users2.items():
-            self.group_median_registered_year[gid] = np.median(self.registered_year_by_uid2[uidxs])
-            self.group_median_age[gid] = np.nanmedian(self.age_by_uid2[uidxs])
+            for gid, uidxs in group_users2.items():
+                self.group_median_registered_year[gid] = np.median(self.registered_year_by_uid2[uidxs])
+                self.group_median_age[gid] = np.nanmedian(self.age_by_uid2[uidxs])
 
-        mat = coo_matrix((np.repeat(1, len(x)), (x, y)), shape=(len(uids_list), max(y) + 1))
-        if self.params.get('group_embeddings_n_components', 0) > 0:
-            svder = TruncatedSVD(
-                n_components=self.params['group_embeddings_n_components'],
-                n_iter=self.params['group_embeddings_n_iter']
-            )
-            feats = svder.fit_transform(mat)
-            self.group_embeddings = pd.DataFrame(feats, columns=[f"group_emb_{i}" for i in range(feats.shape[1])])
-            self.group_embeddings['uid'] = uids_list
+            if self.params.get('group_embeddings_n_components', 0) > 0:
+                mat = coo_matrix((np.repeat(1, len(x)), (x, y)), shape=(len(uids_list), max(y) + 1))
+                svder = TruncatedSVD(
+                    n_components=self.params['group_embeddings_n_components'],
+                    n_iter=self.params['group_embeddings_n_iter']
+                )
+                feats = svder.fit_transform(mat)
+                self.group_embeddings = pd.DataFrame(feats, columns=[f"group_emb_{i}" for i in range(feats.shape[1])])
+                self.group_embeddings['uid'] = uids_list
 
     def get_X(self, data):
         del_cols = ['age']
@@ -279,10 +289,12 @@ class MeanModel(MyModel):
                     sum += r
         return sum
 
-    def prepare(self, train, test):
+    def prepare(self, train, test, other_model=None):
+        prev_model = None
         for model, coef in zip(self.models, self.coefs):
             if coef != 0:
-                model.prepare(train, test)
+                model.prepare(train, test, prev_model)
+                prev_model = model
 
 
 class LgbModel(MyModel):

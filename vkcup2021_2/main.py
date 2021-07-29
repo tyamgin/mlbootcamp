@@ -40,7 +40,7 @@ def main():
             'n2': 150,
             'dropout': 0.1,
         }),
-    ], coefs=(0.8, 0.2))
+    ], coefs=(0.7, 0.3))
 
     train = Data()
     train.read(args.train_data_dir, 'train')
