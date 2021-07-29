@@ -8,6 +8,7 @@ from lib import (
     seed_everything,
 )
 
+
 def main():
     parser = argparse.ArgumentParser(description='Program.')
     parser.add_argument('--test-data-dir', dest='test_data_dir', required=True)
