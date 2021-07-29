@@ -127,7 +127,6 @@ class MyModel:
             test_edu = test.edu.copy()
             test_edu['age'] = np.nan
             edu = pd.concat((train.edu, test_edu), sort=False).reset_index()
-            groups = {**train.groups, **test.groups}
 
             self.registered_year_by_uid2 = edu['registered_year'].values
             self.age_by_uid2 = edu['age'].values
@@ -144,15 +143,14 @@ class MyModel:
                 uids_list.append(row.uid)
 
             group_users2 = defaultdict(list)
-            for uid, user_groups in groups.items():
-                idx = self.uid2idx[uid]
-                for gid in user_groups:
-                    group_users2[gid].append(idx)
-
-            for gid, uids in group_users2.items():
-                self.group_size[gid] = len(uids)
+            for data in train, test:
+                for uid, user_groups in data.groups.items():
+                    idx = self.uid2idx[uid]
+                    for gid in user_groups:
+                        group_users2[gid].append(idx)
 
             for gid, uidxs in group_users2.items():
+                self.group_size[gid] = len(uidxs)
                 self.group_median_registered_year[gid] = np.median(self.registered_year_by_uid2[uidxs])
                 self.group_median_age[gid] = np.nanmedian(self.age_by_uid2[uidxs])
 
