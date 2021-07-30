@@ -1,4 +1,6 @@
 import argparse
+import pandas as pd
+import numpy as np
 
 from lib import (
     Data,
@@ -6,6 +8,7 @@ from lib import (
     KerasModel,
     MeanModel,
     seed_everything,
+    DebugError,
 )
 
 
@@ -18,7 +21,7 @@ def main():
     args = parser.parse_args()
 
     print(args)
-    seed_everything(2021)
+    seed_everything(2020)
 
     prod_model = MeanModel([
         LgbModel({
@@ -31,16 +34,16 @@ def main():
             'bagging_fraction': 0.9,
             'bagging_freq': 6,
             'num_boost_round': 400,
-            'group_embeddings_n_components': 5,
-            'group_embeddings_n_iter': 28,
+            'group_embeddings_n_components': 7,
+            'group_embeddings_n_iter': 24,
         }),
         KerasModel({
-            'epochs': 80,
+            'epochs': 100,
             'verbose': 0,
-            'n1': 170,
-            'n2': 150,
+            'n1': 100,
+            'n2': 70,
             'dropout': 0.1,
-            'learning_rate': 0.002,
+            'learning_rate': 0.003,
         }),
     ], coefs=(0.7, 0.3))
 
@@ -55,8 +58,11 @@ def main():
 
     #prod_model.load(os.path.join(args.work_dir, 'models/lgb.txt'))
 
-    res = prod_model.predict(test)
-    res.rename(columns={'res': 'age'}).to_csv(args.res_path, header=True, index=False)
+    try:
+        res = prod_model.predict(test)
+        pd.DataFrame({'uid': test.edu.uid, 'age': res}).to_csv(args.res_path, header=True, index=False)
+    except DebugError:
+        pd.DataFrame({'uid': test.edu.uid, 'age': np.repeat(35, test.edu.shape[0])}).to_csv(args.res_path, header=True, index=False)
 
 
 if __name__ == '__main__':

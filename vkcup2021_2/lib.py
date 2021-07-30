@@ -36,6 +36,10 @@ def rmse(x, y):
     return math.sqrt(1.0 * sum((x - y)**2) / n)
 
 
+class DebugError(Exception):
+    pass
+
+
 class Data:
     friends = None
     edu = None
@@ -326,8 +330,7 @@ class LgbModel(MyModel):
         )
 
     def predict(self, data):
-        res = self.model.predict(self.get_X(data))
-        return pd.DataFrame({'uid': data.edu['uid'].values, 'res': res})
+        return self.model.predict(self.get_X(data))
 
     def load(self, model_file):
         self.model = lgb.Booster(model_file=model_file)
@@ -397,6 +400,9 @@ class KerasModel(MyModel):
         )
 
     def predict(self, data):
-        X = self.get_X(data)
-        self.scaler.transform(X, inplace=True)
-        return pd.DataFrame({'uid': data.edu['uid'].values, 'res': self.model.predict(X)[:, 0] * 70})
+        try:
+            X = self.get_X(data)
+            self.scaler.transform(X, inplace=True)
+            return self.model.predict(X)[:, 0] * 70
+        except:
+            raise DebugError()
